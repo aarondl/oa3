@@ -7,9 +7,9 @@ package openapi3spec
 // Validation. Unless stated otherwise, the property definitions follow the JSON
 // Schema.
 type Schema struct {
-	Title       *string    `json:"title,omitempty" yaml:"title,omitempty"`
-	Description *string    `json:"description,omitempty" yaml:"description,omitempty"`
-	Default     *SchemaRef `json:"default,omitempty" yaml:"default,omitempty"`
+	Title       *string     `json:"title,omitempty" yaml:"title,omitempty"`
+	Description *string     `json:"description,omitempty" yaml:"description,omitempty"`
+	Default     interface{} `json:"default,omitempty" yaml:"default,omitempty"`
 
 	Type string `json:"type,omitempty" yaml:"type,omitempty"`
 
@@ -33,10 +33,10 @@ type Schema struct {
 	Format  *string `json:"format,omitempty" yaml:"format,omitempty"`
 	Pattern *string `json:"pattern,omitempty" yaml:"pattern,omitempty"`
 
-	Items       map[string]*SchemaRef `json:"items,omitempty" yaml:"items,omitempty"`
-	MaxItems    *int                  `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
-	MinItems    *int                  `json:"minItems,omitempty" yaml:"minItems,omitempty"`
-	UniqueItems *bool                 `json:"uniqueItems,omitempty" yaml:"uniqueItems,omitempty"`
+	Items       *SchemaRef `json:"items,omitempty" yaml:"items,omitempty"`
+	MaxItems    *int       `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
+	MinItems    *int       `json:"minItems,omitempty" yaml:"minItems,omitempty"`
+	UniqueItems *bool      `json:"uniqueItems,omitempty" yaml:"uniqueItems,omitempty"`
 
 	Required      []string      `json:"required,omitempty" yaml:"required,omitempty"`
 	Enum          []interface{} `json:"enum,omitempty" yaml:"enum,omitempty"`
@@ -44,10 +44,7 @@ type Schema struct {
 	MinProperties *int          `json:"minProperties,omitempty" yaml:"minProperties,omitempty"`
 
 	Properties           map[string]*SchemaRef `json:"properties,omitempty" yaml:"properties,omitempty"`
-	PatternProperties    map[string]string     `json:"patternProperties,omitempty" yaml:"patternProperties,omitempty"`
-	AdditionalProperties AdditionalProperties  `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
-
-	Dependencies map[string]Dependency `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
+	AdditionalProperties *AdditionalProperties `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 
 	AllOf         []*SchemaRef   `json:"allOf,omitempty" yaml:"allOf,omitempty"`
 	AnyOf         []*SchemaRef   `json:"anyOf,omitempty" yaml:"anyOf,omitempty"`
@@ -71,14 +68,8 @@ type Discriminator struct {
 
 // AdditionalProperties is ridiculous, a bool or a schema
 type AdditionalProperties struct {
-	Bool   bool    `json:"bool,omitempty" yaml:"bool,omitempty"`
-	Schema *Schema `json:"schema,omitempty" yaml:"schema,omitempty"`
-}
-
-// Dependency is either an array of strings or a schema
-type Dependency struct {
-	Deps   []string `json:"deps,omitempty" yaml:"deps,omitempty"`
-	Schema *Schema  `json:"schema,omitempty" yaml:"schema,omitempty"`
+	Bool   bool       `json:"bool,omitempty" yaml:"bool,omitempty"`
+	Schema *SchemaRef `json:"schema,omitempty" yaml:"schema,omitempty"`
 }
 
 // SchemaRef refers to a schema object

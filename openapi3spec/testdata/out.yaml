@@ -121,12 +121,55 @@
                 "required": true,
                 "deprecated": true
               }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ref"
+                }
+              }
+            },
+            "links": {
+              "link": {
+                "operationRef": "operationref",
+                "operationId": "operationId",
+                "parameters": {
+                  "param": "string"
+                },
+                "requestBody": "string",
+                "description": "string",
+                "server": {
+                  "url": "http://server"
+                }
+              }
             }
           },
           "default": {
             "$ref": "#/components/schemas/Ref"
           }
         },
+        "callbacks": {
+          "callback": {
+            "Callback": {
+              "{expression}": {
+                "summary": "summary"
+              }
+            }
+          }
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "name": [
+              "string"
+            ]
+          }
+        ],
+        "servers": [
+          {
+            "url": "http://server"
+          }
+        ],
         "extensions": {
           "x-extension": "ext"
         }
@@ -174,5 +217,109 @@
     "/path/{template}": {
       "$ref": "reference"
     }
-  }
+  },
+  "components": {
+    "schemas": {
+      "Schema": {
+        "title": "title",
+        "description": "description",
+        "default": "default",
+        "type": "string",
+        "nullable": true,
+        "readOnly": true,
+        "writeOnly": true,
+        "deprecated": true,
+        "example": "example",
+        "externalDocs": {
+          "description": "description",
+          "url": "http://url",
+          "extensions": {
+            "x-extension": "ext"
+          }
+        },
+        "multipleOf": 2.5,
+        "maximum": 2.5,
+        "exclusiveMaximum": 2.5,
+        "minimum": 2.5,
+        "exclusiveMinimum": 2.5,
+        "maxLength": 2,
+        "minLength": 2,
+        "format": "format",
+        "pattern": "pattern",
+        "items": {
+          "$ref": "#/components/schemas/Ref"
+        },
+        "maxItems": 2,
+        "minItems": 2,
+        "uniqueItems": true,
+        "required": [
+          "all"
+        ],
+        "enum": [
+          "item1",
+          "item2"
+        ],
+        "maxProperties": 2,
+        "minProperties": 2,
+        "properties": {
+          "property": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": {
+          "bool": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ref"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Ref"
+          }
+        ],
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Ref"
+          }
+        ],
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Ref"
+          }
+        ],
+        "not": {
+          "$ref": "#/components/schemas/Ref"
+        },
+        "discriminator": {
+          "propertyName": "discriminator",
+          "mapping": {
+            "payloadval": "schemaname"
+          }
+        },
+        "extensions": {
+          "x-extension": "ext"
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "name": [
+        "string"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "name",
+      "description": "description",
+      "externalDocs": {
+        "description": "description",
+        "url": "http://url",
+        "extensions": {
+          "x-extension": "ext"
+        }
+      }
+    }
+  ]
 }

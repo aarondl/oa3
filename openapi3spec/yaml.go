@@ -33,10 +33,25 @@ func (m mismatchErr) Error() string {
 }
 
 func mismatch(goVal reflect.Value, yamlVal interface{}) error {
-	return mismatchErr{
-		goType:   goVal.Type().Name(),
-		yamlType: reflect.TypeOf(yamlVal).Kind().String(),
+	var err mismatchErr
+	if goVal.IsValid() {
+		err.goType = goVal.Type().Name()
+	} else {
+		err.goType = "(unknown)"
 	}
+
+	if yamlVal == nil {
+		err.yamlType = "(nil)"
+	} else {
+		yamlValue := reflect.ValueOf(yamlVal)
+		if yamlValue.IsValid() {
+			err.yamlType = yamlValue.Type().Name()
+		} else {
+			err.yamlType = "(unknown)"
+		}
+	}
+
+	return err
 }
 
 // UnmarshalYAML completely overrides the typical recursive yaml decoder
