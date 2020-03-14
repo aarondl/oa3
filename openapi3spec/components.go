@@ -4,7 +4,7 @@ package openapi3spec
 type Components struct {
 	Schemas         map[string]*SchemaRef         `json:"schemas,omitempty" yaml:"schemas,omitempty"`
 	Responses       map[string]*ResponseRef       `json:"responses,omitempty" yaml:"responses,omitempty"`
-	Parameter       map[string]*ParameterRef      `json:"parameter,omitempty" yaml:"parameter,omitempty"`
+	Parameters      map[string]*ParameterRef      `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Examples        map[string]*ExampleRef        `json:"examples,omitempty" yaml:"examples,omitempty"`
 	RequestBodies   map[string]*RequestBodyRef    `json:"requestBodies,omitempty" yaml:"requestBodies,omitempty"`
 	Headers         map[string]*HeaderRef         `json:"headers,omitempty" yaml:"headers,omitempty"`

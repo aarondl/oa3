@@ -143,6 +143,43 @@ security:
   - name: [string]
 
 components:
+  responses:
+    Response:
+      description: description
+  parameters:
+    Parameter:
+      description: description
+  examples:
+    Example:
+      description: description
+  requestBodies:
+    RequestBody:
+      description: description
+  headers:
+    Header:
+      description: description
+  securitySchemes:
+    Scheme:
+      type: apiKey
+      description: description
+      name: apikeyname
+      in: header
+      scheme: http
+      bearerFormat: bearer
+      flows:
+        implicit:
+          authorizationUrl: http://oauth2
+          tokenUrl: http://oauth2
+          refreshUrl: http://oauth2
+          scopes:
+            scopename: scopedescription
+      openIdConnectUrl: http://openid
+  links:
+    Link:
+      description: string
+  callbacks:
+    Callback:
+      '{expression}': { description: path }
   schemas:
     Schema:
       title: title
