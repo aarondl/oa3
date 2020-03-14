@@ -1,0 +1,178 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "title",
+    "description": "description",
+    "termsOfService": "tos",
+    "contact": {
+      "name": "person",
+      "url": "http://world.com",
+      "email": "email@email.com",
+      "extensions": {
+        "x-extension": "ext"
+      }
+    },
+    "license": {
+      "name": "MIT",
+      "url": "http://mit.edu",
+      "extensions": {
+        "x-extension": "ext"
+      }
+    },
+    "version": "1.2.3",
+    "extensions": {
+      "x-extension": "ext"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://server",
+      "description": "desc",
+      "variables": {
+        "first": {
+          "enum": [
+            "enum1",
+            "enum2"
+          ],
+          "default": "default",
+          "description": "desc"
+        },
+        "second": {
+          "enum": [
+            "enum3",
+            "enum4"
+          ],
+          "default": "default",
+          "description": "desc"
+        }
+      },
+      "extensions": {
+        "x-extension": "ext"
+      }
+    }
+  ],
+  "paths": {
+    "/path/one": {
+      "summary": "summary",
+      "description": "description",
+      "get": {
+        "tags": [
+          "one",
+          "two"
+        ],
+        "summary": "summary",
+        "description": "description",
+        "externalDocs": {
+          "description": "description",
+          "url": "http://url",
+          "extensions": {
+            "x-extension": "ext"
+          }
+        },
+        "operationId": "operationid",
+        "parameters": [
+          {
+            "name": "param",
+            "in": "query",
+            "description": "description",
+            "required": true,
+            "deprecated": true,
+            "allowEmptyValue": true,
+            "style": "header",
+            "explode": true,
+            "allowReserved": true,
+            "schema": {
+              "$ref": "#/components/schemas/Ref"
+            },
+            "example": "example",
+            "examples": {
+              "example": {
+                "description": "description"
+              }
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "description",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ref"
+              },
+              "example": "example",
+              "examples": {
+                "one": {
+                  "summary": "summary",
+                  "description": "string",
+                  "value": 3.4,
+                  "externalValue": "http://url"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "description",
+            "headers": {
+              "Origin": {
+                "description": "string",
+                "required": true,
+                "deprecated": true
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/schemas/Ref"
+          }
+        },
+        "extensions": {
+          "x-extension": "ext"
+        }
+      },
+      "servers": [
+        {
+          "url": "http://server"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "param",
+          "in": "query",
+          "description": "description",
+          "required": true,
+          "deprecated": true,
+          "allowEmptyValue": true,
+          "style": "simple",
+          "explode": true,
+          "allowReserved": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ref"
+          },
+          "example": "example",
+          "examples": {
+            "example": {
+              "summary": "summary",
+              "description": "description",
+              "value": "value",
+              "externalValue": "http://value",
+              "extensions": {
+                "x-extension": "ext"
+              }
+            }
+          },
+          "extensions": {
+            "x-extension": "ext"
+          }
+        }
+      ],
+      "extensions": {
+        "x-extension": "ext"
+      }
+    },
+    "/path/{template}": {
+      "$ref": "reference"
+    }
+  }
+}

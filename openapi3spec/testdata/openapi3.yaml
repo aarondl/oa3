@@ -1,0 +1,132 @@
+openapi: 3.0.0
+
+info:
+  title: title
+  description: description
+  termsOfService: tos
+  contact:
+    name: person
+    url: http://world.com
+    email: email@email.com
+    x-extension: ext
+  license:
+    name: MIT
+    url: http://mit.edu
+    x-extension: ext
+  version: 1.2.3
+  x-extension: ext
+
+servers:
+  - url: http://server
+    description: desc
+    x-extension: ext
+    variables:
+      first:
+        enum: [enum1, enum2]
+        default: default
+        description: desc
+      second:
+        enum: [enum3, enum4]
+        default: default
+        description: desc
+
+paths:
+  /path/one:
+    summary: summary
+    description: description
+    parameters:
+      - name: param
+        in: query
+        description: description
+        required: true
+        deprecated: true
+        allowEmptyValue: true
+        style: simple
+        explode: true
+        allowReserved: true
+        schema: { $ref: '#/components/schemas/Ref' }
+        example: example
+        x-extension: ext
+        examples:
+          example:
+            summary: summary
+            description: description
+            value: value
+            externalValue: http://value
+            x-extension: ext
+    servers:
+      - url: http://server
+    x-extension: ext
+    get:
+      tags: [one, two]
+      summary: summary
+      description: description
+      operationId: operationid
+      deprecated: true
+      x-extension: ext
+      requestBody:
+        description: description
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Ref'}
+            example: example
+            examples:
+              one:
+                summary: summary
+                description: string
+                value: 3.4
+                externalValue: http://url
+        required: true
+      parameters:
+        - name: param
+          in: query
+          description: description
+          required: true
+          deprecated: true
+          allowEmptyValue: true
+          style: header
+          deprecated: true
+          explode: true
+          allowReserved: true
+          schema: { $ref: '#/components/schemas/Ref' }
+          example: example
+          examples:
+            example:
+              description: description
+      responses:
+        '200':
+          description: description
+          headers:
+            Origin:
+              description: string
+              required: true
+              deprecated: true
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Ref' }
+          links:
+            link:
+              operationRef: operationref
+              operationId: operationId
+              parameters:
+                param: string
+              requestBody: string
+              description: string
+              server:
+                url: http://server
+        default: { $ref: '#/components/schemas/Ref' }
+      callbacks:
+        callback:
+          '{expression}':
+            summary: summary
+      externalDocs:
+        description: description
+        url: http://url
+        x-extension: ext
+      servers:
+        - url: http://server
+      security:
+        - 'name': [string]
+
+  /path/{template}:
+    $ref: reference
