@@ -1,5 +1,7 @@
 package openapi3spec
 
+import "fmt"
+
 // The Link object represents a possible design-time link for a response. The
 // presence of a link does not guarantee the caller's ability to successfully
 // invoke it, rather it provides a known relationship and traversal mechanism
@@ -21,8 +23,33 @@ type Link struct {
 	Server      *Server `json:"server,omitempty" yaml:"server,omitempty"`
 }
 
+// Validate a link
+func (l *Link) Validate(c Components) error {
+	if l.OperationRef != nil && l.OperationID != nil {
+		return fmt.Errorf("operationRef is mutually exclusive with operationId")
+	}
+
+	//TODO: Finish validation of this odd thing
+
+	return nil
+}
+
 // LinkRef refers to a link
 type LinkRef struct {
 	Ref string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	*Link
+}
+
+// Validate link ref
+func (l *LinkRef) Validate(c Components) error {
+	// Don't validate references
+	if l == nil || len(l.Ref) != 0 {
+		return nil
+	}
+
+	if err := l.Link.Validate(c); err != nil {
+		return err
+	}
+
+	return nil
 }

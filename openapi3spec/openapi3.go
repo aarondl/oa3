@@ -2,11 +2,23 @@ package openapi3spec
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
+	"regexp"
+	"sort"
+	"strings"
 
 	"gopkg.in/yaml.v2"
+)
+
+var (
+	rgxSemver    = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
+	rgxEmail     = regexp.MustCompile(` [^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+`)
+	rgxPathNames = regexp.MustCompile(`\{[a-z_]+\}`)
 )
 
 // LoadYAML file
@@ -91,6 +103,63 @@ type OpenAPI3 struct {
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
 }
 
+// Validate the openapi3 object
+//
+// Although validate sounds like a read-only operation, it sets default values
+// according to the spec, and resolves references.
+func (o *OpenAPI3) Validate() error {
+	if o.Components == nil {
+		o.Components = new(Components)
+	}
+
+	if !rgxSemver.MatchString(o.OpenAPI) {
+		return errors.New("openapi must be a semantic version number")
+	}
+
+	if err := o.Info.Validate(); err != nil {
+		return err
+	}
+
+	if len(o.Servers) == 0 {
+		o.Servers = []Server{
+			Server{URL: "/"},
+		}
+	} else {
+		for i, s := range o.Servers {
+			if err := s.Validate(); err != nil {
+				return fmt.Errorf("servers[%d].%w", i, err)
+			}
+		}
+	}
+
+	opIDs := make(map[string]struct{})
+
+	if len(o.Paths) == 0 {
+		return errors.New("must have at least one item in top-level 'paths'")
+	}
+	for k, p := range o.Paths {
+		if !strings.HasPrefix(k, "/") {
+			return fmt.Errorf("paths(%s): must begin with /", k)
+		}
+
+		names := rgxPathNames.FindAllString(k, -1)
+		if len(names) != 0 {
+			sort.Strings(names)
+			for i := 0; i < len(names)-1; i++ {
+				if names[i] == names[i+1] {
+					return fmt.Errorf("paths(%s): has duplicate path parameter: %s", k, names[i])
+				}
+			}
+		}
+
+		if err := p.Validate(*o.Components, names, opIDs); err != nil {
+			return fmt.Errorf("paths(%s).%w", k, err)
+		}
+	}
+
+	return nil
+}
+
 // Info object provides metadata about the API. The metadata MAY be used by the
 // clients if needed, and MAY be presented in editing or documentation
 // generation tools for convenience.
@@ -103,6 +172,39 @@ type Info struct {
 	Version        string   `json:"version,omitempty" yaml:"version,omitempty"`
 
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
+}
+
+// Validate info struct
+func (i *Info) Validate() error {
+	if i == nil {
+		return nil
+	}
+
+	if len(strings.TrimSpace(i.Title)) == 0 {
+		return errors.New("info.title must not be blank")
+	}
+	if i.Description != nil && len(strings.TrimSpace(*i.Description)) == 0 {
+		return errors.New("info.description if present must not be blank")
+	}
+	if i.TermsOfService != nil {
+		_, err := url.Parse(*i.TermsOfService)
+		if err != nil {
+			return fmt.Errorf("info.termsOfService if present must be a url: %w", err)
+		}
+	}
+
+	if err := i.Contact.Validate(); err != nil {
+		return err
+	}
+	if err := i.License.Validate(); err != nil {
+		return err
+	}
+
+	if len(strings.TrimSpace(i.Version)) == 0 {
+		return errors.New("info.version must not be blank")
+	}
+
+	return nil
 }
 
 // Extensions are for x- extensions to the open api spec, they can be

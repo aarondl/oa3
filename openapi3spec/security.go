@@ -13,3 +13,8 @@ package openapi3spec
 // or Operation Object, only one of Security Requirement Objects in the list
 // needs to be satisfied to authorize the request.
 type SecurityRequirement map[string][]string
+
+// Validate security requirements
+func (s *SecurityRequirement) Validate(c Components) error {
+	return nil
+}

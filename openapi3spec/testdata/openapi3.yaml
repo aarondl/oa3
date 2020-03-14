@@ -103,7 +103,10 @@ paths:
               deprecated: true
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/Ref' }
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
           links:
             link:
               operationRef: operationref
@@ -198,8 +201,8 @@ components:
       multipleOf: 2.5
       maximum: 2.5
       minimum: 2.5
-      exclusiveMinimum: 2.5
-      exclusiveMaximum: 2.5
+      exclusiveMinimum: true
+      exclusiveMaximum: true
       maxLength: 2
       minLength: 2
       format: format
@@ -214,9 +217,7 @@ components:
       minProperties: 2
       properties:
         property: { type: string }
-      additionalProperties:
-        bool: true
-        schema: { $ref: '#/components/schemas/Ref' }
+      additionalProperties: true
       allOf:
         - { $ref: '#/components/schemas/Ref' }
       anyOf:

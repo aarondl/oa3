@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+// ObjectUnmarshaler is used as a last ditch resort for particularly horrifying
+// structs.
+type ObjectUnmarshaler interface {
+	UnmarshalYAMLObject(intf interface{}) error
+}
+
 var (
 	// DebugOutput controls whether or not debug output will be written
 	DebugOutput = true
@@ -187,6 +193,14 @@ func allocAndSet(val reflect.Value, yamlVal interface{}) error {
 		typ = typ.Elem()
 		val.Set(reflect.New(typ))
 
+		// This oddity is to stop the normal yamlStruct from hitting and instead
+		// pass any object into the ObjectUnmarshaler after allocation. This
+		// is because Go's inherent lack of union struct types.
+		goIntf := val.Interface()
+		if unmarshaler, ok := goIntf.(ObjectUnmarshaler); ok {
+			return unmarshaler.UnmarshalYAMLObject(yamlVal)
+		}
+
 		val = val.Elem()
 	}
 
@@ -245,7 +259,14 @@ func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive interface{}) error {
 	case reflect.Float32, reflect.Float64:
 		float, ok := yamlPrimitive.(float64)
 		if !ok {
-			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Elem().Name())
+
+			integer, ok := yamlPrimitive.(int)
+			if !ok {
+				return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Name())
+			}
+
+			goPrimitive.SetFloat(float64(integer))
+			return nil
 		}
 
 		goPrimitive.SetFloat(float)
@@ -253,7 +274,7 @@ func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive interface{}) error {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		integer, ok := yamlPrimitive.(int)
 		if !ok {
-			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Elem().Name())
+			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Name())
 		}
 
 		goPrimitive.SetInt(int64(integer))
@@ -261,7 +282,7 @@ func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive interface{}) error {
 	case reflect.String:
 		str, ok := yamlPrimitive.(string)
 		if !ok {
-			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Elem().Name())
+			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Name())
 		}
 
 		goPrimitive.SetString(str)
@@ -269,7 +290,7 @@ func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive interface{}) error {
 	case reflect.Bool:
 		boolean, ok := yamlPrimitive.(bool)
 		if !ok {
-			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Elem().Name())
+			return fmt.Errorf("incompatible types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Name())
 		}
 
 		goPrimitive.SetBool(boolean)
@@ -279,7 +300,7 @@ func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive interface{}) error {
 		return nil
 	}
 
-	return fmt.Errorf("unhandled types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Elem().Name())
+	return fmt.Errorf("unhandled types go:(%s) yaml:(%s)", goPrimitive.Type().Name(), reflect.TypeOf(yamlPrimitive).Name())
 }
 
 func fieldMap(structTag string, typ reflect.Type) map[string]reflect.StructField {

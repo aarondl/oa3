@@ -239,9 +239,9 @@
         },
         "multipleOf": 2.5,
         "maximum": 2.5,
-        "exclusiveMaximum": 2.5,
+        "exclusiveMaximum": true,
         "minimum": 2.5,
-        "exclusiveMinimum": 2.5,
+        "exclusiveMinimum": true,
         "maxLength": 2,
         "minLength": 2,
         "format": "format",
@@ -308,7 +308,8 @@
     },
     "parameters": {
       "Parameter": {
-        "description": "description"
+        "description": "description",
+        "schema": {}
       }
     },
     "examples": {
