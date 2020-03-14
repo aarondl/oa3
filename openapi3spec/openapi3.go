@@ -18,7 +18,7 @@ import (
 var (
 	rgxSemver    = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 	rgxEmail     = regexp.MustCompile(` [^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+`)
-	rgxPathNames = regexp.MustCompile(`\{[a-z_]+\}`)
+	rgxPathNames = regexp.MustCompile(`\{([a-z_0-9]+)\}`)
 )
 
 // LoadYAML file
@@ -142,17 +142,23 @@ func (o *OpenAPI3) Validate() error {
 			return fmt.Errorf("paths(%s): must begin with /", k)
 		}
 
-		names := rgxPathNames.FindAllString(k, -1)
-		if len(names) != 0 {
+		nameMatches := rgxPathNames.FindAllStringSubmatch(k, -1)
+		var names []string
+		if len(nameMatches) != 0 {
 			sort.Strings(names)
 			for i := 0; i < len(names)-1; i++ {
 				if names[i] == names[i+1] {
 					return fmt.Errorf("paths(%s): has duplicate path parameter: %s", k, names[i])
 				}
 			}
+
+			names = make([]string, len(nameMatches))
+			for i, n := range nameMatches {
+				names[i] = n[1]
+			}
 		}
 
-		if err := p.Validate(*o.Components, names, opIDs); err != nil {
+		if err := p.Validate(names, opIDs); err != nil {
 			return fmt.Errorf("paths(%s).%w", k, err)
 		}
 	}

@@ -14,7 +14,7 @@ type RequestBody struct {
 }
 
 // Validate request body
-func (r *RequestBody) Validate(cmps Components) error {
+func (r *RequestBody) Validate() error {
 	if r.Description != nil && len(strings.TrimSpace(*r.Description)) == 0 {
 		return errors.New("description if present must not be blank")
 	}
@@ -23,7 +23,7 @@ func (r *RequestBody) Validate(cmps Components) error {
 		return fmt.Errorf("content must not be empty")
 	}
 	for k, c := range r.Content {
-		if err := c.Validate(cmps); err != nil {
+		if err := c.Validate(); err != nil {
 			return fmt.Errorf("content(%s).%w", k, err)
 		}
 	}
@@ -38,13 +38,13 @@ type RequestBodyRef struct {
 }
 
 // Validate request body ref
-func (r *RequestBodyRef) Validate(c Components) error {
+func (r *RequestBodyRef) Validate() error {
 	// Don't validate references
 	if r == nil || len(r.Ref) != 0 {
 		return nil
 	}
 
-	if err := r.RequestBody.Validate(c); err != nil {
+	if err := r.RequestBody.Validate(); err != nil {
 		return err
 	}
 

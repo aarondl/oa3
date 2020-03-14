@@ -28,7 +28,7 @@ type Operation struct {
 }
 
 // Validate an operation
-func (o *Operation) Validate(cmps Components, pathTemplates []string, opIDs map[string]struct{}) error {
+func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
 	if o == nil {
 		return nil
 	}
@@ -60,12 +60,12 @@ func (o *Operation) Validate(cmps Components, pathTemplates []string, opIDs map[
 		return fmt.Errorf("parameters.%w", err)
 	}
 	for i, p := range o.Parameters {
-		if err := p.Validate(cmps, pathTemplates); err != nil {
+		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d].%w", i, err)
 		}
 	}
 
-	if err := o.RequestBody.Validate(cmps); err != nil {
+	if err := o.RequestBody.Validate(); err != nil {
 		return fmt.Errorf("requestBody.%w", err)
 	}
 
@@ -73,17 +73,17 @@ func (o *Operation) Validate(cmps Components, pathTemplates []string, opIDs map[
 		return errors.New("responses must not be empty")
 	}
 	for i, r := range o.Responses {
-		if err := r.Validate(cmps); err != nil {
+		if err := r.Validate(); err != nil {
 			return fmt.Errorf("responses(%s).%w", i, err)
 		}
 	}
 	for k, c := range o.Callbacks {
-		if err := c.Validate(cmps); err != nil {
+		if err := c.Validate(); err != nil {
 			return fmt.Errorf("callbacks(%s).%w", k, err)
 		}
 	}
 	for i, s := range o.Security {
-		if err := s.Validate(cmps); err != nil {
+		if err := s.Validate(); err != nil {
 			return fmt.Errorf("security[%d].%w", i, err)
 		}
 	}

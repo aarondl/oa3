@@ -22,22 +22,22 @@ type Response struct {
 }
 
 // Validate response
-func (r *Response) Validate(cmps Components) error {
+func (r *Response) Validate() error {
 	if len(strings.TrimSpace(r.Description)) == 0 {
 		return errors.New("description must not be blank")
 	}
 	for k, h := range r.Headers {
-		if err := h.Validate(cmps); err != nil {
+		if err := h.Validate(); err != nil {
 			return fmt.Errorf("headers(%s).%w", k, err)
 		}
 	}
 	for k, c := range r.Content {
-		if err := c.Validate(cmps); err != nil {
+		if err := c.Validate(); err != nil {
 			return fmt.Errorf("content(%s).%w", k, err)
 		}
 	}
 	for k, l := range r.Links {
-		if err := l.Validate(cmps); err != nil {
+		if err := l.Validate(); err != nil {
 			return fmt.Errorf("links(%s).%w", k, err)
 		}
 	}
@@ -52,13 +52,13 @@ type ResponseRef struct {
 }
 
 // Validate response ref
-func (r *ResponseRef) Validate(c Components) error {
+func (r *ResponseRef) Validate() error {
 	// Don't validate references
 	if r == nil || len(r.Ref) != 0 {
 		return nil
 	}
 
-	if err := r.Response.Validate(c); err != nil {
+	if err := r.Response.Validate(); err != nil {
 		return err
 	}
 

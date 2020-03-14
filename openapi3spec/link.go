@@ -24,7 +24,7 @@ type Link struct {
 }
 
 // Validate a link
-func (l *Link) Validate(c Components) error {
+func (l *Link) Validate() error {
 	if l.OperationRef != nil && l.OperationID != nil {
 		return fmt.Errorf("operationRef is mutually exclusive with operationId")
 	}
@@ -41,13 +41,13 @@ type LinkRef struct {
 }
 
 // Validate link ref
-func (l *LinkRef) Validate(c Components) error {
+func (l *LinkRef) Validate() error {
 	// Don't validate references
 	if l == nil || len(l.Ref) != 0 {
 		return nil
 	}
 
-	if err := l.Link.Validate(c); err != nil {
+	if err := l.Link.Validate(); err != nil {
 		return err
 	}
 

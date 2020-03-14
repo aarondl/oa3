@@ -15,13 +15,13 @@ type MediaType struct {
 }
 
 // Validate media type
-func (m *MediaType) Validate(cmps Components) error {
-	if err := m.Schema.Validate(cmps); err != nil {
+func (m *MediaType) Validate() error {
+	if err := m.Schema.Validate(); err != nil {
 		return fmt.Errorf("schema.%w", err)
 	}
 
 	for k, e := range m.Encoding {
-		if err := e.Validate(cmps, k, "", ""); err != nil {
+		if err := e.Validate(k, "", ""); err != nil {
 			return fmt.Errorf("encoding(%s).%w", k, err)
 		}
 	}

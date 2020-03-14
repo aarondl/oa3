@@ -37,7 +37,7 @@ type Path struct {
 }
 
 // Validate path
-func (p *Path) Validate(cmps Components, pathTemplates []string, opIDs map[string]struct{}) error {
+func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
 	if p == nil {
 		return nil
 	}
@@ -49,28 +49,28 @@ func (p *Path) Validate(cmps Components, pathTemplates []string, opIDs map[strin
 		return errors.New("description if present must not be blank")
 	}
 
-	if err := p.Get.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Get.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("get.%w", err)
 	}
-	if err := p.Put.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Put.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("put.%w", err)
 	}
-	if err := p.Post.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Post.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("post.%w", err)
 	}
-	if err := p.Delete.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Delete.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("delete.%w", err)
 	}
-	if err := p.Options.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Options.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("options.%w", err)
 	}
-	if err := p.Head.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Head.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("head.%w", err)
 	}
-	if err := p.Patch.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Patch.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("patch.%w", err)
 	}
-	if err := p.Trace.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Trace.Validate(pathTemplates, opIDs); err != nil {
 		return fmt.Errorf("trace.%w", err)
 	}
 
@@ -85,7 +85,7 @@ func (p *Path) Validate(cmps Components, pathTemplates []string, opIDs map[strin
 	}
 
 	for i, p := range p.Parameters {
-		if err := p.Validate(cmps, pathTemplates); err != nil {
+		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d].%w", i, err)
 		}
 	}
@@ -100,13 +100,13 @@ type PathRef struct {
 }
 
 // Validate path ref
-func (p *PathRef) Validate(cmps Components, pathTemplates []string, opIDs map[string]struct{}) error {
+func (p *PathRef) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
 	// Don't validate references
 	if p == nil || len(p.Ref) != 0 {
 		return nil
 	}
 
-	if err := p.Path.Validate(cmps, pathTemplates, opIDs); err != nil {
+	if err := p.Path.Validate(pathTemplates, opIDs); err != nil {
 		return err
 	}
 

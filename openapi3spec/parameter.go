@@ -29,7 +29,7 @@ type Parameter struct {
 }
 
 // Validate param
-func (p *Parameter) Validate(cmps Components, pathTemplates []string) error {
+func (p *Parameter) Validate(pathTemplates []string) error {
 	if len(strings.TrimSpace(p.Name)) == 0 {
 		return errors.New("name must not be blank")
 	}
@@ -100,7 +100,8 @@ func (p *Parameter) Validate(cmps Components, pathTemplates []string) error {
 	if p.Style != nil {
 		switch *p.Style {
 		case "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject":
-			return errors.New("style must be one of matrix|label|form|simple|spaceDelimited|pipeDelimited|deepObject")
+		default:
+			return fmt.Errorf("style must be one of matrix|label|form|simple|spaceDelimited|pipeDelimited|deepObject but found %s", *p.Style)
 		}
 	}
 
@@ -108,12 +109,12 @@ func (p *Parameter) Validate(cmps Components, pathTemplates []string) error {
 		return errors.New("description if present must not be blank")
 	}
 
-	if err := p.Schema.Validate(cmps); err != nil {
+	if err := p.Schema.Validate(); err != nil {
 		return fmt.Errorf("schema.%w", err)
 	}
 
 	for k, c := range p.Content {
-		if err := c.Validate(cmps); err != nil {
+		if err := c.Validate(); err != nil {
 			return fmt.Errorf("content(%s).%w", k, err)
 		}
 	}
@@ -128,13 +129,13 @@ type ParameterRef struct {
 }
 
 // Validate param ref
-func (p *ParameterRef) Validate(cmps Components, pathTemplates []string) error {
+func (p *ParameterRef) Validate(pathTemplates []string) error {
 	// Don't validate references
 	if p == nil || len(p.Ref) != 0 {
 		return nil
 	}
 
-	if err := p.Parameter.Validate(cmps, pathTemplates); err != nil {
+	if err := p.Parameter.Validate(pathTemplates); err != nil {
 		return err
 	}
 
@@ -142,6 +143,10 @@ func (p *ParameterRef) Validate(cmps Components, pathTemplates []string) error {
 }
 
 func paramDuplicateKeyCheck(params []ParameterRef) error {
+	if len(params) == 0 {
+		return nil
+	}
+
 	keys := make(map[string]struct{})
 	for _, p := range params {
 		_, ok := keys[p.Name+p.In]

@@ -11,9 +11,9 @@ import "fmt"
 type Callback map[string]*Path
 
 // Validate callback
-func (c *Callback) Validate(cmps Components) error {
+func (c *Callback) Validate() error {
 	for k, p := range *c {
-		if err := p.Validate(cmps, nil, nil); err != nil {
+		if err := p.Validate(nil, nil); err != nil {
 			return fmt.Errorf("callback(%s).%w", k, err)
 		}
 	}
@@ -28,13 +28,13 @@ type CallbackRef struct {
 }
 
 // Validate response ref
-func (c *CallbackRef) Validate(cmps Components) error {
+func (c *CallbackRef) Validate() error {
 	// Don't validate references
 	if c == nil || len(c.Ref) != 0 {
 		return nil
 	}
 
-	if err := c.Callback.Validate(cmps); err != nil {
+	if err := c.Callback.Validate(); err != nil {
 		return err
 	}
 

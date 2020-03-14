@@ -19,7 +19,7 @@ type Encoding struct {
 }
 
 // Validate encoding
-func (e *Encoding) Validate(c Components, mediaType, kind, format string) error {
+func (e *Encoding) Validate(mediaType, kind, format string) error {
 	if e.ContentType == nil {
 		switch {
 		case kind == "string" && format == "binary":
@@ -42,7 +42,7 @@ func (e *Encoding) Validate(c Components, mediaType, kind, format string) error 
 			continue
 		}
 
-		if err := h.Validate(c); err != nil {
+		if err := h.Validate(); err != nil {
 			return fmt.Errorf("headers(%s).%w", k, err)
 		}
 	}

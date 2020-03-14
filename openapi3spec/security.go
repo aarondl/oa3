@@ -15,6 +15,6 @@ package openapi3spec
 type SecurityRequirement map[string][]string
 
 // Validate security requirements
-func (s *SecurityRequirement) Validate(c Components) error {
+func (s *SecurityRequirement) Validate() error {
 	return nil
 }

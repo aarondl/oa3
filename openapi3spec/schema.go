@@ -63,7 +63,7 @@ type Schema struct {
 }
 
 // Validate schema
-func (s *Schema) Validate(c Components) error {
+func (s *Schema) Validate() error {
 	if s.Title != nil && len(strings.TrimSpace(*s.Title)) == 0 {
 		return errors.New("title if present must not be blank")
 	}
@@ -147,13 +147,13 @@ type SchemaRef struct {
 }
 
 // Validate schema ref
-func (s *SchemaRef) Validate(c Components) error {
+func (s *SchemaRef) Validate() error {
 	// Don't validate references
 	if s == nil || len(s.Ref) != 0 {
 		return nil
 	}
 
-	if err := s.Schema.Validate(c); err != nil {
+	if err := s.Schema.Validate(); err != nil {
 		return err
 	}
 

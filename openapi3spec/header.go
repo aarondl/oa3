@@ -27,7 +27,7 @@ type Header struct {
 }
 
 // Validate header
-func (h *Header) Validate(cmps Components) error {
+func (h *Header) Validate() error {
 	if h.AllowEmptyValue {
 		return errors.New("allowEmptyValue must not be false for header parameters")
 	}
@@ -54,12 +54,12 @@ func (h *Header) Validate(cmps Components) error {
 		return errors.New("description if present must not be blank")
 	}
 
-	if err := h.Schema.Validate(cmps); err != nil {
+	if err := h.Schema.Validate(); err != nil {
 		return fmt.Errorf("schema.%w", err)
 	}
 
 	for k, c := range h.Content {
-		if err := c.Validate(cmps); err != nil {
+		if err := c.Validate(); err != nil {
 			return fmt.Errorf("content(%s).%w", k, err)
 		}
 	}
@@ -74,13 +74,13 @@ type HeaderRef struct {
 }
 
 // Validate header ref
-func (h *HeaderRef) Validate(c Components) error {
+func (h *HeaderRef) Validate() error {
 	// Don't validate references
 	if h == nil || len(h.Ref) != 0 {
 		return nil
 	}
 
-	if err := h.Header.Validate(c); err != nil {
+	if err := h.Header.Validate(); err != nil {
 		return err
 	}
 

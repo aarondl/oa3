@@ -125,7 +125,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Ref"
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array"
+                  }
                 }
               }
             },
@@ -267,10 +270,7 @@
           }
         },
         "additionalProperties": {
-          "bool": true,
-          "schema": {
-            "$ref": "#/components/schemas/Ref"
-          }
+          "bool": true
         },
         "allOf": [
           {
