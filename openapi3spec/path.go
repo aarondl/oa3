@@ -13,7 +13,7 @@ import (
 // Technically Paths can have extensions as per the spec, but we make a choice
 // not to conform in order to be able to avoid an object graph that is also
 // against the spec: OpenAPI3.Paths.Paths["/url"]
-type Paths map[string]*PathRef
+type Paths map[string]*Path
 
 // Path describes the operations available on a single path. A Path Item MAY
 // be empty, due to ACL constraints. The path itself is still exposed to the
@@ -39,7 +39,7 @@ type Path struct {
 // Validate path
 func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
 	if p == nil {
-		return nil
+		return errors.New("path cannot be nil")
 	}
 
 	if p.Summary != nil && len(strings.TrimSpace(*p.Summary)) == 0 {
@@ -91,26 +91,6 @@ func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error
 		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d].%w", i, err)
 		}
-	}
-
-	return nil
-}
-
-// PathRef refers to a path item
-type PathRef struct {
-	Ref string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	*Path
-}
-
-// Validate path ref
-func (p *PathRef) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
-	// Don't validate references
-	if p == nil || len(p.Ref) != 0 {
-		return nil
-	}
-
-	if err := p.Path.Validate(pathTemplates, opIDs); err != nil {
-		return err
 	}
 
 	return nil

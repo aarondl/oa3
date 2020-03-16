@@ -23,13 +23,15 @@ var (
 )
 
 // LoadYAML file
-func LoadYAML(filename string) (*OpenAPI3, error) {
+//
+// Optionally post-process by validating, resolving references, etc.
+func LoadYAML(filename string, postProcess bool) (*OpenAPI3, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	oa, err := LoadYAMLReader(file)
+	oa, err := LoadYAMLReader(file, postProcess)
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +44,15 @@ func LoadYAML(filename string) (*OpenAPI3, error) {
 }
 
 // LoadJSON file
-func LoadJSON(filename string) (*OpenAPI3, error) {
+//
+// Optionally post-process by validating, resolving references, etc.
+func LoadJSON(filename string, postProcess bool) (*OpenAPI3, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	oa, err := LoadJSONReader(file)
+	oa, err := LoadJSONReader(file, postProcess)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +65,9 @@ func LoadJSON(filename string) (*OpenAPI3, error) {
 }
 
 // LoadYAMLReader loads the open api spec from a yaml reader
-func LoadYAMLReader(reader io.Reader) (*OpenAPI3, error) {
+//
+// Optionally post-process by validating, resolving references, etc.
+func LoadYAMLReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 	b, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -72,11 +78,23 @@ func LoadYAMLReader(reader io.Reader) (*OpenAPI3, error) {
 		return nil, err
 	}
 
+	if postProcess {
+		if err = oa.ResolveRefs(); err != nil {
+			return nil, fmt.Errorf("error resolving references: %w", err)
+		}
+		if err = oa.Validate(); err != nil {
+			return nil, fmt.Errorf("validation failed: %w", err)
+		}
+		oa.CopyInheritedItems()
+	}
+
 	return oa, nil
 }
 
 // LoadJSONReader loads the open api spec from a json reader
-func LoadJSONReader(reader io.Reader) (*OpenAPI3, error) {
+//
+// Optionally post-process by validating, resolving references, etc.
+func LoadJSONReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 	b, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -85,6 +103,16 @@ func LoadJSONReader(reader io.Reader) (*OpenAPI3, error) {
 	oa := new(OpenAPI3)
 	if err = json.Unmarshal(b, &oa); err != nil {
 		return nil, err
+	}
+
+	if postProcess {
+		if err = oa.ResolveRefs(); err != nil {
+			return nil, fmt.Errorf("error resolving references: %w", err)
+		}
+		if err = oa.Validate(); err != nil {
+			return nil, fmt.Errorf("validation failed: %w", err)
+		}
+		oa.CopyInheritedItems()
 	}
 
 	return oa, nil
@@ -102,6 +130,61 @@ type OpenAPI3 struct {
 	ExternalDocs *ExternalDocs         `json:"externalDocs,omitempty" yaml:"externalDocs,omitempty"`
 
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
+}
+
+// CopyInheritedItems effectively pushes higher-level elements down into
+// child elements where specified by the spec.
+//
+// This should be called after Validate & ResolveRefs
+//
+//   The server array in a child completely overrides any inherited value.
+//   - OpenAPI3.Servers -> OpenAPI3.Paths.Servers
+//   - OpenAPI3.Paths.Servers -> OpenAPI3.Paths.Operations.(GET|POST..).Servers
+//
+//    Each element is considered, a duplicating element in the child overrides
+//   the parent.
+//   - OpenAPI3.Paths.Parameters -> OpenAPI3.Paths.Operations.(GET|POST).Parameters
+func (o *OpenAPI3) CopyInheritedItems() {
+	for _, path := range o.Paths {
+		if len(o.Servers) > 0 && len(path.Servers) == 0 {
+			path.Servers = make([]Server, len(o.Servers))
+			copy(path.Servers, o.Servers)
+		}
+
+		ops := []*Operation{
+			path.Get, path.Put, path.Post, path.Delete, path.Options, path.Head,
+			path.Patch, path.Trace,
+		}
+
+		for _, op := range ops {
+			if op == nil {
+				continue
+			}
+
+			if len(op.Servers) == 0 {
+				op.Servers = make([]Server, len(path.Servers))
+				copy(op.Servers, path.Servers)
+			}
+
+			for _, pathParam := range path.Parameters {
+
+				found := false
+				for _, opParam := range op.Parameters {
+					if pathParam.Name == opParam.Name && pathParam.In == opParam.In {
+						found = true
+						break
+					}
+				}
+
+				// Overridden by the op
+				if found {
+					continue
+				}
+
+				op.Parameters = append(op.Parameters, pathParam)
+			}
+		}
+	}
 }
 
 // ResolveRefs finds all the $ref's in the spec and uses the
@@ -316,8 +399,10 @@ func findAllRefs(val reflect.Value) []interface{} {
 
 // Validate the openapi3 object
 //
-// Although validate sounds like a read-only operation, it sets default values
-// according to the spec.
+// Although validate sounds like a read-only operation, it also sets default
+// values according to the spec.
+//
+// It should be called after references are resolved.
 func (o *OpenAPI3) Validate() error {
 	if !rgxSemver.MatchString(o.OpenAPI) {
 		return errors.New("openapi must be a semantic version number")

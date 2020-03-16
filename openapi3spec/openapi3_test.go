@@ -20,16 +20,14 @@ func TestFindRefs(t *testing.T) {
 
 	var testGraph = &OpenAPI3{
 		Paths: Paths{
-			"/path/to/api": &PathRef{
-				Path: &Path{
-					Get: &Operation{
-						RequestBody: &RequestBodyRef{
-							RequestBody: &RequestBody{
-								Content: map[string]*MediaType{
-									"application/json": &MediaType{
-										Schema: SchemaRef{
-											Ref: "#/components/schemas/A",
-										},
+			"/path/to/api": &Path{
+				Get: &Operation{
+					RequestBody: &RequestBodyRef{
+						RequestBody: &RequestBody{
+							Content: map[string]*MediaType{
+								"application/json": &MediaType{
+									Schema: SchemaRef{
+										Ref: "#/components/schemas/A",
 									},
 								},
 							},
@@ -48,8 +46,8 @@ func TestFindRefs(t *testing.T) {
 	}
 
 	refs := findAllRefs(reflect.ValueOf(testGraph))
-	if len(refs) != 6 {
-		// In Paths: Pathref (val), RequestBodyRef (val), SchemaRef (ref)
+	if len(refs) != 5 {
+		// In Paths: RequestBodyRef (val), SchemaRef (ref)
 		// In Components: SchemaRef (ref), SchemaRef (ref), SchemaRef (val)
 		t.Error("number of refs wrong:", len(refs))
 	}
@@ -60,16 +58,14 @@ func TestResolveRefs(t *testing.T) {
 
 	var testGraph = &OpenAPI3{
 		Paths: Paths{
-			"/path/to/api": &PathRef{
-				Path: &Path{
-					Get: &Operation{
-						RequestBody: &RequestBodyRef{
-							RequestBody: &RequestBody{
-								Content: map[string]*MediaType{
-									"application/json": &MediaType{
-										Schema: SchemaRef{
-											Ref: "#/components/schemas/A",
-										},
+			"/path/to/api": &Path{
+				Get: &Operation{
+					RequestBody: &RequestBodyRef{
+						RequestBody: &RequestBody{
+							Content: map[string]*MediaType{
+								"application/json": &MediaType{
+									Schema: SchemaRef{
+										Ref: "#/components/schemas/A",
 									},
 								},
 							},
@@ -111,16 +107,14 @@ func TestCycle(t *testing.T) {
 
 	var testGraph = &OpenAPI3{
 		Paths: Paths{
-			"/path/to/api": &PathRef{
-				Path: &Path{
-					Get: &Operation{
-						RequestBody: &RequestBodyRef{
-							RequestBody: &RequestBody{
-								Content: map[string]*MediaType{
-									"application/json": &MediaType{
-										Schema: SchemaRef{
-											Ref: "#/components/schemas/A",
-										},
+			"/path/to/api": &Path{
+				Get: &Operation{
+					RequestBody: &RequestBodyRef{
+						RequestBody: &RequestBody{
+							Content: map[string]*MediaType{
+								"application/json": &MediaType{
+									Schema: SchemaRef{
+										Ref: "#/components/schemas/A",
 									},
 								},
 							},
@@ -142,5 +136,75 @@ func TestCycle(t *testing.T) {
 		t.Fatal("it should have given us a cycle error")
 	} else if !strings.Contains(err.Error(), "cycle detected") {
 		t.Fatal("it should have given us a cycle error, but got:", err)
+	}
+}
+
+func TestCopyInherited(t *testing.T) {
+	t.Parallel()
+
+	var testGraph = &OpenAPI3{
+		Servers: []Server{{URL: "a"}},
+		Paths: Paths{
+			"/path/overrider": &Path{
+				Parameters: []*ParameterRef{
+					&ParameterRef{Parameter: &Parameter{
+						Name:            "X_Parent",
+						In:              "header",
+						AllowEmptyValue: false,
+					}},
+				},
+				// Should override parent
+				Servers: []Server{{URL: "c"}},
+				Get: &Operation{
+					// Should override parent
+					Servers: []Server{{URL: "d"}},
+
+					Parameters: []*ParameterRef{
+						// Should override parent
+						&ParameterRef{Parameter: &Parameter{
+							Name:          "X_Parent",
+							In:            "header",
+							AllowReserved: true,
+						}},
+					},
+				},
+			},
+			"/path/inheritor": &Path{
+				// Servers should be inherited
+				Parameters: []*ParameterRef{
+					&ParameterRef{Parameter: &Parameter{
+						Name: "X_Parent",
+						In:   "header",
+					}},
+				},
+				Get: &Operation{
+					Parameters: []*ParameterRef{
+						&ParameterRef{Parameter: &Parameter{
+							Name: "X_Child",
+							In:   "header",
+						}},
+						// X_Parent should be inherited
+					},
+				},
+			},
+		},
+	}
+
+	testGraph.CopyInheritedItems()
+
+	overrider := testGraph.Paths["/path/overrider"]
+	if overrider.Get.Servers[0].URL != "d" {
+		t.Error("overrider server was wrong:", overrider.Get.Servers[0].URL)
+	}
+	if !overrider.Get.Parameters[0].AllowReserved {
+		t.Error("overrider parameter was not marked 'allowReserved', override failed")
+	}
+
+	inheritor := testGraph.Paths["/path/inheritor"]
+	if inheritor.Servers[0].URL != "a" {
+		t.Error("servers should be inherited by the path item:", inheritor.Servers[0].URL)
+	}
+	if inheritor.Get.Servers[0].URL != "a" {
+		t.Error("servers should be inherited by the operation:", inheritor.Get.Servers[0].URL)
 	}
 }

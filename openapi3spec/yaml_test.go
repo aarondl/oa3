@@ -13,7 +13,7 @@ import (
 func TestYAML(t *testing.T) {
 	t.Parallel()
 
-	oa, err := LoadYAML("testdata/openapi3.yaml")
+	oa, err := LoadYAML("testdata/openapi3.yaml", false)
 	if err != nil {
 		t.Fatal(err)
 	}

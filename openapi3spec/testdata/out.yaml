@@ -216,9 +216,6 @@
       "extensions": {
         "x-extension": "ext"
       }
-    },
-    "/path/{template}": {
-      "$ref": "reference"
     }
   },
   "components": {

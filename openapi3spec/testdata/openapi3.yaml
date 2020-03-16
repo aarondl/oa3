@@ -131,9 +131,6 @@ paths:
       security:
         - 'name': [string]
 
-  /path/{template}:
-    $ref: reference
-
 tags:
   - name: name
     description: description
