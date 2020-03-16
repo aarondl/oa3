@@ -2,7 +2,6 @@ package openapi3spec
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 )
@@ -11,23 +10,6 @@ import (
 // structs.
 type ObjectUnmarshaler interface {
 	UnmarshalYAMLObject(intf interface{}) error
-}
-
-var (
-	// DebugOutput controls whether or not debug output will be written
-	DebugOutput = true
-)
-
-func debugln(intf ...interface{}) {
-	if DebugOutput {
-		_, _ = fmt.Fprintln(os.Stderr, intf...)
-	}
-}
-
-func debugf(format string, intf ...interface{}) {
-	if DebugOutput {
-		_, _ = fmt.Fprintf(os.Stderr, format, intf...)
-	}
 }
 
 type mismatchErr struct {

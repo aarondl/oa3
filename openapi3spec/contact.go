@@ -2,6 +2,7 @@ package openapi3spec
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 )
@@ -28,7 +29,7 @@ func (c *Contact) Validate() error {
 	if c.URL != nil {
 		_, err := url.Parse(*c.URL)
 		if err != nil {
-			return errors.New("info.contact.url if present must be a url")
+			return fmt.Errorf("info.contact.url if present must be a url: %w", err)
 		}
 	}
 

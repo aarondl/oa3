@@ -15,7 +15,7 @@ type Operation struct {
 	ExternalDocs *ExternalDocs `json:"externalDocs,omitempty" yaml:"externalDocs,omitempty"`
 
 	OperationID string                  `json:"operationId,omitempty" yaml:"operationId,omitempty"`
-	Parameters  []ParameterRef          `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Parameters  []*ParameterRef         `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	RequestBody *RequestBodyRef         `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
 	Responses   Responses               `json:"responses,omitempty" yaml:"responses,omitempty"`
 	Callbacks   map[string]*CallbackRef `json:"callbacks,omitempty" yaml:"callbacks,omitempty"`
@@ -60,6 +60,9 @@ func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) 
 		return fmt.Errorf("parameters.%w", err)
 	}
 	for i, p := range o.Parameters {
+		if p == nil {
+			return fmt.Errorf("parameters[%d] cannot be nil", i)
+		}
 		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d].%w", i, err)
 		}

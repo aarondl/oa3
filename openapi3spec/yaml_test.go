@@ -3,16 +3,11 @@ package openapi3spec
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/pmezard/go-difflib/difflib"
-)
-
-var (
-	flagUpdateGolden = flag.Bool("golden", false, "Update golden files")
 )
 
 func TestYAML(t *testing.T) {

@@ -142,7 +142,7 @@ func (p *ParameterRef) Validate(pathTemplates []string) error {
 	return nil
 }
 
-func paramDuplicateKeyCheck(params []ParameterRef) error {
+func paramDuplicateKeyCheck(params []*ParameterRef) error {
 	if len(params) == 0 {
 		return nil
 	}

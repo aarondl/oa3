@@ -23,7 +23,7 @@ func (s *Server) Validate() error {
 	}
 
 	if _, err := url.Parse(s.URL); err != nil {
-		return errors.New("url must be a url")
+		return fmt.Errorf("url must be a valid url: %w", err)
 	}
 
 	if s.Description != nil && len(strings.TrimSpace(*s.Description)) == 0 {

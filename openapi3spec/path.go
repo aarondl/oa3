@@ -20,18 +20,18 @@ type Paths map[string]*PathRef
 // documentation viewer but they will not know which operations and parameters
 // are available.
 type Path struct {
-	Summary     *string        `json:"summary,omitempty" yaml:"summary,omitempty"`
-	Description *string        `json:"description,omitempty" yaml:"description,omitempty"`
-	Get         *Operation     `json:"get,omitempty" yaml:"get,omitempty"`
-	Put         *Operation     `json:"put,omitempty" yaml:"put,omitempty"`
-	Post        *Operation     `json:"post,omitempty" yaml:"post,omitempty"`
-	Delete      *Operation     `json:"delete,omitempty" yaml:"delete,omitempty"`
-	Options     *Operation     `json:"options,omitempty" yaml:"options,omitempty"`
-	Head        *Operation     `json:"head,omitempty" yaml:"head,omitempty"`
-	Patch       *Operation     `json:"patch,omitempty" yaml:"patch,omitempty"`
-	Trace       *Operation     `json:"trace,omitempty" yaml:"trace,omitempty"`
-	Servers     []Server       `json:"servers,omitempty" yaml:"servers,omitempty"`
-	Parameters  []ParameterRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Summary     *string         `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Description *string         `json:"description,omitempty" yaml:"description,omitempty"`
+	Get         *Operation      `json:"get,omitempty" yaml:"get,omitempty"`
+	Put         *Operation      `json:"put,omitempty" yaml:"put,omitempty"`
+	Post        *Operation      `json:"post,omitempty" yaml:"post,omitempty"`
+	Delete      *Operation      `json:"delete,omitempty" yaml:"delete,omitempty"`
+	Options     *Operation      `json:"options,omitempty" yaml:"options,omitempty"`
+	Head        *Operation      `json:"head,omitempty" yaml:"head,omitempty"`
+	Patch       *Operation      `json:"patch,omitempty" yaml:"patch,omitempty"`
+	Trace       *Operation      `json:"trace,omitempty" yaml:"trace,omitempty"`
+	Servers     []Server        `json:"servers,omitempty" yaml:"servers,omitempty"`
+	Parameters  []*ParameterRef `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
 }
@@ -85,6 +85,9 @@ func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error
 	}
 
 	for i, p := range p.Parameters {
+		if p == nil {
+			return fmt.Errorf("parameters[%d] cannot be nil", i)
+		}
 		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d].%w", i, err)
 		}
