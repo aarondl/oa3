@@ -3,6 +3,7 @@ package goserver
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"sort"
 	"strings"
 	"text/template"
@@ -68,6 +69,15 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	}
 
 	files = append(files, f...)
+
+	for i, f := range files {
+		formatted, err := format.Source(f.Contents)
+		if err != nil {
+			return nil, fmt.Errorf("failed to format file(%s): %w", f.Name, err)
+		}
+
+		files[i].Contents = formatted
+	}
 
 	return files, nil
 }
@@ -240,13 +250,13 @@ func imports(imps map[string]struct{}) string {
 	buf := new(bytes.Buffer)
 	buf.WriteString("import (")
 	for _, imp := range std {
-		fmt.Fprintf(buf, "\n\t%s", imp)
+		fmt.Fprintf(buf, "\n\t\"%s\"", imp)
 	}
 	if len(std) != 0 && len(third) != 0 {
 		buf.WriteByte('\n')
 	}
 	for _, imp := range third {
-		fmt.Fprintf(buf, "\n\t%s", imp)
+		fmt.Fprintf(buf, "\n\t\"%s\"", imp)
 	}
 	buf.WriteString("\n)")
 

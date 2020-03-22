@@ -7,7 +7,6 @@ import (
 
 	"github.com/aarondl/fixtures"
 	"github.com/aarondl/oa3/openapi3spec"
-	"github.com/aarondl/oa3/templates"
 )
 
 func TestCamelSnake(t *testing.T) {
@@ -25,28 +24,30 @@ func TestCamelSnake(t *testing.T) {
 	}
 }
 
-func TestTopSchemas(t *testing.T) {
+func TestGenerator(t *testing.T) {
 	t.Parallel()
 
-	oa, err := openapi3spec.LoadYAML("testdata/top_level_schemas.yaml", true)
+	oa, err := openapi3spec.LoadYAML("testdata/go_server.yaml", true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	tpl, err := templates.Load(funcs, "../templates/go", tpls...)
+	gen := New()
+
+	err = gen.Load("../templates/go")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fileBuffers, err := generateTopLevelSchemas(oa, nil, tpl)
+	files, err := gen.Do(oa, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	all := new(bytes.Buffer)
-	for _, f := range fileBuffers {
+	for _, f := range files {
 		fmt.Fprintf(all, "// === %s\n%s\n", f.Name, f.Contents)
 	}
 
-	fixtures.Bytes(t, "top_level_schemas.go", all.Bytes())
+	fixtures.Bytes(t, "go_server.go", all.Bytes())
 }
