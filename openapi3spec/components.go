@@ -61,6 +61,10 @@ func ParseRef(uri, kind string) (name string, err error) {
 
 // Validate components
 func (c *Components) Validate() error {
+	if c == nil {
+		return nil
+	}
+
 	for k, v := range c.Schemas {
 		if !rgxComponentName.MatchString(k) {
 			return fmt.Errorf("schemas(%s): invalid component key name", k)

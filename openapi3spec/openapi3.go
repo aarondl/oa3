@@ -408,6 +408,10 @@ func (o *OpenAPI3) Validate() error {
 		return errors.New("openapi must be a semantic version number")
 	}
 
+	if !strings.HasPrefix(o.OpenAPI, "3.") && !strings.HasPrefix(o.OpenAPI, "v3.") {
+		return errors.New("openapi version must be 3.x.x for use with this package")
+	}
+
 	if err := o.Info.Validate(); err != nil {
 		return err
 	}

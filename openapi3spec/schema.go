@@ -74,6 +74,29 @@ func (s *Schema) Validate() error {
 		return errors.New("type must not be blank")
 	}
 
+	if s.Required != nil {
+		if len(s.Required) == 0 {
+			return errors.New("required if present must not be empty")
+		}
+
+		for i, search := range s.Required {
+			found := false
+			for j, check := range s.Required {
+				if i == j {
+					continue
+				}
+				if search == check {
+					found = true
+					break
+				}
+			}
+
+			if found {
+				return fmt.Errorf("required has duplicate item: %q", i)
+			}
+		}
+	}
+
 	if s.ReadOnly && s.WriteOnly {
 		return errors.New("readOnly may not be true at the same time as writeOnly")
 	}

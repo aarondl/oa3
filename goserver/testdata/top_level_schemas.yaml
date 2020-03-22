@@ -1,0 +1,91 @@
+openapi: 3.0.0
+info:
+  title: test
+  version: 0.0.0
+
+paths:
+  /check:
+    x-ignore: true
+
+components:
+  schemas:
+    Primitives:
+      type: object
+      properties:
+        int:   { type: integer, description: "Normal int" }
+        int32: { type: integer, format: int32 }
+        int64: { type: integer, format: int64 }
+        float:   { type: number }
+        float32: { type: number, format: float }
+        float64: { type: number, format: double }
+        str:  { type: string }
+        bool: { type: boolean }
+
+        int_null:   { type: integer, nullable: true }
+        int32_null: { type: integer, format: int32, nullable: true }
+        int64_null: { type: integer, format: int64, nullable: true }
+        float_null:   { type: number, nullable: true }
+        float32_null: { type: number, format: float, nullable: true }
+        float64_null: { type: number, format: double, nullable: true }
+        str_null:  { type: string, nullable: true }
+        bool_null: { type: boolean, nullable: true }
+
+    Array:
+      type: array
+      items: { type: string }
+
+    Arrays:
+      type: object
+      properties:
+        array: { type: array, items: { type: string } }
+
+    ArrayRecursive:
+      type: array
+      items:
+        type: array
+        items:
+          type: array
+          items: { type: string }
+
+    ArrayEmbedded:
+      type: array
+      items:
+        type: object
+        properties:
+          prop: { type: string }
+
+    Map:
+      type: object
+      additionalProperties: { type: array, items: { type: string } }
+
+    MapEmbedded:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          prop: { type: string }
+
+    MapRecursive:
+      type: object
+      additionalProperties:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties: { type: string }
+    
+    Ref:
+      type: object
+      properties:
+        ref_normal: { $ref: '#/components/schemas/RefTarget' }
+        ref_null: { $ref: '#/components/schemas/RefTargetNullable' }
+
+    RefTarget:
+      type: object
+      properties:
+        property: { type: string }
+
+    RefTargetNullable:
+      nullable: true
+      type: object
+      properties:
+        property: { type: string }
