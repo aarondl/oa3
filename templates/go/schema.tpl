@@ -6,6 +6,7 @@
         {{- if .Object.Schema.Nullable}}*{{end}}{{.Name}}
     {{- end -}}
 {{- end -}}
+
 {{- /* Used to output an embedded type, takes a TemplateData with the object set
 to a schema ref */ -}}
 {{- define "type_embedded" -}}
@@ -38,9 +39,7 @@ const ({{range $value := $s.Enum}}
     {{- else if eq $s.Type "object" -}}
         {{- if $s.AllOf}}
 
-        {{- else if $s.AnyOf}}
-
-        {{- else if $s.OneOf}}
+        {{- else if or $s.OneOf $s.AnyOf}}
 
         {{- else if $s.AdditionalProperties -}}map[string]
             {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems must not be the bool case"}}{{- end -}}
@@ -58,8 +57,8 @@ const ({{range $value := $s.Enum}}
                     {{- range $c := split "\n" (trim $element.Schema.Description)}}
     // {{$c}}
                     {{- end -}}
-            {{- end}}
-    {{camelcase $name}} {{template "type_name" (named $ $name $element)}}
+                {{- end}}
+    {{camelcase $name}} {{template "type_name" (named $ $name $element)}} `json:"{{$name}}{{if not ($s.IsRequired $name)}},omitempty{{end}}"`
             {{- end}}
 }
 

@@ -97,6 +97,24 @@ func (s *Schema) Validate() error {
 		}
 	}
 
+	if s.Properties != nil {
+		if len(s.Properties) == 0 {
+			return errors.New("properties if present must not be empty")
+		}
+
+		for name, prop := range s.Properties {
+			// If it's nullable or has a default value, we don't need to
+			// validate it's required
+			if prop.Schema.Nullable || prop.Schema.Default != nil {
+				continue
+			}
+
+			if !s.IsRequired(name) {
+				return fmt.Errorf("properties(%s): must be required, nullable, or have a default value", name)
+			}
+		}
+	}
+
 	if s.ReadOnly && s.WriteOnly {
 		return errors.New("readOnly may not be true at the same time as writeOnly")
 	}
@@ -114,20 +132,110 @@ func (s *Schema) Validate() error {
 	if countExclusives > 1 {
 		return errors.New("allOf|anyOf|oneOf are mutually exclusive")
 	}
+	if countExclusives != 0 && (len(s.Properties) != 0 || len(s.Required) != 0 || s.AdditionalProperties != nil || s.Items != nil) {
+		return errors.New("allOf|anyOf|oneOf cannot be used together with properties|required|additionalProperties|items")
+	}
 
-	if s.Discriminator != nil {
-		if countExclusives == 0 {
-			return errors.New("discriminator may only be present with allOf|anyOf|oneOf")
+	// There's a lot of validation for allOf/anyOf/oneOf that follows
+	if s.Discriminator == nil {
+		return nil
+	}
+
+	if countExclusives == 0 {
+		return errors.New("discriminator may only be present with allOf|anyOf|oneOf")
+	}
+
+	if len(s.Discriminator.PropertyName) == 0 {
+		return errors.New("discriminator if present must not be empty")
+	}
+
+	if len(s.OneOf) != 0 || len(s.AnyOf) != 0 {
+		schemas := s.OneOf
+		kind := "oneOf"
+		if len(s.AnyOf) != 0 {
+			schemas = s.AnyOf
+			kind = "anyOf"
 		}
 
+		for i, s := range schemas {
+			if len(s.Ref) == 0 {
+				return fmt.Errorf("%s[%d]: must be a $ref when using discriminator", kind, i)
+			}
+
+			_, ok := s.Properties[s.Discriminator.PropertyName]
+			if !ok {
+				return fmt.Errorf("discriminator.propertyName(%s): not found in %s[%d]",
+					s.Discriminator.PropertyName,
+					kind,
+					i)
+			}
+
+			if !s.IsRequired(s.Discriminator.PropertyName) {
+				return fmt.Errorf("discriminator.propertyName(%s): must be a required property in %s[%d]",
+					s.Discriminator.PropertyName,
+					kind,
+					i)
+			}
+		}
+
+		dupls := map[string]struct{}{}
+		for k, v := range s.Discriminator.Mapping {
+			if len(v) == 0 {
+				return fmt.Errorf("discriminator.mapping(%s): cannot be empty", k)
+			}
+
+			if _, duplicated := dupls[v]; duplicated {
+				return fmt.Errorf("discriminator.mapping(%s): duplicates value %s", k, v)
+			}
+			dupls[v] = struct{}{}
+
+			found := false
+			var names []string
+			for _, s := range schemas {
+				names = append(names, s.Ref)
+				if v == s.Ref {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf(`discriminator.mapping(%s): could not find ref %s amongst schemas ("%s")`,
+					k, v, strings.Join(names, `", "`),
+				)
+			}
+		}
+	} else {
 		_, ok := s.Properties[s.Discriminator.PropertyName]
 		if !ok {
 			return fmt.Errorf("discriminator.propertyName has %s but this property was not found",
 				s.Discriminator.PropertyName)
 		}
+
+		if !s.IsRequired(s.Discriminator.PropertyName) {
+			return fmt.Errorf("discriminator.propertyName(%s): must be a required property",
+				s.Discriminator.PropertyName)
+		}
+
+		if len(s.Discriminator.Mapping) != 0 {
+			return errors.New("discriminator.mapping may not be provided with allOf")
+		}
 	}
 
 	return nil
+}
+
+// IsRequired is a helper to see if a property is required
+func (s *Schema) IsRequired(prop string) bool {
+	found := false
+	for _, check := range s.Required {
+		if prop == check {
+			found = true
+			break
+		}
+	}
+
+	return found
 }
 
 // Discriminator helps with decoding. When request bodies or response payloads

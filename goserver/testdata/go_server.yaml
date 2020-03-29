@@ -10,7 +10,10 @@ paths:
 components:
   schemas:
     Primitives:
+      description: Checks to see that all Go primitives work
       type: object
+      required: [int, int32, int64, float, float32, float64, str, bool,
+        int_null, int32_null, int64_null, float_null, float32_null, float64_null, str_null, bool_null]
       properties:
         int:   { type: integer, description: "Normal int" }
         int32: { type: integer, format: int32 }
@@ -31,61 +34,87 @@ components:
         bool_null: { type: boolean, nullable: true }
 
     Array:
+      description: Just normal arrays
       type: array
       items: { type: string }
 
     Arrays:
+      description: Arrays as a property
       type: object
+      required: [array]
       properties:
         array: { type: array, items: { type: string } }
 
     ArrayRecursive:
+      description: Recursive definition of an array
       type: array
       items:
+        description: Recursive
         type: array
         items:
+          description: Recursive
           type: array
           items: { type: string }
 
     ArrayEmbedded:
+      description: Embedded object in an array
       type: array
       items:
+        description: This object is embedded in an array
+        required: [prop]
         type: object
         properties:
           prop: { type: string }
 
     Map:
+      description: Map types
       type: object
       additionalProperties: { type: array, items: { type: string } }
 
     MapEmbedded:
+      description: Map types with an embedded object
       type: object
       additionalProperties:
         type: object
+        required: [prop]
         properties:
           prop: { type: string }
 
     MapRecursive:
+      description: Recursively defined maps
       type: object
       additionalProperties:
+        description: Recursive
         type: object
         additionalProperties:
+          description: Recursive
           type: object
           additionalProperties: { type: string }
     
     Ref:
+      description: References to other objects
       type: object
+      required: [ref_normal]
       properties:
         ref_normal: { $ref: '#/components/schemas/RefTarget' }
         ref_null: { $ref: '#/components/schemas/RefTargetNullable' }
 
     RefTarget:
+      description: Referred to object
       type: object
+      required: [prop]
       properties:
-        property: { type: string }
+        prop: { type: string }
 
     RefTargetNullable:
+      description: Referred to object
       nullable: true
       type: object
+      required: [prop]
       properties:
-        property: { type: string }
+        prop: { type: string }
+
+    Enum:
+      description: Enum type
+      type: string
+      enum: [one, two, three]

@@ -1,8 +1,6 @@
 package goserver
 
 import (
-	"bytes"
-	"fmt"
 	"testing"
 
 	"github.com/aarondl/fixtures"
@@ -44,10 +42,7 @@ func TestGenerator(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	all := new(bytes.Buffer)
 	for _, f := range files {
-		fmt.Fprintf(all, "// === %s\n%s\n", f.Name, f.Contents)
+		fixtures.Bytes(t, f.Name, f.Contents)
 	}
-
-	fixtures.Bytes(t, "go_server.go", all.Bytes())
 }
