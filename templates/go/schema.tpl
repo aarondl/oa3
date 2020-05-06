@@ -29,6 +29,8 @@ const ({{range $value := $s.Enum}}
         {{- end}}
 )
 
+    {{- else if $s.AnyOf -}}
+    {{- else if $s.OneOf -}}
     {{- else if eq $s.Type "array" -}}[]
         {{- if not $s.Items -}}{{- fail (printf "items arrays must have items: %s" $.Name) -}}{{- end -}}
         {{- template "type_name" (named $ "Item" $s.Items) -}}
@@ -37,11 +39,7 @@ const ({{range $value := $s.Enum}}
         {{- template "type_embedded" (named $ "Item" $s.Items) -}}
 
     {{- else if eq $s.Type "object" -}}
-        {{- if $s.AllOf}}
-
-        {{- else if or $s.OneOf $s.AnyOf}}
-
-        {{- else if $s.AdditionalProperties -}}map[string]
+        {{- if $s.AdditionalProperties -}}map[string]
             {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems must not be the bool case"}}{{- end -}}
             {{- /* Map properties normal */ -}}
             {{- template "type_name" (named $ "Item" $s.AdditionalProperties.SchemaRef) }}

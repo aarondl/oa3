@@ -79,13 +79,9 @@ func LoadYAMLReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 	}
 
 	if postProcess {
-		if err = oa.ResolveRefs(); err != nil {
-			return nil, fmt.Errorf("error resolving references: %w", err)
+		if err = oa.PostProcess(); err != nil {
+			return nil, err
 		}
-		if err = oa.Validate(); err != nil {
-			return nil, fmt.Errorf("validation failed: %w", err)
-		}
-		oa.CopyInheritedItems()
 	}
 
 	return oa, nil
@@ -106,13 +102,9 @@ func LoadJSONReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 	}
 
 	if postProcess {
-		if err = oa.ResolveRefs(); err != nil {
-			return nil, fmt.Errorf("error resolving references: %w", err)
+		if err = oa.PostProcess(); err != nil {
+			return nil, err
 		}
-		if err = oa.Validate(); err != nil {
-			return nil, fmt.Errorf("validation failed: %w", err)
-		}
-		oa.CopyInheritedItems()
 	}
 
 	return oa, nil
@@ -130,6 +122,23 @@ type OpenAPI3 struct {
 	ExternalDocs *ExternalDocs         `json:"externalDocs,omitempty" yaml:"externalDocs,omitempty"`
 
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
+}
+
+// PostProcess the loaded openapi3 document
+func (o *OpenAPI3) PostProcess() error {
+	var err error
+	if err = o.ResolveRefs(); err != nil {
+		return fmt.Errorf("error resolving references: %w", err)
+	}
+	if err = o.Validate(); err != nil {
+		return fmt.Errorf("validation failed: %w", err)
+	}
+	o.CopyInheritedItems()
+	if err = o.ResolveAllOfs(); err != nil {
+		return fmt.Errorf("error resolving allOfs: %w", err)
+	}
+
+	return nil
 }
 
 // CopyInheritedItems effectively pushes higher-level elements down into
@@ -418,7 +427,7 @@ func (o *OpenAPI3) Validate() error {
 
 	if len(o.Servers) == 0 {
 		o.Servers = []Server{
-			Server{URL: "/"},
+			{URL: "/"},
 		}
 	} else {
 		for i, s := range o.Servers {
@@ -472,6 +481,118 @@ func (o *OpenAPI3) Validate() error {
 	for i, t := range o.Tags {
 		if err := t.Validate(); err != nil {
 			return fmt.Errorf("tags[%d].%w", i, err)
+		}
+	}
+
+	return nil
+}
+
+// ResolveAllOfs combines any object that declares it is an 'allOf' into a
+// single object.
+func (o *OpenAPI3) ResolveAllOfs() error {
+	mergeSchema := func(schema *Schema) error {
+		if schema == nil {
+			return nil
+		}
+
+		if schema.AllOf == nil {
+			return nil
+		}
+
+		schema.Required = make([]string, 0, 0)
+		schema.Properties = make(map[string]*SchemaRef)
+		for _, s := range schema.AllOf {
+			schema.Required = append(schema.Required, s.Schema.Required...)
+			for k, v := range s.Properties {
+				schema.Properties[k] = v
+			}
+			if s.AdditionalProperties != nil {
+				schema.AdditionalProperties = s.AdditionalProperties
+			}
+			if s.Discriminator != nil {
+				schema.Discriminator = s.Discriminator
+			}
+		}
+
+		return nil
+	}
+
+	checkMediaTypes := func(medias map[string]*MediaType) error {
+		for media, m := range medias {
+			if err := mergeSchema(m.Schema.Schema); err != nil {
+				return fmt.Errorf("content(%s).%w", media, mergeSchema(m.Schema.Schema))
+			}
+		}
+
+		return nil
+	}
+
+	fmt.Println("RESOLVING ALLOFS")
+
+	if o.Components != nil {
+		for k, v := range o.Components.Schemas {
+			if err := mergeSchema(v.Schema); err != nil {
+				return fmt.Errorf("components.schemas(%s).%w", k, err)
+			}
+		}
+		for k, v := range o.Components.RequestBodies {
+			if v.RequestBody != nil {
+				if err := checkMediaTypes(v.RequestBody.Content); err != nil {
+					return fmt.Errorf("components.requestBodies(%s).%w", k, err)
+				}
+			}
+		}
+		for k, v := range o.Components.Responses {
+			if v.Response != nil {
+				if err := checkMediaTypes(v.Response.Content); err != nil {
+					return fmt.Errorf("components.responses(%s).%w", k, err)
+				}
+			}
+		}
+		for k, v := range o.Components.Parameters {
+			if err := mergeSchema(v.Schema.Schema); err != nil {
+				return fmt.Errorf("components.parameters(%s).%w", k, err)
+			}
+			if err := checkMediaTypes(v.Content); err != nil {
+				return fmt.Errorf("components.parameters(%s).%w", k, err)
+			}
+		}
+	}
+
+	for k, v := range o.Paths {
+		ops := map[string]*Operation{
+			"get":     v.Get,
+			"post":    v.Post,
+			"put":     v.Put,
+			"delete":  v.Delete,
+			"patch":   v.Patch,
+			"head":    v.Head,
+			"options": v.Options,
+		}
+
+		for verb, o := range ops {
+			if o == nil {
+				continue
+			}
+
+			for i, p := range o.Parameters {
+				if err := mergeSchema(p.Schema.Schema); err != nil {
+					return fmt.Errorf("paths(%s).%s.parameters[%d].%w", k, verb, i, err)
+				}
+				if err := checkMediaTypes(p.Content); err != nil {
+					return fmt.Errorf("paths(%s).%s.parameters[%d].%w", k, verb, i, err)
+				}
+			}
+			if o.RequestBody != nil {
+				if err := checkMediaTypes(o.RequestBody.Content); err != nil {
+					return fmt.Errorf("paths(%s).%s.requestBody.%w", k, verb, err)
+				}
+			}
+			for resp, r := range o.Responses {
+				if err := checkMediaTypes(r.Content); err != nil {
+					return fmt.Errorf("paths(%s).%s.responses(%s).%w", k, verb, resp, err)
+				}
+			}
 		}
 	}
 

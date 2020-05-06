@@ -142,7 +142,7 @@ func (s *Schema) Validate() error {
 	}
 
 	if countExclusives == 0 {
-		return errors.New("discriminator may only be present with allOf|anyOf|oneOf")
+		return errors.New("discriminator may only be present with anyOf|oneOf")
 	}
 
 	if len(s.Discriminator.PropertyName) == 0 {

@@ -118,3 +118,29 @@ components:
       description: Enum type
       type: string
       enum: [one, two, three]
+
+    AllOf:
+      description: All of example
+      type: object
+      allOf:
+          - { $ref: '#/components/schemas/AllOfConsumeA' }
+          - { $ref: '#/components/schemas/AllOfConsumeB' }
+          - description: Desc
+            type: object
+            required: [someprop]
+            properties:
+              someprop: { type: string, description: 'A string' }
+
+    AllOfConsumeA:
+      description: Consumable
+      type: object
+      required: [a]
+      properties:
+        a: { type: string }
+
+    AllOfConsumeB:
+      description: Consumable
+      type: object
+      required: [b]
+      properties:
+        b: { type: string }
