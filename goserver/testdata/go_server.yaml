@@ -123,22 +123,46 @@ components:
       description: All of example
       type: object
       allOf:
-          - { $ref: '#/components/schemas/AllOfConsumeA' }
-          - { $ref: '#/components/schemas/AllOfConsumeB' }
-          - description: Desc
-            type: object
-            required: [someprop]
-            properties:
-              someprop: { type: string, description: 'A string' }
+        - { $ref: '#/components/schemas/InheritanceA' }
+        - { $ref: '#/components/schemas/InheritanceB' }
+        - description: Desc
+          type: object
+          required: [someprop]
+          properties:
+            someprop: { type: string, description: 'A string' }
 
-    AllOfConsumeA:
+    OneOf:
+      type: object
+      description: An example of an object that can be exactly one of 3 things
+      oneOf:
+        - { $ref: '#/components/schemas/InheritanceA' }
+        - { $ref: '#/components/schemas/InheritanceB' }
+        - description: Desc
+          type: object
+          required: [someprop]
+          properties:
+            someprop: { type: string, description: 'A string' }
+
+    AnyOf:
+      type: object
+      description: An example of an object that can be exactly one of 3 things
+      oneOf:
+        - { $ref: '#/components/schemas/InheritanceA' }
+        - { $ref: '#/components/schemas/InheritanceB' }
+        - description: Desc
+          type: object
+          required: [someprop]
+          properties:
+            someprop: { type: string, description: 'A string' }
+
+    InheritanceA:
       description: Consumable
       type: object
       required: [a]
       properties:
         a: { type: string }
 
-    AllOfConsumeB:
+    InheritanceB:
       description: Consumable
       type: object
       required: [b]

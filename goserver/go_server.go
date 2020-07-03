@@ -73,7 +73,7 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	for i, f := range files {
 		formatted, err := format.Source(f.Contents)
 		if err != nil {
-			return nil, fmt.Errorf("failed to format file(%s): %w", f.Name, err)
+			return nil, fmt.Errorf("failed to format file(%s): %w\n%s", f.Name, err, f.Contents)
 		}
 
 		files[i].Contents = formatted

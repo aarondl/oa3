@@ -29,8 +29,13 @@ const ({{range $value := $s.Enum}}
         {{- end}}
 )
 
-    {{- else if $s.AnyOf -}}
-    {{- else if $s.OneOf -}}
+    {{- else if or $s.AnyOf $s.OneOf -}}interface {
+        {{$.Name}}TypeCheck()
+    }
+
+    type {{$.Name}}Intf interface {
+        {{$.Name}}TypeCheck()
+    }
     {{- else if eq $s.Type "array" -}}[]
         {{- if not $s.Items -}}{{- fail (printf "items arrays must have items: %s" $.Name) -}}{{- end -}}
         {{- template "type_name" (named $ "Item" $s.Items) -}}

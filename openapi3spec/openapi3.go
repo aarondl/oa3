@@ -527,8 +527,6 @@ func (o *OpenAPI3) ResolveAllOfs() error {
 		return nil
 	}
 
-	fmt.Println("RESOLVING ALLOFS")
-
 	if o.Components != nil {
 		for k, v := range o.Components.Schemas {
 			if err := mergeSchema(v.Schema); err != nil {
