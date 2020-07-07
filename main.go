@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,7 +58,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&flagDebug, "debug", "", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&flagWipe, "wipe", "w", false, "rm output directory before generation")
 	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "output", "o", "", "output directory (default "+filepath.Join(wd, "out", "<generator>")+")")
-	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "templates", "t", "", "template directory (default "+filepath.Join(wd, "templates", "<generator>")+")")
+	rootCmd.PersistentFlags().StringVarP(&flagTemplateDir, "templates", "t", "", "template directory (default "+filepath.Join(wd, "templates", "<generator>")+")")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -79,8 +80,18 @@ func rootCmdRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if flagWipe {
+		_ = os.RemoveAll(flagOutputDir)
+	}
+
+	if err = os.MkdirAll(flagOutputDir, 0775); err != nil {
+		return err
+	}
+
 	for _, f := range files {
-		fmt.Printf("====== %s ======\n%s\n", f.Name, f.Contents)
+		if err := ioutil.WriteFile(filepath.Join(flagOutputDir, f.Name), f.Contents, 0640); err != nil {
+			return err
+		}
 	}
 
 	return nil

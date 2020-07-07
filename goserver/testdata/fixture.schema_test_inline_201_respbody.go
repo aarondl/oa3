@@ -6,17 +6,13 @@ import (
 	"github.com/aarondl/oa3/support"
 )
 
-// All of example
-type AllOf struct {
-	A string `json:"a"`
-	B string `json:"b"`
-	// A string
-	Someprop string `json:"someprop"`
+type TestInline201Inline struct {
+	Id string `json:"id"`
 }
 
-// VVValidateSchemaAllOf validates the object and returns
+// VVValidateSchemaTestInline201Inline validates the object and returns
 // errors that can be returned to the user.
-func (o AllOf) VVValidateSchema() support.Errors {
+func (o TestInline201Inline) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

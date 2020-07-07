@@ -1,11 +1,112 @@
 openapi: 3.0.0
 info:
-  title: test
+  title: Go Server
   version: 0.0.0
+  description: A great api
 
 paths:
-  /check:
-    x-ignore: true
+  /users/{id}:
+    get:
+      operationId: getUser
+      description: >
+        Retrieves a user with a long description that spans multiple lines so
+        that we can see that both wrapping and long-line support is not bleeding
+        over the sacred 80 char limit.
+      tags: [users]
+      parameters:
+        - name: valid_str
+          in: query
+          schema: { nullable: true, type: string, maxLength: 5, minLength: 2, enum: [he"llo] }
+        - name: req_valid_str
+          in: query
+          required: true
+          schema: { nullable: true, type: string, maxLength: 5, minLength: 2, enum: [he"llo] }
+        - name: valid_int
+          in: query
+          schema: { type: integer, multipleOf: 2, maximum: 5, minimum: 2, exclusiveMaximum: true }
+        - name: req_valid_int
+          in: query
+          required: true
+          schema: { type: integer, multipleOf: 2, maximum: 5, minimum: 2, exclusiveMaximum: true }
+        - name: valid_num
+          in: query
+          schema: { type: number, multipleOf: 2.5, maximum: 10.5, minimum: 5.5, exclusiveMinimum: true }
+        - name: req_valid_num
+          in: query
+          schema: { type: number, multipleOf: 2.5, maximum: 10.5, minimum: 5.5, exclusiveMinimum: true }
+        - name: valid_bool
+          in: query
+          schema: { type: boolean }
+        - name: req_valid_bool
+          in: query
+          required: true
+          schema: { type: boolean }
+      responses:
+        '304': { description: Ok }
+
+    post:
+      operationId: setUser
+      description: Sets a user
+      tags: [users]
+      requestBody:
+        description: Description of a response body
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Primitives' }
+      responses:
+        '200':
+          description: Ok
+          headers:
+            'X-Response-Header':
+              description: Test of an in-response header
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Primitives' }
+        default:
+          description: Ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Primitives' }
+    x-dont-ignore: true
+
+  /auth:
+    post:
+      operationId: authenticate
+      responses:
+        '200': { description: Ok }
+
+  /test/inline:
+    get:
+      operationId: testInlinePrimitiveBody
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          application/json:
+            schema: { type: string }
+      responses:
+        '200': { description: OK }
+    post:
+      operationId: testInline
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [id], properties: { id: { type: string } } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: string }
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [id], properties: { id: { type: string } } }
 
 components:
   schemas:
@@ -15,22 +116,22 @@ components:
       required: [int, int32, int64, float, float32, float64, str, bool,
         int_null, int32_null, int64_null, float_null, float32_null, float64_null, str_null, bool_null]
       properties:
-        int:   { type: integer, description: "Normal int" }
-        int32: { type: integer, format: int32 }
-        int64: { type: integer, format: int64 }
-        float:   { type: number }
-        float32: { type: number, format: float }
-        float64: { type: number, format: double }
-        str:  { type: string }
+        int:   { type: integer, description: "Normal int", multipleOf: 5 }
+        int32: { type: integer, format: int32, maximum: 5 }
+        int64: { type: integer, format: int64, minimum: 5 }
+        float:   { type: number, multipleOf: 5.5 }
+        float32: { type: number, format: float, maximum: 5.5 }
+        float64: { type: number, format: double, minimum: 5.5 }
+        str:  { type: string, maxLength: 5, minLength: 5, enum: ["hello"] }
         bool: { type: boolean }
 
-        int_null:   { type: integer, nullable: true }
-        int32_null: { type: integer, format: int32, nullable: true }
-        int64_null: { type: integer, format: int64, nullable: true }
-        float_null:   { type: number, nullable: true }
-        float32_null: { type: number, format: float, nullable: true }
-        float64_null: { type: number, format: double, nullable: true }
-        str_null:  { type: string, nullable: true }
+        int_null:   { type: integer, nullable: true, multipleOf: 5 }
+        int32_null: { type: integer, format: int32, nullable: true, maximum: 5 }
+        int64_null: { type: integer, format: int64, nullable: true, minimum: 5 }
+        float_null:   { type: number, nullable: true, multipleOf: 5.5 }
+        float32_null: { type: number, format: float, nullable: true, maximum: 5 }
+        float64_null: { type: number, format: double, nullable: true, minimum: 5 }
+        str_null:  { type: string, nullable: true, maxLength: 5, minLength: 5, enum: ["hello"] }
         bool_null: { type: boolean, nullable: true }
 
     Array:
@@ -48,12 +149,18 @@ components:
     ArrayRecursive:
       description: Recursive definition of an array
       type: array
+      minItems: 2
+      maxItems: 10
       items:
         description: Recursive
         type: array
+        minItems: 5
+        maxItems: 8
         items:
           description: Recursive
           type: array
+          minItems: 12
+          maxItems: 15
           items: { type: string }
 
     ArrayEmbedded:
@@ -83,12 +190,18 @@ components:
     MapRecursive:
       description: Recursively defined maps
       type: object
+      minProperties: 2
+      maxProperties: 3
       additionalProperties:
         description: Recursive
         type: object
+        minProperties: 3
+        maxProperties: 4
         additionalProperties:
           description: Recursive
           type: object
+          minProperties: 5
+          maxProperties: 6
           additionalProperties: { type: string }
     
     Ref:

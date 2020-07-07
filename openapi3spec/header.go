@@ -46,6 +46,7 @@ func (h *Header) Validate() error {
 	if h.Style != nil {
 		switch *h.Style {
 		case "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject":
+		default:
 			return errors.New("style must be one of matrix|label|form|simple|spaceDelimited|pipeDelimited|deepObject")
 		}
 	}

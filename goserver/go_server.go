@@ -24,23 +24,24 @@ const (
 
 // templates for generation
 var tpls = []string{
+	"api_interface.tpl",
+	"api_methods.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
+
+	"validate_schema.tpl",
+	"validate_field.tpl",
 }
 
 // funcs to use for generation
 var funcs = map[string]interface{}{
 	"camelSnake":        camelSnake,
-	"named":             named,
+	"newData":           newData,
+	"recurseData":       recurseData,
 	"primitive":         primitive,
 	"isInlinePrimitive": isInlinePrimitive,
-}
-
-// templateData for go templates
-type templateData struct {
-	Name   string
-	Object interface{}
-	*templates.TemplateData
+	"taggedPaths":       tagPaths,
+	"responseKind":      responseKind,
 }
 
 // generator generates templates for Go
@@ -65,7 +66,21 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	var files []generator.File
 	f, err := generateTopLevelSchemas(spec, params, g.tpl)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate schemas: %w", err)
+	}
+
+	files = append(files, f...)
+
+	f, err = generateAPIInterface(spec, params, g.tpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to api interface: %w", err)
+	}
+
+	files = append(files, f...)
+
+	f, err = generateAPIMethods(spec, params, g.tpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to api methods: %w", err)
 	}
 
 	files = append(files, f...)
@@ -82,7 +97,104 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	return files, nil
 }
 
+func generateAPIMethods(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
+	if spec.Paths == nil {
+		return nil, nil
+	}
+
+	return nil, nil
+}
+
+func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
+	if spec.Paths == nil {
+		return nil, nil
+	}
+
+	files := make([]generator.File, 0)
+
+	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
+
+	tData := templates.NewTemplateData(spec, params)
+	data := templateData{
+		TemplateData: tData,
+		Name:         apiName,
+		Object:       nil,
+	}
+
+	filename := generator.FilenameFromTitle(spec.Info.Title) + ".go"
+
+	buf := new(bytes.Buffer)
+	if err := tpl.ExecuteTemplate(buf, "api_interface", data); err != nil {
+		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	fileBytes := new(bytes.Buffer)
+	pkg := DefaultPackage
+	if pkgParam := params["package"]; len(pkgParam) > 0 {
+		pkg = pkgParam
+	}
+
+	fileBytes.WriteString(Disclaimer)
+	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
+	if imps := imports(data.Imports); len(imps) != 0 {
+		fileBytes.WriteByte('\n')
+		fileBytes.WriteString(imports(data.Imports))
+		fileBytes.WriteByte('\n')
+	}
+	fileBytes.WriteByte('\n')
+	fileBytes.Write(buf.Bytes())
+
+	content := make([]byte, len(fileBytes.Bytes()))
+	copy(content, fileBytes.Bytes())
+	files = append(files, generator.File{Name: filename, Contents: content})
+
+	tData = templates.NewTemplateData(spec, params)
+	data = templateData{
+		TemplateData: tData,
+		Name:         apiName,
+		Object:       nil,
+	}
+
+	filename = generator.FilenameFromTitle(spec.Info.Title) + "_methods.go"
+
+	buf.Reset()
+	fileBytes.Reset()
+	if err := tpl.ExecuteTemplate(buf, "api_methods", data); err != nil {
+		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	fileBytes.WriteString(Disclaimer)
+	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
+	if imps := imports(data.Imports); len(imps) != 0 {
+		fileBytes.WriteByte('\n')
+		fileBytes.WriteString(imports(data.Imports))
+		fileBytes.WriteByte('\n')
+	}
+	fileBytes.WriteByte('\n')
+	fileBytes.Write(buf.Bytes())
+
+	files = append(files, generator.File{Name: filename, Contents: fileBytes.Bytes()})
+
+	return files, nil
+}
+
 // generateSchemas creates files for the topLevel-level referenceable types
+//
+// Some supported Inline are also generated.
+// Prefixed with their recursive names and Inline.
+// components.responses[name].headers[headername].schema
+// components.responses[name].content[mime-type].schema
+// components.responses[name].content[mime-type].encoding[propname].headers[headername].schema
+// components.parameters[name].schema
+// components.requestBodies[name].content[mime-type].schema
+// components.requestBodies[name].content[mime-type].encoding[propname].headers[headername].schema
+// components.headers[name].schema
+// paths.parameters[0].schema
+// paths.(get|put...).parameters[0].schema
+// paths.(get|put...).requestBody.content[mime-type].schema
+// paths.(get|put...).responses[name].headers[headername].schema
+// paths.(get|put...).responses[name].content[mime-type].schema
+// paths.(get|put...).responses[name].content[mime-type].encoding[propname].headers[headername].schema
 func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
 	if spec.Components == nil {
 		return nil, nil
@@ -98,46 +210,158 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 	for _, k := range keys {
 		v := spec.Components.Schemas[k]
+		filename := "schema_" + camelSnake(k) + ".go"
 
-		// Don't generate arrays as additional types
-		if v.Type == "array" && v.Items != nil && len(v.Items.Ref) != 0 {
+		generated, err := makePseudoFile(spec, params, tpl, filename, k, v)
+		if err != nil {
+			return nil, err
+		}
+		topLevelStructs = append(topLevelStructs, generated)
+	}
+
+	type opMap struct {
+		Verb string
+		Op   *openapi3spec.Operation
+	}
+
+	for _, p := range spec.Paths {
+		opMaps := []opMap{
+			{"GET", p.Get}, {"POST", p.Post}, {"PUT", p.Put},
+			{"PATCH", p.Patch}, {"TRACE", p.Trace}, {"HEAD", p.Head},
+			{"DELETE", p.Delete},
+		}
+		for _, o := range opMaps {
+			if o.Op == nil {
+				continue
+			}
+
+			// If we have no request body ignore this op
+			if o.Op.RequestBody != nil {
+				if len(o.Op.RequestBody.Ref) != 0 {
+					continue
+				}
+
+				schema := o.Op.RequestBody.Content["application/json"].Schema
+				// Refs are taken care of already
+				if len(schema.Ref) != 0 {
+					continue
+				}
+
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema)
+				if err != nil {
+					return nil, err
+				}
+
+				topLevelStructs = append(topLevelStructs, generated)
+			}
+		}
+
+		for _, o := range opMaps {
+			if o.Op == nil {
+				continue
+			}
+
+			for code, resp := range o.Op.Responses {
+				if len(resp.Ref) != 0 {
+					continue
+				}
+				if len(resp.Content) == 0 {
+					continue
+				}
+
+				schema := resp.Content["application/json"].Schema
+				// Refs are taken care of already
+				if len(schema.Ref) != 0 {
+					continue
+				}
+
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema)
+				if err != nil {
+					return nil, err
+				}
+
+				topLevelStructs = append(topLevelStructs, generated)
+			}
+		}
+	}
+
+	for name, req := range spec.Components.RequestBodies {
+		schema := req.Content["application/json"].Schema
+		if len(schema.Ref) != 0 {
 			continue
 		}
 
-		filename := "schema_" + camelSnake(k) + ".go"
-
-		tData := templates.NewTemplateData(spec, params)
-		data := templateData{
-			TemplateData: tData,
-			Name:         k,
-			Object:       v,
+		filename := "schema_" + camelSnake(name) + "_reqbody.go"
+		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema)
+		if err != nil {
+			return nil, err
 		}
 
-		buf := new(bytes.Buffer)
-		if err := tpl.ExecuteTemplate(buf, "schema_top", data); err != nil {
-			return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+		topLevelStructs = append(topLevelStructs, generated)
+	}
+
+	for name, resp := range spec.Components.Responses {
+		if len(resp.Content) == 0 {
+			continue
+		}
+		schema := resp.Content["application/json"].Schema
+		if len(schema.Ref) != 0 {
+			continue
 		}
 
-		fileBytes := new(bytes.Buffer)
-		pkg := DefaultPackage
-		if pkgParam := params["package"]; len(pkgParam) > 0 {
-			pkg = pkgParam
+		filename := "schema_" + camelSnake(name) + "_respbody.go"
+		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema)
+		if err != nil {
+			return nil, err
 		}
-
-		fileBytes.WriteString(Disclaimer)
-		fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
-		if imps := imports(data.Imports); len(imps) != 0 {
-			fileBytes.WriteByte('\n')
-			fileBytes.WriteString(imports(data.Imports))
-			fileBytes.WriteByte('\n')
-		}
-		fileBytes.WriteByte('\n')
-		fileBytes.Write(buf.Bytes())
-
-		topLevelStructs = append(topLevelStructs, generator.File{Name: filename, Contents: fileBytes.Bytes()})
+		topLevelStructs = append(topLevelStructs, generated)
 	}
 
 	return topLevelStructs, nil
+}
+
+var (
+	fileBuf   = new(bytes.Buffer)
+	headerBuf = new(bytes.Buffer)
+)
+
+func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, filename string, name string, schema *openapi3spec.SchemaRef) (generator.File, error) {
+	fileBuf.Reset()
+	headerBuf.Reset()
+
+	tData := templates.NewTemplateData(spec, params)
+	data := templateData{
+		TemplateData: tData,
+		Name:         name,
+		Object:       schema,
+	}
+
+	if err := tpl.ExecuteTemplate(fileBuf, "schema_top", data); err != nil {
+		return generator.File{}, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	pkg := DefaultPackage
+	if pkgParam := params["package"]; len(pkgParam) > 0 {
+		pkg = pkgParam
+	}
+
+	headerBuf.WriteString(Disclaimer)
+	fmt.Fprintf(headerBuf, "\npackage %s\n", pkg)
+	if imps := imports(data.Imports); len(imps) != 0 {
+		headerBuf.WriteByte('\n')
+		headerBuf.WriteString(imports(data.Imports))
+		headerBuf.WriteByte('\n')
+	}
+	headerBuf.WriteByte('\n')
+
+	headerLen, fileLen := headerBuf.Len(), fileBuf.Len()
+	contents := make([]byte, headerLen+fileLen)
+	copy(contents, headerBuf.Bytes())
+	copy(contents[headerLen:], fileBuf.Bytes())
+
+	return generator.File{Name: filename, Contents: contents}, nil
 }
 
 func isInlinePrimitive(schema *openapi3spec.Schema) bool {
@@ -186,13 +410,13 @@ func primitiveNonNil(tdata templateData, schema *openapi3spec.Schema) (string, e
 		return "bool", nil
 	}
 
-	return "", fmt.Errorf("schema had unsupported type: %s", schema.Type)
+	return "", fmt.Errorf("schema expected primitive type (integer, number, string, boolean) but got: %s", schema.Type)
 }
 
 func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, error) {
 	switch schema.Type {
 	case "integer":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 
 		if schema.Format != nil {
 			switch *schema.Format {
@@ -205,7 +429,7 @@ func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, erro
 
 		return "null.Int", nil
 	case "number":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 
 		if schema.Format != nil {
 			switch *schema.Format {
@@ -218,14 +442,14 @@ func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, erro
 
 		return "null.Float64", nil
 	case "string":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 		return "null.String", nil
 	case "boolean":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 		return "null.Bool", nil
 	}
 
-	return "", fmt.Errorf("schema had unsupported nil type: %s", schema.Type)
+	return "", fmt.Errorf("schema had expected primitive nil type (integer, number, string, boolean) but got: %s", schema.Type)
 }
 
 func imports(imps map[string]struct{}) string {
@@ -306,10 +530,53 @@ func camelSnake(filename string) string {
 	return build.String()
 }
 
-func named(tplData templateData, nextName string, nextObj interface{}) templateData {
-	return templateData{
-		TemplateData: tplData.TemplateData,
-		Name:         tplData.Name + nextName,
-		Object:       nextObj,
+// responseKind returns the type of abstraction we need for a specific response
+// code in an operation.
+//
+// The return can be one of three values: "wrapped" "empty" or ""
+//
+// Wrapped indicates it must be wrapped in a struct because it either has
+// headers or it is a duplicate response type (say two strings) and we need
+// to differentiate code.
+//
+// Empty means there is no response body, and an empty response code type
+// must be used in its place.
+//
+// An empty string means that no special handling is required and the type
+// response type can be used directly.
+func responseKind(op *openapi3spec.Operation, code string) string {
+	r := op.Responses[code]
+	if len(r.Headers) != 0 {
+		return "wrapped"
 	}
+
+	// Return here since there's no point continuing if we can't find bodies to
+	// collide with
+	if len(r.Content) == 0 {
+		return "empty"
+	}
+
+	body := r.Content["application/json"].Schema
+
+	for respCode, resp := range op.Responses {
+		if respCode == code {
+			continue
+		}
+
+		// Don't compare bodies if the other one doesn't have one
+		if len(resp.Content) == 0 {
+			continue
+		}
+
+		otherBody := resp.Content["application/json"].Schema
+		if len(body.Ref) != 0 && len(otherBody.Ref) != 0 && body.Ref == otherBody.Ref {
+			return "wrapped"
+		} else if len(body.Ref) == 0 && len(otherBody.Ref) == 0 && body.Type == otherBody.Type {
+			if isInlinePrimitive(body.Schema) {
+				return "wrapped"
+			}
+		}
+	}
+
+	return ""
 }
