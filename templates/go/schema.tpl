@@ -54,8 +54,7 @@ const ({{range $value := $s.Enum}}
 
         {{- else if $s.Properties}}struct {
             {{- /* Process regular struct fields */ -}}
-            {{- range $name := keysReflect $s.Properties | sortAlpha -}}
-                {{$element := index $s.Properties $name}}
+            {{- range $name, $element := $s.Properties -}}
                 {{- if and (not $element.Ref) $element.Schema.Description -}}
                     {{- range $c := split "\n" (trim $element.Schema.Description)}}
     // {{$c}}
@@ -66,8 +65,7 @@ const ({{range $value := $s.Enum}}
 }
 
             {{- /* Process embedded structs */ -}}
-            {{- range $name := keysReflect $s.Properties | sortAlpha -}}
-                {{$element := index $s.Properties $name}}
+            {{- range $name, $element := $s.Properties -}}
                 {{- template "type_embedded" (named $ (camelcase $name) $element) -}}
             {{- end -}}
         {{- end}}

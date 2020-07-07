@@ -1,11 +1,50 @@
 openapi: 3.0.0
 info:
-  title: test
+  title: Go Server
   version: 0.0.0
+  description: A great api
 
 paths:
-  /check:
-    x-ignore: true
+  /users:
+    get:
+      operationId: getUser
+      description: >
+        Retrieves a user with a long description that spans multiple lines so
+        that we can see that both wrapping and long-line support is not bleeding
+        over the sacred 80 char limit.
+      tags: [users]
+      parameters:
+        - name: 'user_id'
+          in: 'query'
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '304': { description: Ok }
+    post:
+      operationId: setUser
+      description: Sets a user
+      tags: [users]
+      requestBody:
+        description: Description of a response body
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Primitives' }
+      responses:
+        '200': { description: Ok }
+        'default':
+          description: Ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Primitives' }
+    x-dont-ignore: true
+
+  /auth:
+    post:
+      operationId: authenticate
+      responses:
+        '200': { description: Ok }
 
 components:
   schemas:

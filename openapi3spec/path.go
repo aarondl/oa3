@@ -36,6 +36,38 @@ type Path struct {
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
 }
 
+// Operations returns the non-nil operations for this Path in a map to make
+// it easier to handle them generically.
+func (p *Path) Operations() map[string]*Operation {
+	ops := make(map[string]*Operation)
+	if p.Get != nil {
+		ops["get"] = p.Get
+	}
+	if p.Put != nil {
+		ops["put"] = p.Put
+	}
+	if p.Post != nil {
+		ops["post"] = p.Post
+	}
+	if p.Delete != nil {
+		ops["delete"] = p.Delete
+	}
+	if p.Options != nil {
+		ops["options"] = p.Options
+	}
+	if p.Head != nil {
+		ops["head"] = p.Head
+	}
+	if p.Patch != nil {
+		ops["patch"] = p.Patch
+	}
+	if p.Trace != nil {
+		ops["trace"] = p.Trace
+	}
+
+	return ops
+}
+
 // Validate path
 func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
 	if p == nil {

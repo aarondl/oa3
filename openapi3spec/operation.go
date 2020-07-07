@@ -75,6 +75,11 @@ func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) 
 	if len(o.Responses) == 0 {
 		return errors.New("responses must not be empty")
 	}
+	if def, ok := o.Responses["default"]; ok {
+		if len(def.Content) == 0 {
+			return fmt.Errorf("responses(default).content content must not be empty for default response")
+		}
+	}
 	for i, r := range o.Responses {
 		if err := r.Validate(); err != nil {
 			return fmt.Errorf("responses(%s).%w", i, err)

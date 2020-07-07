@@ -2,7 +2,11 @@
 // main => generators to work with.
 package generator
 
-import "github.com/aarondl/oa3/openapi3spec"
+import (
+	"strings"
+
+	"github.com/aarondl/oa3/openapi3spec"
+)
 
 // File described by name and contents
 type File struct {
@@ -14,4 +18,15 @@ type File struct {
 type Interface interface {
 	Load(templateDir string) error
 	Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]File, error)
+}
+
+var filenameReplacer = strings.NewReplacer(
+	" ", "_",
+	"\t", "_",
+	"\n", "_",
+)
+
+// FilenameFromTitle creates a filename from a title
+func FilenameFromTitle(title string) string {
+	return strings.ToLower(filenameReplacer.Replace(title))
 }

@@ -3,6 +3,7 @@ package templates
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -15,6 +16,7 @@ import (
 var GlobalFunctions = map[string]interface{}{
 	"refName":     refName,
 	"keysReflect": keysReflect,
+	"httpStatus":  http.StatusText,
 }
 
 func refName(ref string) string {

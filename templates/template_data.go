@@ -20,6 +20,7 @@ func NewTemplateData(spec *openapi3spec.OpenAPI3, params map[string]string) *Tem
 }
 
 // Import records the importing of a library
-func (t *TemplateData) Import(importName string) {
+func (t *TemplateData) Import(importName string) string {
 	t.Imports[importName] = struct{}{}
+	return ""
 }

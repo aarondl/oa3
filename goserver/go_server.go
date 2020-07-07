@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"net/http"
 	"sort"
 	"strings"
 	"text/template"
@@ -24,6 +25,8 @@ const (
 
 // templates for generation
 var tpls = []string{
+	"api_interface.tpl",
+	"api_method.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
 }
@@ -34,6 +37,7 @@ var funcs = map[string]interface{}{
 	"named":             named,
 	"primitive":         primitive,
 	"isInlinePrimitive": isInlinePrimitive,
+	"taggedPaths":       tagPaths,
 }
 
 // templateData for go templates
@@ -65,7 +69,21 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	var files []generator.File
 	f, err := generateTopLevelSchemas(spec, params, g.tpl)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate schemas: %w", err)
+	}
+
+	files = append(files, f...)
+
+	f, err = generateAPIInterface(spec, params, g.tpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to api interface: %w", err)
+	}
+
+	files = append(files, f...)
+
+	f, err = generateAPIMethods(spec, params, g.tpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to api methods: %w", err)
 	}
 
 	files = append(files, f...)
@@ -82,7 +100,70 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	return files, nil
 }
 
+func generateAPIMethods(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
+	if spec.Paths == nil {
+		return nil, nil
+	}
+
+	return nil, nil
+}
+
+func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
+	if spec.Paths == nil {
+		return nil, nil
+	}
+
+	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
+
+	tData := templates.NewTemplateData(spec, params)
+	data := templateData{
+		TemplateData: tData,
+		Name:         apiName,
+		Object:       nil,
+	}
+
+	filename := generator.FilenameFromTitle(spec.Info.Title) + ".go"
+
+	buf := new(bytes.Buffer)
+	if err := tpl.ExecuteTemplate(buf, "api_interface", data); err != nil {
+		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	fileBytes := new(bytes.Buffer)
+	pkg := DefaultPackage
+	if pkgParam := params["package"]; len(pkgParam) > 0 {
+		pkg = pkgParam
+	}
+
+	fileBytes.WriteString(Disclaimer)
+	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
+	if imps := imports(data.Imports); len(imps) != 0 {
+		fileBytes.WriteByte('\n')
+		fileBytes.WriteString(imports(data.Imports))
+		fileBytes.WriteByte('\n')
+	}
+	fileBytes.WriteByte('\n')
+	fileBytes.Write(buf.Bytes())
+
+	return []generator.File{{Name: filename, Contents: fileBytes.Bytes()}}, nil
+}
+
 // generateSchemas creates files for the topLevel-level referenceable types
+//
+// Inline schemas are not generated. They are found in the following places here:
+// components.responses[name].headers[headername].schema
+// components.responses[name].content[mime-type].schema
+// components.responses[name].content[mime-type].encoding[propname].headers[headername].schema
+// components.parameters[name].schema
+// components.requestBodies[name].content[mime-type].schema
+// components.requestBodies[name].content[mime-type].encoding[propname].headers[headername].schema
+// components.headers[name].schema
+// paths.parameters[0].schema
+// paths.(get|put...).parameters[0].schema
+// paths.(get|put...).requestBody.content[mime-type].schema
+// paths.(get|put...).responses[name].headers[headername].schema
+// paths.(get|put...).responses[name].content[mime-type].schema
+// paths.(get|put...).responses[name].content[mime-type].encoding[propname].headers[headername].schema
 func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
 	if spec.Components == nil {
 		return nil, nil
@@ -186,7 +267,7 @@ func primitiveNonNil(tdata templateData, schema *openapi3spec.Schema) (string, e
 		return "bool", nil
 	}
 
-	return "", fmt.Errorf("schema had unsupported type: %s", schema.Type)
+	return "", fmt.Errorf("schema expected primitive type (integer, number, string, boolean) but got: %s", schema.Type)
 }
 
 func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, error) {
@@ -225,7 +306,7 @@ func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, erro
 		return "null.Bool", nil
 	}
 
-	return "", fmt.Errorf("schema had unsupported nil type: %s", schema.Type)
+	return "", fmt.Errorf("schema had expected primitive nil type (integer, number, string, boolean) but got: %s", schema.Type)
 }
 
 func imports(imps map[string]struct{}) string {
@@ -312,4 +393,61 @@ func named(tplData templateData, nextName string, nextObj interface{}) templateD
 		Name:         tplData.Name + nextName,
 		Object:       nextObj,
 	}
+}
+
+type tagPath struct {
+	Tag string
+	Ops []tagOp
+}
+
+type tagOp struct {
+	Path   string
+	Method string
+	Op     *openapi3spec.Operation
+}
+
+func tagPaths(spec *openapi3spec.OpenAPI3) ([]tagPath, error) {
+	tags := make(map[string][]tagOp)
+	for name, p := range spec.Paths {
+		do := func(op *openapi3spec.Operation, method string) {
+			if op == nil {
+				return
+			}
+			tag := ""
+			if len(op.Tags) != 0 {
+				tag = op.Tags[0]
+			}
+
+			slice := tags[tag]
+			slice = append(slice, tagOp{Path: name, Method: method, Op: op})
+			tags[tag] = slice
+		}
+
+		do(p.Get, http.MethodGet)
+		do(p.Post, http.MethodPost)
+		do(p.Put, http.MethodPut)
+		do(p.Patch, http.MethodPatch)
+		do(p.Delete, http.MethodDelete)
+		do(p.Options, http.MethodOptions)
+		do(p.Head, http.MethodHead)
+		do(p.Trace, http.MethodTrace)
+	}
+
+	keys := make([]string, 0, len(tags))
+	for k := range tags {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	tagPathsOut := make([]tagPath, 0, len(keys))
+	for _, k := range keys {
+		tagOperations := tags[k]
+		sort.Slice(tagOperations, func(i, j int) bool {
+			return tagOperations[i].Op.OperationID < tagOperations[j].Op.OperationID
+		})
+
+		tagPathsOut = append(tagPathsOut, tagPath{Tag: k, Ops: tagOperations})
+	}
+
+	return tagPathsOut, nil
 }
