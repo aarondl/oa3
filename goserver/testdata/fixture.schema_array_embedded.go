@@ -2,10 +2,34 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Embedded object in an array
 type ArrayEmbedded []ArrayEmbeddedItem
 
 // This object is embedded in an array
 type ArrayEmbeddedItem struct {
 	Prop string `json:"prop"`
+}
+
+// ValidateSchemaArrayEmbeddedItem validates the object and returns
+// errors that can be returned to the user.
+func (o ArrayEmbeddedItem) ValidateSchemaArrayEmbeddedItem() support.Errors {
+	var errs support.Errors
+
+	return errs
+}
+
+// ValidateSchemaArrayEmbedded validates the object and returns
+// errors that can be returned to the user.
+func (o ArrayEmbedded) ValidateSchemaArrayEmbedded() support.Errors {
+	var errs support.Errors
+
+	for _, v := range o {
+
+	}
+
+	return errs
 }

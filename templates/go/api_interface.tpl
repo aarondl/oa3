@@ -58,7 +58,7 @@ func New{{$.Name}}(
             r.Use(m...)
         }
             {{- range $op := $tag.Ops}}
-        r.Method(http.Method{{title (lower $op.Method)}}, `{{$op.Path}}`, eh.Wrap(o.{{$op.Op.OperationID}}Op))
+        r.Method(http.Method{{title (lower $op.Method)}}, `{{$op.Path}}`, eh.Wrap(o.{{lower (camelcase $op.Op.OperationID)}}Op))
             {{- end -}}
     })
     {{end}}

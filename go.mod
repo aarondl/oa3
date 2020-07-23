@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/aarondl/fixtures v0.0.1
+	github.com/davecgh/go-spew v1.1.1
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/google/uuid v1.1.1 // indirect

@@ -5,7 +5,7 @@ info:
   description: A great api
 
 paths:
-  /users:
+  /users/{id}:
     get:
       operationId: getUser
       description: >
@@ -14,11 +14,33 @@ paths:
         over the sacred 80 char limit.
       tags: [users]
       parameters:
-        - name: 'user_id'
-          in: 'query'
-          schema:
-            type: string
-            format: uuid
+        - name: valid_str
+          in: query
+          schema: { nullable: true, type: string, maxLength: 5, minLength: 2, enum: [he"llo] }
+        - name: req_valid_str
+          in: query
+          required: true
+          schema: { nullable: true, type: string, maxLength: 5, minLength: 2, enum: [he"llo] }
+        - name: valid_int
+          in: query
+          schema: { type: integer, multipleOf: 2, maximum: 5, minimum: 2, exclusiveMaximum: true }
+        - name: req_valid_int
+          in: query
+          required: true
+          schema: { type: integer, multipleOf: 2, maximum: 5, minimum: 2, exclusiveMaximum: true }
+        - name: valid_num
+          in: query
+          schema: { type: number, multipleOf: 2.5, maximum: 10.5, minimum: 5.5, exclusiveMinimum: true }
+        - name: req_valid_num
+          in: query
+          schema: { type: number, multipleOf: 2.5, maximum: 10.5, minimum: 5.5, exclusiveMinimum: true }
+        - name: valid_bool
+          in: query
+          schema: { type: boolean }
+        - name: req_valid_bool
+          in: query
+          required: true
+          schema: { type: boolean }
       responses:
         '304': { description: Ok }
     post:
@@ -87,12 +109,18 @@ components:
     ArrayRecursive:
       description: Recursive definition of an array
       type: array
+      minItems: 2
+      maxItems: 10
       items:
         description: Recursive
         type: array
+        minItems: 5
+        maxItems: 8
         items:
           description: Recursive
           type: array
+          minItems: 12
+          maxItems: 15
           items: { type: string }
 
     ArrayEmbedded:

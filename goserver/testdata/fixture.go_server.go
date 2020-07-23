@@ -7,6 +7,7 @@ import (
 
 	"github.com/aarondl/oa3/support"
 	"github.com/go-chi/chi"
+	"github.com/volatiletech/null/v8"
 )
 
 // GoServerAPI is the interface that an application server must implement
@@ -16,12 +17,12 @@ import (
 type GoServerAPI interface {
 	// Authenticate post /auth
 	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
-	// GetUser get /users
+	// GetUser get /users/{id}
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
 	// bleeding over the sacred 80 char limit.
-	GetUser(w http.ResponseWriter, r *http.Request, userId string) (GetUserResponse, error)
-	// SetUser post /users
+	GetUser(w http.ResponseWriter, r *http.Request, validStr null.String, reqValidStr null.String, validInt int, reqValidInt int, validNum float64, reqValidNum float64, validBool bool, reqValidBool bool) (GetUserResponse, error)
+	// SetUser post /users/{id}
 	// Sets a user
 	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives) (SetUserResponse, error)
 }
@@ -61,8 +62,8 @@ func NewGoServer(
 		if m, ok := mw["users"]; ok {
 			r.Use(m...)
 		}
-		r.Method(http.MethodGet, `/users`, eh.Wrap(o.getUserOp))
-		r.Method(http.MethodPost, `/users`, eh.Wrap(o.setUserOp))
+		r.Method(http.MethodGet, `/users/{id}`, eh.Wrap(o.getuserOp))
+		r.Method(http.MethodPost, `/users/{id}`, eh.Wrap(o.setuserOp))
 	})
 
 	return o

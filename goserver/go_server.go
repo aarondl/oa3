@@ -26,15 +26,19 @@ const (
 // templates for generation
 var tpls = []string{
 	"api_interface.tpl",
-	"api_method.tpl",
+	"api_methods.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
+
+	"validate_schema.tpl",
+	"validate_field.tpl",
 }
 
 // funcs to use for generation
 var funcs = map[string]interface{}{
 	"camelSnake":        camelSnake,
 	"named":             named,
+	"namedNoRecurse":    namedNoRecurse,
 	"primitive":         primitive,
 	"isInlinePrimitive": isInlinePrimitive,
 	"taggedPaths":       tagPaths,
@@ -113,6 +117,8 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 		return nil, nil
 	}
 
+	files := make([]generator.File, 0)
+
 	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
 
 	tData := templates.NewTemplateData(spec, params)
@@ -145,7 +151,38 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 	fileBytes.WriteByte('\n')
 	fileBytes.Write(buf.Bytes())
 
-	return []generator.File{{Name: filename, Contents: fileBytes.Bytes()}}, nil
+	content := make([]byte, len(fileBytes.Bytes()))
+	copy(content, fileBytes.Bytes())
+	files = append(files, generator.File{Name: filename, Contents: content})
+
+	tData = templates.NewTemplateData(spec, params)
+	data = templateData{
+		TemplateData: tData,
+		Name:         apiName,
+		Object:       nil,
+	}
+
+	filename = generator.FilenameFromTitle(spec.Info.Title) + "_methods.go"
+
+	buf.Reset()
+	fileBytes.Reset()
+	if err := tpl.ExecuteTemplate(buf, "api_methods", data); err != nil {
+		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	fileBytes.WriteString(Disclaimer)
+	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
+	if imps := imports(data.Imports); len(imps) != 0 {
+		fileBytes.WriteByte('\n')
+		fileBytes.WriteString(imports(data.Imports))
+		fileBytes.WriteByte('\n')
+	}
+	fileBytes.WriteByte('\n')
+	fileBytes.Write(buf.Bytes())
+
+	files = append(files, generator.File{Name: filename, Contents: fileBytes.Bytes()})
+
+	return files, nil
 }
 
 // generateSchemas creates files for the topLevel-level referenceable types
@@ -273,7 +310,7 @@ func primitiveNonNil(tdata templateData, schema *openapi3spec.Schema) (string, e
 func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, error) {
 	switch schema.Type {
 	case "integer":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 
 		if schema.Format != nil {
 			switch *schema.Format {
@@ -286,7 +323,7 @@ func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, erro
 
 		return "null.Int", nil
 	case "number":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 
 		if schema.Format != nil {
 			switch *schema.Format {
@@ -299,10 +336,10 @@ func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, erro
 
 		return "null.Float64", nil
 	case "string":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 		return "null.String", nil
 	case "boolean":
-		tdata.Import("github.com/volatiletech/null")
+		tdata.Import("github.com/volatiletech/null/v8")
 		return "null.Bool", nil
 	}
 
@@ -392,6 +429,14 @@ func named(tplData templateData, nextName string, nextObj interface{}) templateD
 		TemplateData: tplData.TemplateData,
 		Name:         tplData.Name + nextName,
 		Object:       nextObj,
+	}
+}
+
+func namedNoRecurse(tplData templateData, name string, obj interface{}) templateData {
+	return templateData{
+		TemplateData: tplData.TemplateData,
+		Name:         name,
+		Object:       obj,
 	}
 }
 

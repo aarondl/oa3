@@ -2,5 +2,30 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Recursively defined maps
 type MapRecursive map[string]map[string]map[string]string
+
+// ValidateSchemaMapRecursive validates the object and returns
+// errors that can be returned to the user.
+func (o MapRecursive) ValidateSchemaMapRecursive() support.Errors {
+	var errs support.Errors
+
+	// Min/Max Properties
+	for k, v := range o {
+
+		// Min/Max Properties
+		for k, v := range oo {
+
+			// Min/Max Properties
+			for k, v := range ooo {
+				ers = nil
+			}
+		}
+	}
+
+	return errs
+}

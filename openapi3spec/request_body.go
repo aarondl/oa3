@@ -28,6 +28,12 @@ func (r *RequestBody) Validate() error {
 		}
 	}
 
+	if jsonMedia, ok := r.Content["application/json"]; !ok {
+		return errors.New("content: currently only valid media type is application/json")
+	} else if len(jsonMedia.Schema.Ref) == 0 {
+		return errors.New("content: currently only ref schemas can be request bodies")
+	}
+
 	return nil
 }
 

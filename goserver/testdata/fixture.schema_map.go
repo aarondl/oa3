@@ -2,5 +2,25 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Map types
 type Map map[string][]string
+
+// ValidateSchemaMap validates the object and returns
+// errors that can be returned to the user.
+func (o Map) ValidateSchemaMap() support.Errors {
+	var errs support.Errors
+
+	// Min/Max Properties
+	for k, v := range o {
+		for _, v := range oo {
+			ers = nil
+		}
+
+	}
+
+	return errs
+}

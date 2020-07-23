@@ -2,7 +2,19 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Arrays as a property
 type Arrays struct {
 	Array []string `json:"array"`
+}
+
+// ValidateSchemaArrays validates the object and returns
+// errors that can be returned to the user.
+func (o Arrays) ValidateSchemaArrays() support.Errors {
+	var errs support.Errors
+
+	return errs
 }

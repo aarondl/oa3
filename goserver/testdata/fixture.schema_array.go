@@ -2,5 +2,21 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Just normal arrays
 type Array []string
+
+// ValidateSchemaArray validates the object and returns
+// errors that can be returned to the user.
+func (o Array) ValidateSchemaArray() support.Errors {
+	var errs support.Errors
+
+	for _, v := range o {
+		ers = nil
+	}
+
+	return errs
+}

@@ -2,7 +2,16 @@
 // code generator
 package support
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
+
+var (
+	// ErrNoBody is returned from a handler and expected to be handled by
+	// ErrorHandler in some useful way for the application.
+	ErrNoBody = errors.New("no body")
+)
 
 type (
 	// Errors is how validation errors are given to the ValidationConverter
@@ -23,4 +32,23 @@ type (
 // that additionall have an error return.
 type ErrorHandler interface {
 	Wrap(func(w http.ResponseWriter, r *http.Request) error) http.Handler
+}
+
+// AddErrs adds errors to an error map and returns the map
+func AddErrs(errs Errors, key string, toAdd ...error) Errors {
+	if len(toAdd) == 0 {
+		return errs
+	}
+
+	if errs == nil {
+		errs = make(map[string][]string)
+	}
+
+	fieldErrs := errs[key]
+	for _, e := range toAdd {
+		fieldErrs = append(fieldErrs, e.Error())
+	}
+	errs[key] = fieldErrs
+
+	return errs
 }

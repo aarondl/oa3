@@ -3,7 +3,8 @@
 package oa3gen
 
 import (
-	"github.com/volatiletech/null"
+	"github.com/aarondl/oa3/support"
+	"github.com/volatiletech/null/v8"
 )
 
 // Checks to see that all Go primitives work
@@ -25,4 +26,12 @@ type Primitives struct {
 	IntNull   null.Int    `json:"int_null"`
 	Str       string      `json:"str"`
 	StrNull   null.String `json:"str_null"`
+}
+
+// ValidateSchemaPrimitives validates the object and returns
+// errors that can be returned to the user.
+func (o Primitives) ValidateSchemaPrimitives() support.Errors {
+	var errs support.Errors
+
+	return errs
 }

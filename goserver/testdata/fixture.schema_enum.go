@@ -2,6 +2,10 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Enum type
 type Enum string
 
@@ -10,3 +14,16 @@ const (
 	EnumTwo   Enum = "two"
 	EnumThree Enum = "three"
 )
+
+// ValidateSchemaEnum validates the object and returns
+// errors that can be returned to the user.
+func (o Enum) ValidateSchemaEnum() support.Errors {
+	var errs support.Errors
+
+	ers = nil
+	if err := support.Enum(o, []string{"one", "two", "three"}); err != nil {
+		ers = append(ers, err)
+	}
+
+	return errs
+}

@@ -2,9 +2,34 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // Map types with an embedded object
 type MapEmbedded map[string]MapEmbeddedItem
 
 type MapEmbeddedItem struct {
 	Prop string `json:"prop"`
+}
+
+// ValidateSchemaMapEmbeddedItem validates the object and returns
+// errors that can be returned to the user.
+func (o MapEmbeddedItem) ValidateSchemaMapEmbeddedItem() support.Errors {
+	var errs support.Errors
+
+	return errs
+}
+
+// ValidateSchemaMapEmbedded validates the object and returns
+// errors that can be returned to the user.
+func (o MapEmbedded) ValidateSchemaMapEmbedded() support.Errors {
+	var errs support.Errors
+
+	// Min/Max Properties
+	for k, v := range o {
+
+	}
+
+	return errs
 }

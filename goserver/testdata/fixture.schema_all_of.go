@@ -2,10 +2,22 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/oa3/support"
+)
+
 // All of example
 type AllOf struct {
 	A string `json:"a"`
 	B string `json:"b"`
 	// A string
 	Someprop string `json:"someprop"`
+}
+
+// ValidateSchemaAllOf validates the object and returns
+// errors that can be returned to the user.
+func (o AllOf) ValidateSchemaAllOf() support.Errors {
+	var errs support.Errors
+
+	return errs
 }

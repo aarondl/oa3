@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -67,6 +68,14 @@ func (s *Schema) Validate() error {
 	if s.Title != nil && len(strings.TrimSpace(*s.Title)) == 0 {
 		return errors.New("title if present must not be blank")
 	}
+	switch s.Type {
+	case "object", "array", "boolean", "number", "integer", "string":
+	default:
+		return fmt.Errorf("type must be one of object|array|boolean|number|integer|string but got %q", s.Type)
+	}
+	if s.Type == "array" && s.Items == nil {
+		return errors.New("items must be present if type is array")
+	}
 	if s.Description != nil && len(strings.TrimSpace(*s.Description)) == 0 {
 		return errors.New("description if present must not be blank")
 	}
@@ -112,6 +121,128 @@ func (s *Schema) Validate() error {
 			if !s.IsRequired(name) {
 				return fmt.Errorf("properties(%s): must be required, nullable, or have a default value", name)
 			}
+		}
+	}
+
+	if s.MultipleOf != nil {
+		switch s.Type {
+		case "integer", "number":
+		default:
+			return errors.New("multipleOf: cannot be used unless type is one of: 'integer', 'number'")
+		}
+	}
+	if s.Maximum != nil {
+		switch s.Type {
+		case "integer", "number":
+		default:
+			return errors.New("maximum: cannot be used unless type is one of: 'integer', 'number'")
+		}
+	}
+	if s.Minimum != nil {
+		switch s.Type {
+		case "integer", "number":
+		default:
+			return errors.New("minimum: cannot be used unless type is one of: 'integer', 'number'")
+		}
+	}
+	if s.Minimum != nil && s.Maximum != nil {
+		if *s.Minimum > *s.Maximum {
+			return fmt.Errorf("maximum(%f): cannot be less than minimum (was %f)", *s.Maximum, *s.Minimum)
+		}
+	}
+	if s.MaxLength != nil {
+		if *s.MaxLength <= 0 {
+			return fmt.Errorf("maxLength: must be greater than 0 (was %d)", *s.MaxLength)
+		}
+
+		switch s.Type {
+		case "string":
+		default:
+			return errors.New("maxLength: cannot be used unless type is one of: 'string'")
+		}
+	}
+	if s.MinLength != nil {
+		if *s.MinLength < 0 {
+			return fmt.Errorf("minLength: cannot be a negative number (was %d)", *s.MinLength)
+		}
+
+		switch s.Type {
+		case "string":
+		default:
+			return errors.New("minLength: cannot be used unless type is one of: 'string'")
+		}
+	}
+	if s.MinLength != nil && s.MaxLength != nil {
+		if *s.MinLength > *s.MaxLength {
+			return fmt.Errorf("maxLength(%d): cannot be less than minLength(%d)", *s.MaxLength, *s.MinLength)
+		}
+	}
+	if s.MaxItems != nil {
+		if *s.MaxItems <= 0 {
+			return fmt.Errorf("maxItems: must be greater than 0 (was %d)", *s.MaxItems)
+		}
+
+		switch s.Type {
+		case "array":
+		default:
+			return errors.New("maxItems: cannot be used unless type is one of: 'array'")
+		}
+	}
+	if s.MinItems != nil {
+		if *s.MinItems < 0 {
+			return fmt.Errorf("minItems: cannot be a negative number (was %d)", *s.MinItems)
+		}
+
+		switch s.Type {
+		case "array":
+		default:
+			return errors.New("minItems: cannot be used unless type is one of: 'array'")
+		}
+	}
+	if s.MinItems != nil && s.MaxItems != nil {
+		if *s.MinItems > *s.MaxItems {
+			return fmt.Errorf("maxItems(%d): cannot be less than minItems(%d)", *s.MaxItems, *s.MinItems)
+		}
+	}
+	if s.UniqueItems != nil {
+		switch s.Type {
+		case "array":
+		default:
+			return errors.New("uniqueItems: cannot be used unless type is one of: 'array'")
+		}
+	}
+	if s.MaxProperties != nil {
+		if *s.MaxProperties <= 0 {
+			return fmt.Errorf("maxProperties: must be greater than 0 (was %d)", *s.MaxProperties)
+		}
+
+		switch s.Type {
+		case "array":
+		default:
+			return errors.New("maxProperties: cannot be used unless type is one of: 'array'")
+		}
+	}
+	if s.MinProperties != nil {
+		if *s.MinProperties < 0 {
+			return fmt.Errorf("minProperties: cannot be a negative number (was %d)", *s.MinProperties)
+		}
+
+		switch s.Type {
+		case "array":
+		default:
+			return errors.New("minProperties: cannot be used unless type is one of: 'array'")
+		}
+	}
+	if s.MinProperties != nil && s.MaxProperties != nil {
+		if *s.MinProperties > *s.MaxProperties {
+			return fmt.Errorf("maxProperties(%d): cannot be less than minProperties(%d)", *s.MaxProperties, *s.MinProperties)
+		}
+	}
+
+	if s.Pattern != nil {
+		_, err := regexp.Compile(*s.Pattern)
+		if err != nil {
+			return fmt.Errorf("pattern(%s): failed to compile regular expression: %w", *s.Pattern, err)
 		}
 	}
 

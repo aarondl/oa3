@@ -10,13 +10,15 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/aarondl/oa3/openapi3spec"
 )
 
 // GlobalFunctions for templates
 var GlobalFunctions = map[string]interface{}{
-	"refName":     refName,
-	"keysReflect": keysReflect,
-	"httpStatus":  http.StatusText,
+	"refName":      refName,
+	"mustValidate": mustValidate,
+	"keysReflect":  keysReflect,
+	"httpStatus":   http.StatusText,
 }
 
 func refName(ref string) string {
@@ -39,6 +41,20 @@ func keysReflect(mp interface{}) ([]string, error) {
 	}
 
 	return keys, nil
+}
+
+func mustValidate(s *openapi3spec.Schema) bool {
+	return s.MultipleOf != nil ||
+		s.Maximum != nil ||
+		s.Minimum != nil ||
+		s.MaxLength != nil ||
+		s.MinLength != nil ||
+		s.Pattern != nil ||
+		s.MaxItems != nil ||
+		s.MinItems != nil ||
+		s.UniqueItems != nil ||
+		s.MaxProperties != nil ||
+		s.MinProperties != nil
 }
 
 // Load takes in funcs to apply to each template, a directory that
