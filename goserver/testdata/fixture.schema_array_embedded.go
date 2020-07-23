@@ -38,11 +38,11 @@ func (o ArrayEmbedded) ValidateSchemaArrayEmbedded() support.Errors {
 	var errs support.Errors
 	_, _ = ers, errs
 
-	for i, v := range o {
+	for i, o := range o {
 		var ers []error
 		ctx = append(ctx, fmt.Sprintf("[%d]", i))
 
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
 

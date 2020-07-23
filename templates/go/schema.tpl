@@ -22,6 +22,12 @@ const (
 to a schema ref */ -}}
 {{- define "type_embedded" -}}
     {{- if $.Object.Enum}}
+type {{$.Name}} {{if $.Object.Nullable -}}
+                    {{- $.Import "github.com/volatiletech/null/v8" -}}
+                        null.String
+                    {{- else -}}
+                        string
+                    {{- end}}
         {{template "type_enum" $}}
     {{- else if and (not .Object.Ref) (not (isInlinePrimitive .Object.Schema))}}
 
@@ -68,7 +74,7 @@ to a schema ref */ -}}
     // {{$c}}
                     {{- end -}}
                 {{- end}}
-    {{camelcase $name}} {{template "type_name" (recurseData $ $name $element)}} `json:"{{$name}}{{if not ($s.IsRequired $name)}},omitempty{{end}}"`
+    {{camelcase $name}} {{template "type_name" (recurseData $ (camelcase $name) $element)}} `json:"{{$name}}{{if not ($s.IsRequired $name)}},omitempty{{end}}"`
             {{- end}}
 }
 

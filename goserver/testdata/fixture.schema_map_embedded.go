@@ -36,11 +36,11 @@ func (o MapEmbedded) ValidateSchemaMapEmbedded() support.Errors {
 	var errs support.Errors
 	_, _ = ers, errs
 
-	for k, v := range o {
+	for k, o := range o {
 		var ers []error
 		ctx = append(ctx, k)
 
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
 

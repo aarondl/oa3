@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strings"
 )
 
 // ValidateMaxInt checks that i <= max or if exclusive then i < max
@@ -181,6 +182,26 @@ func ValidateUniqueItems(a interface{}) error {
 	return nil
 }
 
+// ValidateMaxProperties ensures a map[string]X's length is >= min
+func ValidateMaxProperties(m interface{}, max int) error {
+	val := reflect.ValueOf(m)
+	if val.Len() < max {
+		return fmt.Errorf("number of properties must be less than or equal to %d", max)
+	}
+
+	return nil
+}
+
+// ValidateMinProperties ensures a map[string]X's length is >= min
+func ValidateMinProperties(m interface{}, min int) error {
+	val := reflect.ValueOf(m)
+	if val.Len() < min {
+		return fmt.Errorf("number of properties must be greater than or equal to %d", min)
+	}
+
+	return nil
+}
+
 // ValidatePattern validates a string against a pattern
 func ValidatePattern(s string, pattern string) error {
 	matched, err := regexp.MatchString(pattern, s)
@@ -193,4 +214,15 @@ func ValidatePattern(s string, pattern string) error {
 	}
 
 	return nil
+}
+
+// ValidateEnum validates a string against a whitelisted set of values
+func ValidateEnum(s string, whitelist []string) error {
+	for _, w := range whitelist {
+		if s == w {
+			return nil
+		}
+	}
+
+	return fmt.Errorf(`must be one of: "%s"`, strings.Join(whitelist, `", "`))
 }

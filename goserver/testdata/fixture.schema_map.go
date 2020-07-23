@@ -20,18 +20,18 @@ func (o Map) ValidateSchemaMap() support.Errors {
 	var errs support.Errors
 	_, _ = ers, errs
 
-	for k, v := range o {
+	for k, o := range o {
 		var ers []error
 		ctx = append(ctx, k)
-		for i, v := range oo {
+		for i, o := range o {
 			var ers []error
 			ctx = append(ctx, fmt.Sprintf("[%d]", i))
 
-			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 			ctx = ctx[:len(ctx)-1]
 		}
 
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
 

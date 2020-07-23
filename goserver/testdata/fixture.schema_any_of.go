@@ -2,10 +2,6 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
-import (
-	"github.com/aarondl/oa3/support"
-)
-
 // An example of an object that can be exactly one of 3 things
 type AnyOf interface {
 	AnyOfTypeCheck()
@@ -13,17 +9,4 @@ type AnyOf interface {
 
 type AnyOfIntf interface {
 	AnyOfTypeCheck()
-}
-
-// ValidateSchemaAnyOf validates the object and returns
-// errors that can be returned to the user.
-func (o AnyOf) ValidateSchemaAnyOf() support.Errors {
-	var ctx []string
-	var ers []error
-	var errs support.Errors
-	_, _ = ers, errs
-
-	errs = support.AddErrs(errs, "", ers...)
-
-	return errs
 }

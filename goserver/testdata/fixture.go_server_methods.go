@@ -3,6 +3,9 @@
 package oa3gen
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/aarondl/oa3/support"
@@ -17,7 +20,7 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 	_, _, _ = err, ers, errs
 
 	if errs != nil {
-		return o.cnv(errs)
+		return o.converter(errs)
 	}
 
 	return nil
@@ -39,14 +42,14 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 			errs = support.AddErrs(errs, n0, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.MaxLength(p0, 5); err != nil {
+		if err := support.ValidateMaxLength(string(p0.String), 5); err != nil {
 			ers = append(ers, err)
 		}
 
-		if err := support.MinLength(p0, 2); err != nil {
+		if err := support.ValidateMinLength(string(p0.String), 2); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.Enum(p0, []string{"he\"llo"}); err != nil {
+		if err := support.ValidateEnum(string(p0.String), []string{"he\"llo"}); err != nil {
 			ers = append(ers, err)
 		}
 
@@ -66,14 +69,14 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.MaxLength(p1, 5); err != nil {
+		if err := support.ValidateMaxLength(string(p1.String), 5); err != nil {
 			ers = append(ers, err)
 		}
 
-		if err := support.MinLength(p1, 2); err != nil {
+		if err := support.ValidateMinLength(string(p1.String), 2); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.Enum(p1, []string{"he\"llo"}); err != nil {
+		if err := support.ValidateEnum(string(p1.String), []string{"he\"llo"}); err != nil {
 			ers = append(ers, err)
 		}
 
@@ -97,7 +100,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.ValidateMinInt(int64(p2), 2, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfInt(int64(p2), 2, false); err != nil {
+		if err := support.ValidateMultipleOfInt(int64(p2), 2); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -122,7 +125,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.ValidateMinInt(int64(p3), 2, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfInt(int64(p3), 2, false); err != nil {
+		if err := support.ValidateMultipleOfInt(int64(p3), 2); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -145,7 +148,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.ValidateMinFloat64(float64(p4), 5.5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfFloat64(float64(p4), 2.5, true); err != nil {
+		if err := support.ValidateMultipleOfFloat64(float64(p4), 2.5); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -168,7 +171,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.ValidateMinFloat64(float64(p5), 5.5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfFloat64(float64(p5), 2.5, true); err != nil {
+		if err := support.ValidateMultipleOfFloat64(float64(p5), 2.5); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -199,7 +202,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if errs != nil {
-		return o.cnv(errs)
+		return o.converter(errs)
 	}
 
 	return nil
@@ -215,25 +218,24 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 	var rb Primitives
 
 	if r.Body == nil {
-		return support.ErrNilBody
+		return support.ErrNoBody
 	} else {
 		defer r.Body.Close()
 		b, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return err
 		}
-
 		if err = json.Unmarshal(b, &rb); err != nil {
 			return err
 		}
 
-		if newErrs := rb.ValidateSchemaGoServer(); newErrs != nil {
+		if newErrs := rb.ValidateSchemaPrimitives(); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
 
 	if errs != nil {
-		return o.cnv(errs)
+		return o.converter(errs)
 	}
 
 	return nil

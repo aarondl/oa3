@@ -18,14 +18,15 @@ type (
 	Errors map[string][]string
 
 	// ValidationConverter is used to convert validation errors
-	// to something that will work as a response for all methods
-	// that must return validation errors.
-	ValidationConverter func(Errors) interface{}
+	// to something that will work as a json response for all methods
+	// that must return validation errors. It must implement error to be
+	// passed back to the ErrorHandler interface.
+	ValidationConverter func(Errors) error
 
 	// MW is a middleware stack divided into tags. The first tag of an operation
 	// decides what middleware it belongs to. The empty string is middleware
 	// for untagged operations.
-	MW map[string][]func(w http.ResponseWriter, r *http.Request)
+	MW map[string][]func(http.Handler) http.Handler
 )
 
 // ErrorHandler is an adapter that allows routing to special http.HandlerFuncs

@@ -19,43 +19,43 @@ func (o MapRecursive) ValidateSchemaMapRecursive() support.Errors {
 	var errs support.Errors
 	_, _ = ers, errs
 
-	if err := support.MaxProperties(o, 3); err != nil {
+	if err := support.ValidateMaxProperties(o, 3); err != nil {
 		ers = append(ers, err)
 	}
-	if err := support.MinProperties(o, 2); err != nil {
+	if err := support.ValidateMinProperties(o, 2); err != nil {
 		ers = append(ers, err)
 	}
-	for k, v := range o {
+	for k, o := range o {
 		var ers []error
 		ctx = append(ctx, k)
 
-		if err := support.MaxProperties(oo, 4); err != nil {
+		if err := support.ValidateMaxProperties(o, 4); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.MinProperties(oo, 3); err != nil {
+		if err := support.ValidateMinProperties(o, 3); err != nil {
 			ers = append(ers, err)
 		}
-		for k, v := range oo {
+		for k, o := range o {
 			var ers []error
 			ctx = append(ctx, k)
 
-			if err := support.MaxProperties(ooo, 6); err != nil {
+			if err := support.ValidateMaxProperties(o, 6); err != nil {
 				ers = append(ers, err)
 			}
-			if err := support.MinProperties(ooo, 5); err != nil {
+			if err := support.ValidateMinProperties(o, 5); err != nil {
 				ers = append(ers, err)
 			}
-			for k, v := range ooo {
+			for k, o := range o {
 				var ers []error
 				ctx = append(ctx, k)
 
-				errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+				errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 				ctx = ctx[:len(ctx)-1]
 			}
-			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 			ctx = ctx[:len(ctx)-1]
 		}
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
 

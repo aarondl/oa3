@@ -32,6 +32,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- if $param.Required -}}
     {{- /* Warning: This starts an else { block that covers a great deal of code */}}
     if len(s{{$i}}) == 0 {
+            {{- $.Import "errors"}}
         errs = support.AddErrs(errs, n{{$i}}, errors.New(`must not be empty`))
     } else {
             {{- else}}
@@ -41,6 +42,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                 {{- $.Import "github.com/aarondl/oa3/support"}}
     p{{$i}}, err = support.StringTo{{camelcase $primNoDot}}(s{{$i}})
     if err != nil {
+            {{- $.Import "errors"}}
         errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
     }
             {{- else}}
@@ -68,29 +70,31 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
 
             {{if $op.RequestBody.Required -}}
     if r.Body == nil {
-        return support.ErrNilBody
+        return support.ErrNoBody
     } else {
             {{else -}}
     if r.Body != nil {
             {{end -}}
         defer r.Body.Close()
+            {{- $.Import "io/ioutil" }}
         b, err := ioutil.ReadAll(r.Body)
         if err != nil {
             return err
         }
 
+            {{- $.Import "encoding/json" }}
         if err = json.Unmarshal(b, {{if not $json.Schema.Nullable}}&{{end}}rb); err != nil {
             return err
         }
 
-        if newErrs := rb.ValidateSchema{{$.Name}}(); newErrs != nil {
+        if newErrs := rb.ValidateSchema{{refName $json.Schema.Ref}}(); newErrs != nil {
             errs = support.MergeErrs(errs, newErrs)
         }
     }
         {{end}}
 
     if errs != nil {
-        return o.cnv(errs)
+        return o.converter(errs)
     }
 
     return nil

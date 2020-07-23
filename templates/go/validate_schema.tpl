@@ -6,53 +6,54 @@
     {{- $s := $.Object.Schema -}}
     {{- if eq $s.Type "array" -}}
         {{if $.Object.MaxItems -}}
-    if err := support.MaxItems({{$.Name}}, {{$.Object.MaxItems}}); err != nil {
+    if err := support.ValidateMaxItems(o, {{$.Object.MaxItems}}); err != nil {
         {{- $.Import "fmt" -}}
         ers = append(ers, err)
     }
         {{- end -}}
         {{- if $.Object.MinItems}}
-    if err := support.MinItems({{$.Name}}, {{$.Object.MinItems}}); err != nil {
+    if err := support.ValidateMinItems({{$.Name}}, {{$.Object.MinItems}}); err != nil {
         ers = append(ers, err)
     }
         {{end -}}
-    for i, v := range {{$.Name}} {
+    for i, {{$.Name}} := range {{$.Name}} {
         var ers []error
         {{- $.Import "fmt"}}
         ctx = append(ctx, fmt.Sprintf("[%d]", i))
-        {{template "validate_schema_helper" (recurseData $ "o" $s.Items)}}
+        {{template "validate_schema_helper" (newData $ $.Name $s.Items)}}
         {{- $.Import "strings"}}
-        errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+        errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
     }
     {{else if eq $s.Type "object" -}}
         {{- if $s.AdditionalProperties -}}
             {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems being bool is not supported"}}{{- end}}
             {{if $.Object.MaxProperties -}}
-    if err := support.MaxProperties({{$.Name}}, {{$.Object.MaxProperties}}); err != nil {
+    if err := support.ValidateMaxProperties({{$.Name}}, {{$.Object.MaxProperties}}); err != nil {
         ers = append(ers, err)
     }
             {{- end -}}
             {{- if $.Object.MinProperties}}
-    if err := support.MinProperties({{$.Name}}, {{$.Object.MinProperties}}); err != nil {
+    if err := support.ValidateMinProperties({{$.Name}}, {{$.Object.MinProperties}}); err != nil {
         ers = append(ers, err)
     }
             {{end -}}
-    for k, v := range {{$.Name}} {
+    for k, {{$.Name}} := range {{$.Name}} {
         var ers []error
         ctx = append(ctx, k)
-            {{template "validate_schema_helper" (recurseData $ "o" $s.AdditionalProperties) }}
+            {{template "validate_schema_helper" (newData $ $.Name $s.AdditionalProperties) }}
             {{- $.Import "strings"}}
-        errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+        errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
     }
         {{- else if $s.Properties -}}
             {{- /* Process regular struct fields */ -}}
             {{- range $name, $element := $s.Properties -}}
                 {{- if and (not $element.Ref) (mustValidate $element.Schema)}}
-    {{template "validate_field" (recurseData $ (printf ".%s" (camelcase $name)) $element)}}
+    {{template "validate_field" (recurseData $ (printf ".%s" (camelcase $name)) $element.Schema)}}
     if len(ers) != 0 {
         ctx = append(ctx, {{printf "%q" $name}})
+                {{- $.Import "strings"}}
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
     }
@@ -70,7 +71,7 @@
         {{- end}}
     {{- else -}}
         {{- if mustValidate $.Object.Schema -}}
-            {{- template "validate_field" (newData $ "o" $.Object) -}}
+            {{- template "validate_field" (newData $ "o" $.Object.Schema) -}}
         {{- end -}}
     {{- end}}
 

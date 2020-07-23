@@ -5,6 +5,6 @@
 {{- end -}}
 type {{$.Name}} {{template "schema" .}}
 
-{{- if not $.Object.Ref -}}
+{{- if and (not $.Object.Ref) (not $.Object.AnyOf) (not $.Object.OneOf) -}}
     {{- template "validate_schema" (recurseData $ "" $.Object) -}}
 {{- end -}}
