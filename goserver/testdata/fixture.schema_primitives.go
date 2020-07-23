@@ -18,20 +18,175 @@ type Primitives struct {
 	Float64Null null.Float64 `json:"float64_null"`
 	FloatNull   null.Float64 `json:"float_null"`
 	// Normal int
-	Int       int         `json:"int"`
-	Int32     int32       `json:"int32"`
-	Int32Null null.Int32  `json:"int32_null"`
-	Int64     int64       `json:"int64"`
-	Int64Null null.Int64  `json:"int64_null"`
-	IntNull   null.Int    `json:"int_null"`
-	Str       string      `json:"str"`
-	StrNull   null.String `json:"str_null"`
+	Int       int                `json:"int"`
+	Int32     int32              `json:"int32"`
+	Int32Null null.Int32         `json:"int32_null"`
+	Int64     int64              `json:"int64"`
+	Int64Null null.Int64         `json:"int64_null"`
+	IntNull   null.Int           `json:"int_null"`
+	Str       Primitivesstr      `json:"str"`
+	StrNull   Primitivesstr_null `json:"str_null"`
 }
+
+const (
+	PrimitivesStrHello PrimitivesStr = "hello"
+)
+const (
+	PrimitivesStrNullHello PrimitivesStrNull = "hello"
+)
 
 // ValidateSchemaPrimitives validates the object and returns
 // errors that can be returned to the user.
 func (o Primitives) ValidateSchemaPrimitives() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
+
+	ers = nil
+	if err := support.ValidateMultipleOfFloat64(float64(o.Float), 5.5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "float")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMaxFloat64(float64(o.Float32), 5.5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "float32")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMaxFloat64(float64(o.Float32Null), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "float32_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMinFloat64(float64(o.Float64), 5.5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "float64")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMinFloat64(float64(o.Float64Null), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "float64_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMultipleOfFloat64(float64(o.FloatNull), 5.5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "float_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMultipleOfInt(int64(o.Int), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "int")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMaxInt(int64(o.Int32), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "int32")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMaxInt(int64(o.Int32Null), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "int32_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMinInt(int64(o.Int64), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "int64")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMinInt(int64(o.Int64Null), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "int64_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.ValidateMultipleOfInt(int64(o.IntNull), 5, false); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "int_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.MaxLength(o.Str, 5); err != nil {
+		ers = append(ers, err)
+	}
+
+	if err := support.MinLength(o.Str, 5); err != nil {
+		ers = append(ers, err)
+	}
+	if err := support.Enum(o.Str, []string{"hello"}); err != nil {
+		ers = append(ers, err)
+	}
+
+	if len(ers) != 0 {
+		ctx = append(ctx, "str")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	ers = nil
+	if err := support.MaxLength(o.StrNull, 5); err != nil {
+		ers = append(ers, err)
+	}
+
+	if err := support.MinLength(o.StrNull, 5); err != nil {
+		ers = append(ers, err)
+	}
+	if err := support.Enum(o.StrNull, []string{"hello"}); err != nil {
+		ers = append(ers, err)
+	}
+
+	if len(ers) != 0 {
+		ctx = append(ctx, "str_null")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

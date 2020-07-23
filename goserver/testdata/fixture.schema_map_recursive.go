@@ -3,6 +3,8 @@
 package oa3gen
 
 import (
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
@@ -12,20 +14,52 @@ type MapRecursive map[string]map[string]map[string]string
 // ValidateSchemaMapRecursive validates the object and returns
 // errors that can be returned to the user.
 func (o MapRecursive) ValidateSchemaMapRecursive() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
-	// Min/Max Properties
-	for k, v := range o {
-
-		// Min/Max Properties
-		for k, v := range oo {
-
-			// Min/Max Properties
-			for k, v := range ooo {
-				ers = nil
-			}
-		}
+	if err := support.MaxProperties(o, 3); err != nil {
+		ers = append(ers, err)
 	}
+	if err := support.MinProperties(o, 2); err != nil {
+		ers = append(ers, err)
+	}
+	for k, v := range o {
+		var ers []error
+		ctx = append(ctx, k)
+
+		if err := support.MaxProperties(oo, 4); err != nil {
+			ers = append(ers, err)
+		}
+		if err := support.MinProperties(oo, 3); err != nil {
+			ers = append(ers, err)
+		}
+		for k, v := range oo {
+			var ers []error
+			ctx = append(ctx, k)
+
+			if err := support.MaxProperties(ooo, 6); err != nil {
+				ers = append(ers, err)
+			}
+			if err := support.MinProperties(ooo, 5); err != nil {
+				ers = append(ers, err)
+			}
+			for k, v := range ooo {
+				var ers []error
+				ctx = append(ctx, k)
+
+				errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+				ctx = ctx[:len(ctx)-1]
+			}
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+			ctx = ctx[:len(ctx)-1]
+		}
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		ctx = ctx[:len(ctx)-1]
+	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

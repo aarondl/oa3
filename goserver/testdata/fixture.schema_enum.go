@@ -18,12 +18,12 @@ const (
 // ValidateSchemaEnum validates the object and returns
 // errors that can be returned to the user.
 func (o Enum) ValidateSchemaEnum() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
-	ers = nil
-	if err := support.Enum(o, []string{"one", "two", "three"}); err != nil {
-		ers = append(ers, err)
-	}
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

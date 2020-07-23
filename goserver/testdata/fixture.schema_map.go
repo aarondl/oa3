@@ -3,6 +3,9 @@
 package oa3gen
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
@@ -12,15 +15,27 @@ type Map map[string][]string
 // ValidateSchemaMap validates the object and returns
 // errors that can be returned to the user.
 func (o Map) ValidateSchemaMap() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
-	// Min/Max Properties
 	for k, v := range o {
-		for _, v := range oo {
-			ers = nil
+		var ers []error
+		ctx = append(ctx, k)
+		for i, v := range oo {
+			var ers []error
+			ctx = append(ctx, fmt.Sprintf("[%d]", i))
+
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+			ctx = ctx[:len(ctx)-1]
 		}
 
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		ctx = ctx[:len(ctx)-1]
 	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

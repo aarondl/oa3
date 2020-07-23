@@ -3,6 +3,9 @@
 package oa3gen
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
@@ -12,38 +15,52 @@ type ArrayRecursive [][][]string
 // ValidateSchemaArrayRecursive validates the object and returns
 // errors that can be returned to the user.
 func (o ArrayRecursive) ValidateSchemaArrayRecursive() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
 	if err := support.MaxItems(o, 10); err != nil {
 		ers = append(ers, err)
 	}
-
 	if err := support.MinItems(o, 2); err != nil {
 		ers = append(ers, err)
 	}
-	for _, v := range o {
+	for i, v := range o {
+		var ers []error
+		ctx = append(ctx, fmt.Sprintf("[%d]", i))
 		if err := support.MaxItems(oo, 8); err != nil {
 			ers = append(ers, err)
 		}
-
 		if err := support.MinItems(oo, 5); err != nil {
 			ers = append(ers, err)
 		}
-		for _, v := range oo {
+		for i, v := range oo {
+			var ers []error
+			ctx = append(ctx, fmt.Sprintf("[%d]", i))
 			if err := support.MaxItems(ooo, 15); err != nil {
 				ers = append(ers, err)
 			}
-
 			if err := support.MinItems(ooo, 12); err != nil {
 				ers = append(ers, err)
 			}
-			for _, v := range ooo {
-				ers = nil
+			for i, v := range ooo {
+				var ers []error
+				ctx = append(ctx, fmt.Sprintf("[%d]", i))
+
+				errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+				ctx = ctx[:len(ctx)-1]
 			}
 
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+			ctx = ctx[:len(ctx)-1]
 		}
 
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		ctx = ctx[:len(ctx)-1]
 	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

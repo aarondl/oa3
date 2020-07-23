@@ -48,7 +48,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- end -}}
             {{- if mustValidate $param.Schema.Schema -}}
                 {{- $.Import "github.com/aarondl/oa3/support"}}
-    {{template "validate_field" (namedNoRecurse $ (printf "p%d" $i) $param.Schema.Schema)}}
+    {{template "validate_field" (newData $ (printf "p%d" $i) $param.Schema.Schema)}}
     if len(ers) != 0 {
         errs = support.AddErrs(errs, n{{$i}}, ers...)
     }
@@ -83,13 +83,8 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             return err
         }
 
-        if newErrs := rb.ValidateSchemaModel(); newErrs != nil {
-            if errs == nil {
-                errs = make(map[string][]string)
-            }
-            for n, e := range newErrs {
-                errs[n] = e
-            }
+        if newErrs := rb.ValidateSchema{{$.Name}}(); newErrs != nil {
+            errs = support.MergeErrs(errs, newErrs)
         }
     }
         {{end}}

@@ -52,3 +52,23 @@ func AddErrs(errs Errors, key string, toAdd ...error) Errors {
 
 	return errs
 }
+
+// MergeErrs merges src's keys and values into dst. dst is created if it is nil.
+// Returns dst. Colliding keys will be overwritten by what's in src.
+func MergeErrs(dst Errors, src Errors) Errors {
+	if len(src) == 0 {
+		return dst
+	}
+
+	if dst == nil {
+		dst = make(Errors)
+	}
+
+	for k, v := range src {
+		errs := make([]string, len(v))
+		copy(errs, v)
+		dst[k] = errs
+	}
+
+	return dst
+}

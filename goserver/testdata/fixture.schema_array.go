@@ -3,6 +3,9 @@
 package oa3gen
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
@@ -12,11 +15,20 @@ type Array []string
 // ValidateSchemaArray validates the object and returns
 // errors that can be returned to the user.
 func (o Array) ValidateSchemaArray() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
-	for _, v := range o {
-		ers = nil
+	for i, v := range o {
+		var ers []error
+		ctx = append(ctx, fmt.Sprintf("[%d]", i))
+
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		ctx = ctx[:len(ctx)-1]
 	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

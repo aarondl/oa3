@@ -73,6 +73,9 @@ func (s *Schema) Validate() error {
 	default:
 		return fmt.Errorf("type must be one of object|array|boolean|number|integer|string but got %q", s.Type)
 	}
+	if len(s.Enum) != 0 && s.Type != "string" {
+		return errors.New("enum cannot contain non-strings")
+	}
 	if s.Type == "array" && s.Items == nil {
 		return errors.New("items must be present if type is array")
 	}
@@ -215,22 +218,28 @@ func (s *Schema) Validate() error {
 		if *s.MaxProperties <= 0 {
 			return fmt.Errorf("maxProperties: must be greater than 0 (was %d)", *s.MaxProperties)
 		}
+		if s.AdditionalProperties == nil {
+			return fmt.Errorf("maxProperties: cannot use unless additionalProperties is specified")
+		}
 
 		switch s.Type {
-		case "array":
+		case "object":
 		default:
-			return errors.New("maxProperties: cannot be used unless type is one of: 'array'")
+			return errors.New("maxProperties: cannot be used unless type is one of: 'object'")
 		}
 	}
 	if s.MinProperties != nil {
 		if *s.MinProperties < 0 {
 			return fmt.Errorf("minProperties: cannot be a negative number (was %d)", *s.MinProperties)
 		}
+		if s.AdditionalProperties == nil {
+			return fmt.Errorf("minProperties: cannot use unless additionalProperties is specified")
+		}
 
 		switch s.Type {
-		case "array":
+		case "object":
 		default:
-			return errors.New("minProperties: cannot be used unless type is one of: 'array'")
+			return errors.New("minProperties: cannot be used unless type is one of: 'object'")
 		}
 	}
 	if s.MinProperties != nil && s.MaxProperties != nil {

@@ -3,6 +3,9 @@
 package oa3gen
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
@@ -17,7 +20,12 @@ type ArrayEmbeddedItem struct {
 // ValidateSchemaArrayEmbeddedItem validates the object and returns
 // errors that can be returned to the user.
 func (o ArrayEmbeddedItem) ValidateSchemaArrayEmbeddedItem() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }
@@ -25,11 +33,20 @@ func (o ArrayEmbeddedItem) ValidateSchemaArrayEmbeddedItem() support.Errors {
 // ValidateSchemaArrayEmbedded validates the object and returns
 // errors that can be returned to the user.
 func (o ArrayEmbedded) ValidateSchemaArrayEmbedded() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
-	for _, v := range o {
+	for i, v := range o {
+		var ers []error
+		ctx = append(ctx, fmt.Sprintf("[%d]", i))
 
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		ctx = ctx[:len(ctx)-1]
 	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

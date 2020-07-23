@@ -47,10 +47,10 @@ if err := support.MinProperties({{$.Name}}, {{$.Object.MinProperties}}); err != 
 {{end -}}
 {{- if and $.Object.Enum (gt (len $.Object.Enum) 0) }}
 if err := support.Enum({{$.Name}}, []string{
-    {{- range $.Object.Enum -}}
+    {{- range $i, $v := $.Object.Enum -}}
         {{- if ne "string" (typeOf .) -}}
         {{- else -}}
-        {{printf "%q" .}}, {{end -}}
+        {{printf "%q" $v}}{{if gt $i 0}}, {{end}}{{end -}}
     {{- end -}}
         }); err != nil {
     ers = append(ers, err)

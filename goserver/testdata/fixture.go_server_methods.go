@@ -227,13 +227,8 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		if newErrs := rb.ValidateSchemaModel(); newErrs != nil {
-			if errs == nil {
-				errs = make(map[string][]string)
-			}
-			for n, e := range newErrs {
-				errs[n] = e
-			}
+		if newErrs := rb.ValidateSchemaGoServer(); newErrs != nil {
+			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
 

@@ -18,7 +18,12 @@ type AnyOfIntf interface {
 // ValidateSchemaAnyOf validates the object and returns
 // errors that can be returned to the user.
 func (o AnyOf) ValidateSchemaAnyOf() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }

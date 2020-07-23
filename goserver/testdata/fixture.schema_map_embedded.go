@@ -3,6 +3,8 @@
 package oa3gen
 
 import (
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
@@ -16,7 +18,12 @@ type MapEmbeddedItem struct {
 // ValidateSchemaMapEmbeddedItem validates the object and returns
 // errors that can be returned to the user.
 func (o MapEmbeddedItem) ValidateSchemaMapEmbeddedItem() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }
@@ -24,12 +31,20 @@ func (o MapEmbeddedItem) ValidateSchemaMapEmbeddedItem() support.Errors {
 // ValidateSchemaMapEmbedded validates the object and returns
 // errors that can be returned to the user.
 func (o MapEmbedded) ValidateSchemaMapEmbedded() support.Errors {
+	var ctx []string
+	var ers []error
 	var errs support.Errors
+	_, _ = ers, errs
 
-	// Min/Max Properties
 	for k, v := range o {
+		var ers []error
+		ctx = append(ctx, k)
 
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers)
+		ctx = ctx[:len(ctx)-1]
 	}
+
+	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }
