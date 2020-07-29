@@ -15,6 +15,7 @@
         ers = append(ers, err)
     }
         {{end -}}
+        {{- if mustValidateRecurse $s.Items.Schema}}
     for i, {{$.Name}} := range {{$.Name}} {
         var ers []error
         {{- $.Import "fmt"}}
@@ -24,7 +25,8 @@
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
     }
-    {{else if eq $s.Type "object" -}}
+        {{- end -}}
+    {{- else if eq $s.Type "object" -}}
         {{- if $s.AdditionalProperties -}}
             {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems being bool is not supported"}}{{- end}}
             {{if $.Object.MaxProperties -}}
@@ -37,6 +39,7 @@
         ers = append(ers, err)
     }
             {{end -}}
+            {{- if mustValidateRecurse $s.AdditionalProperties.Schema -}}
     for k, {{$.Name}} := range {{$.Name}} {
         var ers []error
         ctx = append(ctx, k)
@@ -45,6 +48,7 @@
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
     }
+            {{- end -}}
         {{- else if $s.Properties -}}
             {{- /* Process regular struct fields */ -}}
             {{- range $name, $element := $s.Properties -}}

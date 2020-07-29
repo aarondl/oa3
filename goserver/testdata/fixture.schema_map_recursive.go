@@ -45,13 +45,7 @@ func (o MapRecursive) ValidateSchemaMapRecursive() support.Errors {
 			if err := support.ValidateMinProperties(o, 5); err != nil {
 				ers = append(ers, err)
 			}
-			for k, o := range o {
-				var ers []error
-				ctx = append(ctx, k)
 
-				errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-				ctx = ctx[:len(ctx)-1]
-			}
 			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 			ctx = ctx[:len(ctx)-1]
 		}

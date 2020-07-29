@@ -57,7 +57,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&flagDebug, "debug", "", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&flagWipe, "wipe", "w", false, "rm output directory before generation")
 	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "output", "o", "", "output directory (default "+filepath.Join(wd, "out", "<generator>")+")")
-	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "templates", "t", "", "template directory (default "+filepath.Join(wd, "templates", "<generator>")+")")
+	rootCmd.PersistentFlags().StringVarP(&flagTemplateDir, "templates", "t", "", "template directory (default "+filepath.Join(wd, "templates", "<generator>")+")")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

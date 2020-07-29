@@ -3,9 +3,6 @@
 package oa3gen
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/aarondl/oa3/support"
 )
 
@@ -19,21 +16,6 @@ func (o Map) ValidateSchemaMap() support.Errors {
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
-
-	for k, o := range o {
-		var ers []error
-		ctx = append(ctx, k)
-		for i, o := range o {
-			var ers []error
-			ctx = append(ctx, fmt.Sprintf("[%d]", i))
-
-			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-			ctx = ctx[:len(ctx)-1]
-		}
-
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
-	}
 
 	errs = support.AddErrs(errs, "", ers...)
 

@@ -15,10 +15,11 @@ import (
 
 // GlobalFunctions for templates
 var GlobalFunctions = map[string]interface{}{
-	"refName":      refName,
-	"mustValidate": mustValidate,
-	"keysReflect":  keysReflect,
-	"httpStatus":   http.StatusText,
+	"refName":             refName,
+	"mustValidate":        mustValidate,
+	"mustValidateRecurse": mustValidateRecurse,
+	"keysReflect":         keysReflect,
+	"httpStatus":          http.StatusText,
 }
 
 func refName(ref string) string {
@@ -43,6 +44,7 @@ func keysReflect(mp interface{}) ([]string, error) {
 	return keys, nil
 }
 
+// mustValidate checks to see if the schema requires any kind of validation
 func mustValidate(s *openapi3spec.Schema) bool {
 	return s.MultipleOf != nil ||
 		s.Maximum != nil ||
@@ -55,6 +57,28 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
 		s.MinProperties != nil
+}
+
+// mustValidateRecure checks to see if the current schema, or any sub-schema
+// requires validation
+func mustValidateRecurse(s *openapi3spec.Schema) bool {
+	if mustValidate(s) {
+		return true
+	}
+
+	if s.Type == "array" {
+		return mustValidateRecurse(s.Items.Schema)
+	} else if s.Type == "object" {
+		if s.AdditionalProperties != nil {
+			return mustValidateRecurse(s.AdditionalProperties.Schema)
+		}
+
+		for _, v := range s.Properties {
+			return mustValidateRecurse(v.Schema)
+		}
+	}
+
+	return false
 }
 
 // Load takes in funcs to apply to each template, a directory that
