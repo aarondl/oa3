@@ -210,9 +210,9 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		v := spec.Components.Schemas[k]
 
 		// Don't generate arrays as additional types
-		if v.Type == "array" && v.Items != nil && len(v.Items.Ref) != 0 {
-			continue
-		}
+		// if v.Type == "array" && v.Items != nil && len(v.Items.Ref) != 0 {
+		// 	continue
+		// }
 
 		filename := "schema_" + camelSnake(k) + ".go"
 

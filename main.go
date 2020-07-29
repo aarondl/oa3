@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -79,8 +80,18 @@ func rootCmdRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if flagWipe {
+		_ = os.RemoveAll(flagOutputDir)
+	}
+
+	if err = os.MkdirAll(flagOutputDir, 0775); err != nil {
+		return err
+	}
+
 	for _, f := range files {
-		fmt.Printf("====== %s ======\n%s\n", f.Name, f.Contents)
+		if err := ioutil.WriteFile(filepath.Join(flagOutputDir, f.Name), f.Contents, 0640); err != nil {
+			return err
+		}
 	}
 
 	return nil

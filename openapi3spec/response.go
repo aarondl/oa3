@@ -42,6 +42,17 @@ func (r *Response) Validate() error {
 		}
 	}
 
+	if r.Content != nil {
+		media, ok := r.Content["application/json"]
+		if !ok {
+			return errors.New("content: must have application/json key if not empty")
+		}
+
+		if len(media.Schema.Ref) == 0 {
+			return errors.New("content(application/json): schema must be of ref type")
+		}
+	}
+
 	return nil
 }
 

@@ -1,11 +1,25 @@
 package support
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
 )
+
+var (
+	rgxUUIDv4 = regexp.MustCompile(`(?i)^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$`)
+)
+
+// ValidateUUIDv4 makes it look like it's in a UUID v4 shape
+func ValidateUUIDv4(s string) error {
+	if !rgxUUIDv4.MatchString(s) {
+		return errors.New("must be a valid uuid v4")
+	}
+
+	return nil
+}
 
 // ValidateMaxInt checks that i <= max or if exclusive then i < max
 func ValidateMaxInt(i int64, max int, exclusive bool) error {
