@@ -18,11 +18,11 @@ var (
 	ErrNoBody = errors.New("no body")
 
 	// buffers is a sync pool of buffers for json marshaling
-	buffers sync.Pool
+	buffers = sync.Pool{New: newBuffer}
 )
 
 func newBuffer() interface{} {
-	return &bytes.Buffer{}
+	return new(bytes.Buffer)
 }
 
 // getBuffer retrieves a buffer from the buffer pool

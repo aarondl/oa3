@@ -56,3 +56,15 @@ func StringToFloat64(s string) (float64, error) {
 func StringToBool(s string) (bool, error) {
 	return strconv.ParseBool(s)
 }
+
+// StringToNullbool conversion
+func StringToNullbool(s string) (null.Bool, error) {
+	if len(s) == 0 {
+		return null.Bool{}, nil
+	}
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return null.Bool{}, err
+	}
+	return null.BoolFrom(b), nil
+}

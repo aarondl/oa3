@@ -21,7 +21,8 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- else if eq "header" $param.In -}}
                 := r.Header.Get(n{{$i}})
             {{- else if eq "path" $param.In -}}
-                := chi.URLParam(n{{$i}})
+                {{- $.Import "github.com/go-chi/chi" -}}
+                := chi.URLParam(r, n{{$i}})
             {{- else if eq "cookie" $param.In -}}
             , err := r.Cookie(n{{$i}})
     if err != nil {
@@ -55,9 +56,9 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         errs = support.AddErrs(errs, n{{$i}}, ers...)
     }
             {{end -}}
-            {{- if $param.Schema.Format -}}
-            {{- $.Import "github.com/aarondl/oa3/support"}}
-    if newErrs := support.Validate{{camelcase $param.Schema.Format}}(p{{$i}}); newErrs != nil {
+            {{- if and $param.Schema.Format (eq (print $param.Schema.Format) "uuid") -}}
+                {{- $.Import "github.com/aarondl/oa3/support"}}
+    if newErrs := support.ValidateUUIDv4(string(p{{$i}})); newErrs != nil {
         errs = support.AddErrs(errs, n{{$i}}, newErrs...)
     }
             {{end -}}

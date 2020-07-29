@@ -1,9 +1,11 @@
 {{- /* Used to output a type name, takes a TemplateData with the object set to a schema ref */ -}}
 {{- define "type_name" -}}
-    {{- if .Object.Enum -}}
-        {{- .Name -}}
-    {{- else if or .Object.Ref (isInlinePrimitive .Object.Schema) -}}
-        {{- template "schema" (recurseData $ .Name .Object) -}}
+    {{- if or .Object.Ref (isInlinePrimitive .Object.Schema) -}}
+        {{- if .Object.Enum -}}
+            {{- refName .Object.Ref -}}
+        {{- else -}}
+            {{- template "schema" (recurseData $ .Name .Object) -}}
+        {{- end -}}
     {{- else -}}
         {{- if .Object.Schema.Nullable}}*{{end}}{{.Name}}
     {{- end -}}
@@ -27,7 +29,7 @@
 {{- /* Used to output an embedded type, takes a TemplateData with the object set
 to a schema ref */ -}}
 {{- define "type_embedded" -}}
-    {{- if $.Object.Enum}}
+    {{- if and (not $.Object.Ref) $.Object.Enum}}
 type {{$.Name}} {{if $.Object.Nullable -}}
                     {{- $.Import "github.com/volatiletech/null/v8" -}}
                         null.String

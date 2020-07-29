@@ -4,7 +4,7 @@
 {{- if $.Spec.Info.Description}}
 //
 // {{wrapWith 70 "\n// " (trimSuffix "\n" $.Spec.Info.Description)}}
-{{end -}}
+{{- end}}
 type {{$.Name}}API interface {
 {{range $url, $path := $.Spec.Paths -}}
     {{range $method, $op := $path.Operations -}}
