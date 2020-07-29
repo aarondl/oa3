@@ -18,7 +18,7 @@ func (o Array) ValidateSchemaArray() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	for i, o := range o {
 		var ers []error

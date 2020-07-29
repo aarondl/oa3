@@ -74,39 +74,68 @@ func (o {{$.Name}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 {{$needHTTPStatuses := dict}}
 
 {{range $url, $path := $.Spec.Paths -}}
-    {{range $method, $op := $path.Operations -}}
-    {{- $opname := title $op.OperationID -}}
+    {{- range $method, $op := $path.Operations -}}
+    {{- $opname := title $op.OperationID}}
+
 // {{$opname}}Response one-of enforcer
 //
 // Implementors:
-    {{- range $code, $resp := $op.Responses}}
-    // - {{if $resp.Content -}}
-        {{- $schema := index $resp.Content "application/json" -}}
-            {{- $schema.Schema.Ref -}}
+        {{- range $code, $resp := $op.Responses}}
+// - {{if $resp.Headers -}}
+        {{- if $resp.Content -}}
+    {{$opname}}{{$code}}HeadersResponse
         {{- else -}}
             {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
             {{- $_ := set $needHTTPStatuses $statusName "" -}}
-            HTTPStatus{{$statusName}}
+    HTTPStatus{{$statusName}}
         {{- end -}}
-    {{- end}}
+     {{- else if $resp.Content -}}
+            {{- $schema := index $resp.Content "application/json" -}}
+            {{- $schema.Schema.Ref -}}
+    {{- else -}}
+                {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
+                {{- $_ := set $needHTTPStatuses $statusName "" -}}
+    HTTPStatus{{$statusName}}
+            {{- end -}}
+        {{- end}}
 type {{$opname}}Response interface {
     {{$opname}}Impl()
 }
 
-    {{- range $code, $resp := $op.Responses}}
-    {{if $resp.Content -}}
-        {{- $schema := index $resp.Content "application/json" -}}
-// {{$opname}}Impl implements {{$opname}}Response({{$code}}) for {{refName $schema.Schema.Ref}}
+        {{- range $code, $resp := $op.Responses}}
+            {{if gt (len $resp.Headers) 0 -}}
+                {{- /* In the case where there's response headers, always produce a wrapper struct */}}
+// {{$opname}}{{$code}}HeadersResponse wraps the normal body response with a struct
+// to be able to additionally return headers.
+type {{$opname}}{{$code}}HeadersResponse struct {
+                {{- range $hname, $header := $resp.Headers}}
+    Header{{$hname | replace "-" "" | title}} {{if $header.Required -}}
+                                    string
+                                {{- else -}}
+                                    {{- $.Import "github.com/volatiletech/null/v8" -}}
+                                    null.String
+                                {{- end -}}
+                {{- end -}}
+    {{- $statusName := camelcase (httpStatus (atoi $code))}}
+    Body {{if $resp.Content}}{{refName (index $resp.Content "application/json").Schema.Ref }}{{else}}HTTPStatus{{$statusName}}{{end}}
+}
+
+// {{$opname}}Impl implements {{$opname}}Response({{$code}}) for {{$opname}}{{$code}}HeadersResponse
+func ({{$opname}}{{$code}}HeadersResponse) {{$opname}}Impl() {}
+            {{- else if $resp.Content -}}
+                {{- /* If there's no headers */ -}}
+                {{- $schema := index $resp.Content "application/json"}}
+// {{$opname}}Impl implements {{$opname}}HeadersResponse({{$code}}) for {{refName $schema.Schema.Ref}}
 func ({{refName $schema.Schema.Ref}}) {{$opname}}Impl() {}
-        {{- else -}}
-{{- $statusName := camelcase (httpStatus (atoi $code)) -}}
+            {{- else -}}
+            {{- /* If there's no headers and no response body */ -}}
+{{- $statusName := camelcase (httpStatus (atoi $code))}}
 // {{$opname}}Impl implements {{$opname}}Response({{$code}}) for HTTPStatus{{$statusName}}
 func (HTTPStatus{{$statusName}}) {{$opname}}Impl() {}
+            {{- end -}}
         {{- end -}}
-    {{- end}}
-
-    {{end -}}
-{{end -}}
+    {{- end -}}
+{{- end}}
 
 {{range $status, $_ := $needHTTPStatuses -}}
 // HTTPStatus{{$status}} is an empty response

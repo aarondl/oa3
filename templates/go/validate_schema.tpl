@@ -7,7 +7,6 @@
     {{- if eq $s.Type "array" -}}
         {{if $.Object.MaxItems -}}
     if err := support.ValidateMaxItems(o, {{$.Object.MaxItems}}); err != nil {
-        {{- $.Import "fmt" -}}
         ers = append(ers, err)
     }
         {{- end -}}
@@ -84,7 +83,7 @@ func (o {{$.Name}}) ValidateSchema{{$.Name}}() support.Errors {
     var ctx []string
     var ers []error
     var errs support.Errors
-    _, _ = ers, errs
+    _, _, _ = ctx, ers, errs
 
     {{template "validate_schema_helper" (newData $ "o" $.Object)}}
 

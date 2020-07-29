@@ -3,15 +3,40 @@
 package support
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
+	"sync"
 )
 
 var (
 	// ErrNoBody is returned from a handler and expected to be handled by
 	// ErrorHandler in some useful way for the application.
 	ErrNoBody = errors.New("no body")
+
+	// buffers is a sync pool of buffers for json marshaling
+	buffers sync.Pool
 )
+
+func newBuffer() interface{} {
+	return &bytes.Buffer{}
+}
+
+// getBuffer retrieves a buffer from the buffer pool
+func getBuffer() *bytes.Buffer {
+	buf := buffers.Get().(*bytes.Buffer)
+	buf.Reset()
+
+	return buf
+}
+
+// putBuffer back into the buffer pool
+func putBuffer(buf *bytes.Buffer) {
+	buffers.Put(buf)
+}
 
 type (
 	// Errors is how validation errors are given to the ValidationConverter
@@ -72,4 +97,48 @@ func MergeErrs(dst Errors, src Errors) Errors {
 	}
 
 	return dst
+}
+
+// WriteJSON uses a pool of buffers to write into. This avoids a double
+// allocation from using json.Marshal (json.Marshal uses its own internal
+// pooled buffer and then copies that to a newly allocated []byte, this way
+// we should have pools for both json's internal buffer and our own).
+func WriteJSON(w http.ResponseWriter, object interface{}) error {
+	buf := getBuffer()
+	defer putBuffer(buf)
+
+	marshaller := json.NewEncoder(buf)
+	if err := marshaller.Encode(object); err != nil {
+		return err
+	}
+
+	// Ignore errors that fail to write out to clients because these will
+	// generally not be solvable (disconnections etc)
+	// We copy -1 because marshaller.Encode produces a newline at the end
+	// of each json message
+	_, err := io.CopyN(w, buf, int64(buf.Len()-1))
+	return err
+}
+
+// ReadJSON reads JSON from the body and ensures the body is closed.
+// object should be a pointer in order to deserialize properly.
+// We copy into a pooled buffer to avoid the allocation from ioutil.ReadAll
+// or something similar.
+func ReadJSON(r *http.Request, object interface{}) error {
+	buf := getBuffer()
+	defer putBuffer(buf)
+
+	if _, err := io.Copy(buf, r.Body); err != nil {
+		return fmt.Errorf("failed to copy into temp buffer: %w", err)
+	}
+
+	if err := r.Body.Close(); err != nil {
+		return fmt.Errorf("failed to close body after json read: %w", err)
+	}
+
+	if err := json.Unmarshal(buf.Bytes(), object); err != nil {
+		return err
+	}
+
+	return nil
 }

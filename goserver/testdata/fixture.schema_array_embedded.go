@@ -23,7 +23,7 @@ func (o ArrayEmbeddedItem) ValidateSchemaArrayEmbeddedItem() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	errs = support.AddErrs(errs, "", ers...)
 
@@ -36,7 +36,7 @@ func (o ArrayEmbedded) ValidateSchemaArrayEmbedded() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	for i, o := range o {
 		var ers []error

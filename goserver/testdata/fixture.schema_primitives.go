@@ -37,8 +37,8 @@ const (
 
 type PrimitivesStrNull null.String
 
-const (
-	PrimitivesStrNullHello PrimitivesStrNull = "hello"
+var (
+	PrimitivesStrNullHello PrimitivesStrNull = PrimitivesStrNull(null.StringFrom("hello"))
 )
 
 // ValidateSchemaPrimitives validates the object and returns
@@ -47,7 +47,7 @@ func (o Primitives) ValidateSchemaPrimitives() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	ers = nil
 	if err := support.ValidateMultipleOfFloat64(float64(o.Float), 5.5); err != nil {

@@ -18,7 +18,7 @@ func (o Ref) ValidateSchemaRef() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	errs = support.AddErrs(errs, "", ers...)
 

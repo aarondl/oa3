@@ -17,7 +17,7 @@ func (o MapRecursive) ValidateSchemaMapRecursive() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	if err := support.ValidateMaxProperties(o, 3); err != nil {
 		ers = append(ers, err)

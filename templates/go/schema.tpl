@@ -11,9 +11,15 @@
 
 {{- /* Outputs enum constants */ -}}
 {{- define "type_enum" -}}
-const (
+{{if $.Object.Nullable}}var{{else}}const{{end}} (
     {{- range $value := $.Object.Enum}}
-    {{$.Name}}{{camelcase $value}} {{$.Name}} = {{printf "%q" $value}}
+    {{$.Name}}{{camelcase $value}} {{$.Name}} =
+        {{- if $.Object.Nullable -}}
+        {{- $.Import "github.com/volatiletech/null/v8" -}}
+        {{$.Name}}(null.StringFrom({{printf "%q" $value}}))
+        {{- else -}}
+        {{printf "%q" $value}}
+        {{- end -}}
     {{- end}}
 )
 {{- end -}}

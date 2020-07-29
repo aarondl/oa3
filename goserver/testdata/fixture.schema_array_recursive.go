@@ -18,7 +18,7 @@ func (o ArrayRecursive) ValidateSchemaArrayRecursive() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	if err := support.ValidateMaxItems(o, 10); err != nil {
 		ers = append(ers, err)

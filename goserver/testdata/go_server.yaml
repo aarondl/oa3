@@ -43,6 +43,7 @@ paths:
           schema: { type: boolean }
       responses:
         '304': { description: Ok }
+
     post:
       operationId: setUser
       description: Sets a user
@@ -54,8 +55,16 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/Primitives' }
       responses:
-        '200': { description: Ok }
-        'default':
+        '200':
+          description: Ok
+          headers:
+            'X-Response-Header':
+              description: Test of an in-response header
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Primitives' }
+        default:
           description: Ok
           content:
             application/json:

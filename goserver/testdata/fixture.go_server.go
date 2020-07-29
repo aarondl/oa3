@@ -99,16 +99,23 @@ func (HTTPStatusNotModified) GetUserImpl() {}
 // SetUserResponse one-of enforcer
 //
 // Implementors:
-// - HTTPStatusOk
+// - SetUser200HeadersResponse
 // - #/components/schemas/Primitives
 type SetUserResponse interface {
 	SetUserImpl()
 }
 
-// SetUserImpl implements SetUserResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) SetUserImpl() {}
+// SetUser200HeadersResponse wraps the normal body response with a struct
+// to be able to additionally return headers.
+type SetUser200HeadersResponse struct {
+	HeaderXResponseHeader null.String
+	Body                  Primitives
+}
 
-// SetUserImpl implements SetUserResponse(default) for Primitives
+// SetUserImpl implements SetUserResponse(200) for SetUser200HeadersResponse
+func (SetUser200HeadersResponse) SetUserImpl() {}
+
+// SetUserImpl implements SetUserHeadersResponse(default) for Primitives
 func (Primitives) SetUserImpl() {}
 
 // HTTPStatusNotModified is an empty response

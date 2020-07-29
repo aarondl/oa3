@@ -3,9 +3,7 @@
 package oa3gen
 
 import (
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/aarondl/oa3/support"
@@ -19,8 +17,17 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
 
-	if errs != nil {
-		return o.converter(errs)
+	ret, err := o.impl.Authenticate(w, r)
+	if err != nil {
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
 	}
 
 	return nil
@@ -201,8 +208,17 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	if errs != nil {
-		return o.converter(errs)
+	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7)
+	if err != nil {
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusNotModified:
+		w.WriteHeader(304)
+	default:
+		_ = respBody
+		panic("impossible case")
 	}
 
 	return nil
@@ -214,28 +230,47 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 	var ers []error
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
-	// #/components/schemas/Primitives
-	var rb Primitives
+
+	var reqBody Primitives
 
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		defer r.Body.Close()
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			return err
-		}
-		if err = json.Unmarshal(b, &rb); err != nil {
+		if err = support.ReadJSON(r, &reqBody); err != nil {
 			return err
 		}
 
-		if newErrs := rb.ValidateSchemaPrimitives(); newErrs != nil {
+		if newErrs := reqBody.ValidateSchemaPrimitives(); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
 
 	if errs != nil {
 		return o.converter(errs)
+	}
+
+	ret, err := o.impl.SetUser(w, r, &reqBody)
+	if err != nil {
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case SetUser200HeadersResponse:
+		headers := w.Header()
+		if respBody.HeaderXResponseHeader.Valid {
+			headers.Set("X-Response-Header", respBody.HeaderXResponseHeader.String)
+		}
+		w.WriteHeader(200)
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	case Primitives:
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	default:
+		_ = respBody
+		panic("impossible case")
 	}
 
 	return nil

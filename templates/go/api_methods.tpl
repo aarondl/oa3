@@ -63,38 +63,90 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{end -}}
     }{{- /* This bracket closes the validation if above */ -}}
         {{- end}}
+        {{$json := ""}}
         {{- if $op.RequestBody -}}
-            {{- $json := index $op.RequestBody.Content "application/json"}}
-    // {{$json.Schema.Ref}}
-    var rb {{if $json.Schema.Nullable}}*{{end}}{{refName $json.Schema.Ref}}
+            {{- $json = index $op.RequestBody.Content "application/json"}}
+
+    var reqBody {{if $json.Schema.Nullable}}*{{end}}{{refName $json.Schema.Ref}}
 
             {{if $op.RequestBody.Required -}}
     if r.Body == nil {
         return support.ErrNoBody
     } else {
-            {{else -}}
+            {{- else -}}
     if r.Body != nil {
-            {{end -}}
-        defer r.Body.Close()
-            {{- $.Import "io/ioutil" }}
-        b, err := ioutil.ReadAll(r.Body)
-        if err != nil {
+            {{- end -}}
+            {{- $.Import "github.com/aarondl/oa3/support"}}
+        if err = support.ReadJSON(r, {{if not $json.Schema.Nullable}}&{{end}}reqBody); err != nil {
             return err
         }
 
-            {{- $.Import "encoding/json" }}
-        if err = json.Unmarshal(b, {{if not $json.Schema.Nullable}}&{{end}}rb); err != nil {
-            return err
-        }
-
-        if newErrs := rb.ValidateSchema{{refName $json.Schema.Ref}}(); newErrs != nil {
+        if newErrs := reqBody.ValidateSchema{{refName $json.Schema.Ref}}(); newErrs != nil {
             errs = support.MergeErrs(errs, newErrs)
         }
     }
-        {{end}}
 
     if errs != nil {
         return o.converter(errs)
+    }
+        {{end}}
+
+    ret, err := o.impl.{{title $op.OperationID}}(w, r
+        {{- if $op.RequestBody -}}
+        , {{if not $json.Schema.Nullable}}&{{end}}reqBody
+        {{- end -}}
+        {{- range $i, $param := $op.Parameters -}}
+        , p{{$i}}
+        {{- end -}}
+    )
+    if err != nil {
+        return err
+    }
+
+    switch respBody := ret.(type) {
+    {{- range $code, $resp := $op.Responses}}
+    case{{" " -}}
+        {{- if $resp.Headers -}}
+            {{title $op.OperationID}}{{$code}}HeadersResponse:
+            headers := w.Header()
+            {{- range $hname, $header := $resp.Headers -}}
+                {{- $headername := $hname | replace "-" "" | title -}}
+                {{- if not $header.Required}}
+            if respBody.Header{{$headername}}.Valid {
+                headers.Set("{{$hname}}", respBody.Header{{$headername}}.String)
+            }
+                {{- else}}
+            headers.Set("{{$hname}}", respBody.Header{{$headername}})
+                {{- end -}}
+            {{- end -}}
+            {{- if ne $code "default"}}
+            w.WriteHeader({{$code}})
+            {{- end -}}
+            {{- if $resp.Content -}}
+                {{- $.Import "github.com/aarondl/oa3/support"}}
+            if err := support.WriteJSON(w, respBody); err != nil {
+                return err
+            }
+            {{- end -}}
+        {{- else if $resp.Content -}}
+            {{- $schema := index $resp.Content "application/json" -}}
+            {{- if $schema.Schema.Nullable}}*{{end}}{{- refName $schema.Schema.Ref -}}:
+            {{- if ne $code "default"}}
+            w.WriteHeader({{$code}})
+            {{end -}}
+            {{- $.Import "github.com/aarondl/oa3/support"}}
+            if err := support.WriteJSON(w, respBody); err != nil {
+                return err
+            }
+        {{- else -}}
+            {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
+            HTTPStatus{{$statusName}}:
+                w.WriteHeader({{$code}})
+        {{- end -}}
+    {{- end}}
+    default:
+        _ = respBody
+        panic("impossible case")
     }
 
     return nil

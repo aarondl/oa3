@@ -21,7 +21,7 @@ func (o MapEmbeddedItem) ValidateSchemaMapEmbeddedItem() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	errs = support.AddErrs(errs, "", ers...)
 
@@ -34,7 +34,7 @@ func (o MapEmbedded) ValidateSchemaMapEmbedded() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
-	_, _ = ers, errs
+	_, _, _ = ctx, ers, errs
 
 	for k, o := range o {
 		var ers []error
