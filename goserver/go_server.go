@@ -180,7 +180,8 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 
 // generateSchemas creates files for the topLevel-level referenceable types
 //
-// Inline schemas are not generated. They are found in the following places here:
+// Some supported Inline are also generated.
+// Prefixed with their recursive names and Inline.
 // components.responses[name].headers[headername].schema
 // components.responses[name].content[mime-type].schema
 // components.responses[name].content[mime-type].encoding[propname].headers[headername].schema
@@ -209,46 +210,155 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 	for _, k := range keys {
 		v := spec.Components.Schemas[k]
-
-		// Don't generate arrays as additional types
-		// if v.Type == "array" && v.Items != nil && len(v.Items.Ref) != 0 {
-		// 	continue
-		// }
-
 		filename := "schema_" + camelSnake(k) + ".go"
 
-		tData := templates.NewTemplateData(spec, params)
-		data := templateData{
-			TemplateData: tData,
-			Name:         k,
-			Object:       v,
+		generated, err := makePseudoFile(spec, params, tpl, filename, k, v)
+		if err != nil {
+			return nil, err
+		}
+		topLevelStructs = append(topLevelStructs, generated)
+	}
+
+	type opMap struct {
+		Verb string
+		Op   *openapi3spec.Operation
+	}
+
+	for _, p := range spec.Paths {
+		opMaps := []opMap{
+			{"GET", p.Get}, {"POST", p.Post}, {"PUT", p.Put},
+			{"PATCH", p.Patch}, {"TRACE", p.Trace}, {"HEAD", p.Head},
+			{"DELETE", p.Delete},
+		}
+		for _, o := range opMaps {
+			if o.Op == nil {
+				continue
+			}
+
+			// If we have no request body ignore this op
+			if o.Op.RequestBody != nil {
+				if len(o.Op.RequestBody.Ref) != 0 {
+					continue
+				}
+
+				schema := o.Op.RequestBody.Content["application/json"].Schema
+				// Refs are taken care of already, inline primitives don't need
+				// new structs generated.
+				if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+					continue
+				}
+
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
+				generated, err := makePseudoFile(spec, params, tpl, filename, o.Op.OperationID+"ImplicitReq", &schema)
+				if err != nil {
+					return nil, err
+				}
+
+				topLevelStructs = append(topLevelStructs, generated)
+			}
+
+			for code, resp := range o.Op.Responses {
+				if len(resp.Ref) != 0 {
+					continue
+				}
+				if len(resp.Content) == 0 {
+					continue
+				}
+
+				schema := resp.Content["application/json"].Schema
+				// Refs are taken care of already, inline primitives don't need
+				// new structs generated for responses, they will instead
+				// be new types.
+				if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+					continue
+				}
+
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
+				generated, err := makePseudoFile(spec, params, tpl, filename, o.Op.OperationID+strings.Title(code)+"Inline", &schema)
+				if err != nil {
+					return nil, err
+				}
+
+				topLevelStructs = append(topLevelStructs, generated)
+			}
+		}
+	}
+
+	for name, req := range spec.Components.RequestBodies {
+		schema := req.Content["application/json"].Schema
+		if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+			continue
 		}
 
-		buf := new(bytes.Buffer)
-		if err := tpl.ExecuteTemplate(buf, "schema_top", data); err != nil {
-			return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+		filename := "schema_" + camelSnake(name) + "_reqbody.go"
+		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema)
+		if err != nil {
+			return nil, err
 		}
 
-		fileBytes := new(bytes.Buffer)
-		pkg := DefaultPackage
-		if pkgParam := params["package"]; len(pkgParam) > 0 {
-			pkg = pkgParam
+		topLevelStructs = append(topLevelStructs, generated)
+	}
+
+	for name, resp := range spec.Components.Responses {
+		if len(resp.Content) == 0 {
+			continue
+		}
+		schema := resp.Content["application/json"].Schema
+		if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+			continue
 		}
 
-		fileBytes.WriteString(Disclaimer)
-		fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
-		if imps := imports(data.Imports); len(imps) != 0 {
-			fileBytes.WriteByte('\n')
-			fileBytes.WriteString(imports(data.Imports))
-			fileBytes.WriteByte('\n')
+		filename := "schema_" + camelSnake(name) + "_respbody.go"
+		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema)
+		if err != nil {
+			return nil, err
 		}
-		fileBytes.WriteByte('\n')
-		fileBytes.Write(buf.Bytes())
-
-		topLevelStructs = append(topLevelStructs, generator.File{Name: filename, Contents: fileBytes.Bytes()})
+		topLevelStructs = append(topLevelStructs, generated)
 	}
 
 	return topLevelStructs, nil
+}
+
+var (
+	fileBuf   = new(bytes.Buffer)
+	headerBuf = new(bytes.Buffer)
+)
+
+func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, filename string, name string, schema *openapi3spec.SchemaRef) (generator.File, error) {
+	fileBuf.Reset()
+	headerBuf.Reset()
+
+	tData := templates.NewTemplateData(spec, params)
+	data := templateData{
+		TemplateData: tData,
+		Name:         name,
+		Object:       schema,
+	}
+
+	if err := tpl.ExecuteTemplate(fileBuf, "schema_top", data); err != nil {
+		return generator.File{}, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	pkg := DefaultPackage
+	if pkgParam := params["package"]; len(pkgParam) > 0 {
+		pkg = pkgParam
+	}
+
+	headerBuf.WriteString(Disclaimer)
+	fmt.Fprintf(headerBuf, "\npackage %s\n", pkg)
+	if imps := imports(data.Imports); len(imps) != 0 {
+		headerBuf.WriteByte('\n')
+		headerBuf.WriteString(imports(data.Imports))
+		headerBuf.WriteByte('\n')
+	}
+	headerBuf.WriteByte('\n')
+
+	headerLen, fileLen := headerBuf.Len(), fileBuf.Len()
+	contents := make([]byte, headerLen+fileLen)
+	copy(contents, headerBuf.Bytes())
+	copy(contents[headerLen:], fileBuf.Bytes())
+
+	return generator.File{Name: filename, Contents: contents}, nil
 }
 
 func isInlinePrimitive(schema *openapi3spec.Schema) bool {

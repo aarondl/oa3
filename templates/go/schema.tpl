@@ -59,7 +59,6 @@ type {{$.Name}} {{if $.Object.Nullable -}}
         {{$.Name}}TypeCheck()
     }
     {{- else if eq $s.Type "array" -}}[]
-        {{- if not $s.Items -}}{{- fail (printf "items arrays must have items: %s" $.Name) -}}{{- end -}}
         {{- template "type_name" (recurseData $ "Item" $s.Items) -}}
 
         {{- /* Array properties embedded */ -}}
