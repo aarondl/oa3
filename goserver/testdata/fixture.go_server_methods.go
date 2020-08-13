@@ -10,6 +10,25 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
+// AlreadyHandled is an interface which an error return type can optionally
+// implement to stop the generated method from responding in anyway, it will
+// swallow the error and not touch the ResponseWriter if this method returns
+// true.
+type AlreadyHandled interface {
+	AlreadyHandled() bool
+}
+
+// ErrHandled is a sentinel error that implements
+// the AlreadyHandled interface which prevents the
+// generated handler from firing.
+type ErrHandled struct{}
+
+// Error implements error
+func (ErrHandled) Error() string { return "already handled" }
+
+// AlreadyHandled implements AlreadyHandled
+func (ErrHandled) AlreadyHandled() bool { return true }
+
 // authenticate post /auth
 func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 	var err error
@@ -19,6 +38,11 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 
 	ret, err := o.impl.Authenticate(w, r)
 	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
 		return err
 	}
 
@@ -210,6 +234,11 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7)
 	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
 		return err
 	}
 
@@ -251,11 +280,16 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	ret, err := o.impl.SetUser(w, r, &reqBody)
 	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
 		return err
 	}
 
 	switch respBody := ret.(type) {
-	case SetUser200HeadersResponse:
+	case SetUser200WrappedResponse:
 		headers := w.Header()
 		if respBody.HeaderXResponseHeader.Valid {
 			headers.Set("X-Response-Header", respBody.HeaderXResponseHeader.String)
@@ -264,7 +298,8 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
-	case Primitives:
+	case SetUserdefaultWrappedResponse:
+
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}

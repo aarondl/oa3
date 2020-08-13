@@ -103,11 +103,13 @@ type {{$opname}}Response interface {
 }
 
         {{- range $code, $resp := $op.Responses}}
-            {{if gt (len $resp.Headers) 0 -}}
-                {{- /* In the case where there's response headers, always produce a wrapper struct */}}
-// {{$opname}}{{$code}}HeadersResponse wraps the normal body response with a struct
-// to be able to additionally return headers.
-type {{$opname}}{{$code}}HeadersResponse struct {
+            {{$rkind := responseKind $op $code -}}
+            {{- if eq $rkind "wrapped" -}}
+                {{- /* Headers, or duplicate responses produce a wrapper struct */}}
+// {{$opname}}{{$code}}WrappedResponse wraps the normal body response with a
+// struct to be able to additionally return headers or differentiate between
+// multiple response codes with the same response body.
+type {{$opname}}{{$code}}WrappedResponse struct {
                 {{- range $hname, $header := $resp.Headers}}
     Header{{$hname | replace "-" "" | title}} {{if $header.Required -}}
                                     string
@@ -120,18 +122,19 @@ type {{$opname}}{{$code}}HeadersResponse struct {
     Body {{if $resp.Content}}{{refName (index $resp.Content "application/json").Schema.Ref }}{{else}}HTTPStatus{{$statusName}}{{end}}
 }
 
-// {{$opname}}Impl implements {{$opname}}Response({{$code}}) for {{$opname}}{{$code}}HeadersResponse
-func ({{$opname}}{{$code}}HeadersResponse) {{$opname}}Impl() {}
-            {{- else if $resp.Content -}}
-                {{- /* If there's no headers */ -}}
-                {{- $schema := index $resp.Content "application/json"}}
-// {{$opname}}Impl implements {{$opname}}HeadersResponse({{$code}}) for {{refName $schema.Schema.Ref}}
-func ({{refName $schema.Schema.Ref}}) {{$opname}}Impl() {}
-            {{- else -}}
+// {{$opname}}Impl implements {{$opname}}Response({{$code}}) for {{$opname}}{{$code}}WrappedResponse
+func ({{$opname}}{{$code}}WrappedResponse) {{$opname}}Impl() {}
+
+            {{- else if eq $rkind "empty" -}}
             {{- /* If there's no headers and no response body */ -}}
 {{- $statusName := camelcase (httpStatus (atoi $code))}}
 // {{$opname}}Impl implements {{$opname}}Response({{$code}}) for HTTPStatus{{$statusName}}
 func (HTTPStatus{{$statusName}}) {{$opname}}Impl() {}
+            {{- else -}}
+                {{- /* If there's no headers */ -}}
+                {{- $schema := index $resp.Content "application/json"}}
+// {{$opname}}Impl implements {{$opname}}HeadersResponse({{$code}}) for {{refName $schema.Schema.Ref}}
+func ({{refName $schema.Schema.Ref}}) {{$opname}}Impl() {}
             {{- end -}}
         {{- end -}}
     {{- end -}}

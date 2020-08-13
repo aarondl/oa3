@@ -41,6 +41,7 @@ var funcs = map[string]interface{}{
 	"primitive":         primitive,
 	"isInlinePrimitive": isInlinePrimitive,
 	"taggedPaths":       tagPaths,
+	"responseKind":      responseKind,
 }
 
 // generator generates templates for Go
@@ -414,4 +415,55 @@ func camelSnake(filename string) string {
 	}
 
 	return build.String()
+}
+
+// responseKind returns the type of abstraction we need for a specific response
+// code in an operation.
+//
+// The return can be one of three values: "wrapped" "empty" or ""
+//
+// Wrapped indicates it must be wrapped in a struct because it either has
+// headers or it is a duplicate response type (say two strings) and we need
+// to differentiate code.
+//
+// Empty means there is no response body, and an empty response code type
+// must be used in its place.
+//
+// An empty string means that no special handling is required and the type
+// response type can be used directly.
+func responseKind(op *openapi3spec.Operation, code string) string {
+	r := op.Responses[code]
+	if len(r.Headers) != 0 {
+		return "wrapped"
+	}
+
+	// Return here since there's no point continuing if we can't find bodies to
+	// collide with
+	if len(r.Content) == 0 {
+		return "empty"
+	}
+
+	body := r.Content["application/json"].Schema
+
+	for respCode, resp := range op.Responses {
+		if respCode == code {
+			continue
+		}
+
+		// Don't compare bodies if the other one doesn't have one
+		if len(resp.Content) == 0 {
+			continue
+		}
+
+		otherBody := resp.Content["application/json"].Schema
+		if len(body.Ref) != 0 && len(otherBody.Ref) != 0 && body.Ref == otherBody.Ref {
+			return "wrapped"
+		} else if len(body.Ref) == 0 && len(otherBody.Ref) == 0 && body.Type == otherBody.Type {
+			if isInlinePrimitive(body.Schema) {
+				return "wrapped"
+			}
+		}
+	}
+
+	return ""
 }

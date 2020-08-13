@@ -105,18 +105,26 @@ type SetUserResponse interface {
 	SetUserImpl()
 }
 
-// SetUser200HeadersResponse wraps the normal body response with a struct
-// to be able to additionally return headers.
-type SetUser200HeadersResponse struct {
+// SetUser200WrappedResponse wraps the normal body response with a
+// struct to be able to additionally return headers or differentiate between
+// multiple response codes with the same response body.
+type SetUser200WrappedResponse struct {
 	HeaderXResponseHeader null.String
 	Body                  Primitives
 }
 
-// SetUserImpl implements SetUserResponse(200) for SetUser200HeadersResponse
-func (SetUser200HeadersResponse) SetUserImpl() {}
+// SetUserImpl implements SetUserResponse(200) for SetUser200WrappedResponse
+func (SetUser200WrappedResponse) SetUserImpl() {}
 
-// SetUserImpl implements SetUserHeadersResponse(default) for Primitives
-func (Primitives) SetUserImpl() {}
+// SetUserdefaultWrappedResponse wraps the normal body response with a
+// struct to be able to additionally return headers or differentiate between
+// multiple response codes with the same response body.
+type SetUserdefaultWrappedResponse struct {
+	Body Primitives
+}
+
+// SetUserImpl implements SetUserResponse(default) for SetUserdefaultWrappedResponse
+func (SetUserdefaultWrappedResponse) SetUserImpl() {}
 
 // HTTPStatusNotModified is an empty response
 type HTTPStatusNotModified struct{}

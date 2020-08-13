@@ -1,3 +1,20 @@
+// AlreadyHandled is an interface which an error return type can optionally
+// implement to stop the generated method from responding in anyway, it will
+// swallow the error and not touch the ResponseWriter if this method returns
+// true.
+type AlreadyHandled interface {
+    AlreadyHandled() bool
+}
+
+// ErrHandled is a sentinel error that implements
+// the AlreadyHandled interface which prevents the
+// generated handler from firing.
+type ErrHandled struct {}
+// Error implements error
+func (ErrHandled) Error() string { return "already handled" }
+// AlreadyHandled implements AlreadyHandled
+func (ErrHandled) AlreadyHandled() bool { return true }
+
 {{range $url, $path := $.Spec.Paths -}}
     {{range $method, $op := $path.Operations -}}
         {{- $opname := lower (camelcase $op.OperationID) -}}
@@ -101,23 +118,31 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{- end -}}
     )
     if err != nil {
+        if alreadyHandled, ok := err.(AlreadyHandled); ok {
+            if alreadyHandled.AlreadyHandled() {
+                return nil
+            }
+        }
         return err
     }
 
     switch respBody := ret.(type) {
     {{- range $code, $resp := $op.Responses}}
+    {{- $rkind := responseKind $op $code}}
     case{{" " -}}
-        {{- if $resp.Headers -}}
-            {{title $op.OperationID}}{{$code}}HeadersResponse:
+        {{- if eq $rkind "wrapped" -}}
+            {{title $op.OperationID}}{{$code}}WrappedResponse:
+            {{if gt (len $resp.Headers) 0 -}}
             headers := w.Header()
-            {{- range $hname, $header := $resp.Headers -}}
-                {{- $headername := $hname | replace "-" "" | title -}}
-                {{- if not $header.Required}}
+                {{- range $hname, $header := $resp.Headers -}}
+                    {{- $headername := $hname | replace "-" "" | title -}}
+                    {{- if not $header.Required}}
             if respBody.Header{{$headername}}.Valid {
                 headers.Set("{{$hname}}", respBody.Header{{$headername}}.String)
             }
-                {{- else}}
+                    {{- else}}
             headers.Set("{{$hname}}", respBody.Header{{$headername}})
+                    {{- end -}}
                 {{- end -}}
             {{- end -}}
             {{- if ne $code "default"}}
@@ -129,7 +154,11 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                 return err
             }
             {{- end -}}
-        {{- else if $resp.Content -}}
+        {{- else if eq $rkind "empty" -}}
+            {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
+            HTTPStatus{{$statusName}}:
+                w.WriteHeader({{$code}})
+        {{- else -}}
             {{- $schema := index $resp.Content "application/json" -}}
             {{- if $schema.Schema.Nullable}}*{{end}}{{- refName $schema.Schema.Ref -}}:
             {{- if ne $code "default"}}
@@ -139,10 +168,6 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             if err := support.WriteJSON(w, respBody); err != nil {
                 return err
             }
-        {{- else -}}
-            {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
-            HTTPStatus{{$statusName}}:
-                w.WriteHeader({{$code}})
         {{- end -}}
     {{- end}}
     default:
