@@ -12,9 +12,9 @@ import (
 // Recursive definition of an array
 type ArrayRecursive [][][]string
 
-// ValidateSchemaArrayRecursive validates the object and returns
+// VVValidateSchemaArrayRecursive validates the object and returns
 // errors that can be returned to the user.
-func (o ArrayRecursive) ValidateSchemaArrayRecursive() support.Errors {
+func (o ArrayRecursive) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

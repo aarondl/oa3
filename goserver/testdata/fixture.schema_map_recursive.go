@@ -11,9 +11,9 @@ import (
 // Recursively defined maps
 type MapRecursive map[string]map[string]map[string]string
 
-// ValidateSchemaMapRecursive validates the object and returns
+// VVValidateSchemaMapRecursive validates the object and returns
 // errors that can be returned to the user.
-func (o MapRecursive) ValidateSchemaMapRecursive() support.Errors {
+func (o MapRecursive) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

@@ -80,9 +80,9 @@
 
 {{- end}}
 
-// ValidateSchema{{$.Name}} validates the object and returns
+// VVValidateSchema{{$.Name}} validates the object and returns
 // errors that can be returned to the user.
-func (o {{$.Name}}) ValidateSchema{{$.Name}}() support.Errors {
+func (o {{$.Name}}) VVValidateSchema() support.Errors {
     {{- $s := $.Object.Schema}}
     var ctx []string
     var ers []error

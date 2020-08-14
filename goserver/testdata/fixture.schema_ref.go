@@ -12,9 +12,9 @@ type Ref struct {
 	RefNull   RefTargetNullable `json:"ref_null,omitempty"`
 }
 
-// ValidateSchemaRef validates the object and returns
+// VVValidateSchemaRef validates the object and returns
 // errors that can be returned to the user.
-func (o Ref) ValidateSchemaRef() support.Errors {
+func (o Ref) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

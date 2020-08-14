@@ -77,6 +77,37 @@ paths:
       responses:
         '200': { description: Ok }
 
+  /test/inline:
+    get:
+      operationId: testInlinePrimitiveBody
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          application/json:
+            schema: { type: string }
+      responses:
+        '200': { description: OK }
+    post:
+      operationId: testInline
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [id], properties: { id: { type: string } } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: string }
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, required: [id], properties: { id: { type: string } } }
+
 components:
   schemas:
     Primitives:

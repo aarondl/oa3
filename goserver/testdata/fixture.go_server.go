@@ -17,6 +17,10 @@ import (
 type GoServerAPI interface {
 	// Authenticate post /auth
 	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
+	// TestInlinePrimitiveBody get /test/inline
+	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
+	// TestInline post /test/inline
+	TestInline(w http.ResponseWriter, r *http.Request, body TestInlineInline) (TestInlineResponse, error)
 	// GetUser get /users/{id}
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
@@ -56,6 +60,8 @@ func NewGoServer(
 			r.Use(m...)
 		}
 		r.Method(http.MethodPost, `/auth`, eh.Wrap(o.authenticateOp))
+		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
+		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
 	})
 	// users tagged operations
 	o.router.Group(func(r chi.Router) {
@@ -84,6 +90,32 @@ type AuthenticateResponse interface {
 
 // AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) AuthenticateImpl() {}
+
+// TestInlinePrimitiveBodyResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestInlinePrimitiveBodyResponse interface {
+	TestInlinePrimitiveBodyImpl()
+}
+
+// TestInlinePrimitiveBodyImpl implements TestInlinePrimitiveBodyResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
+
+// TestInlineResponse one-of enforcer
+//
+// Implementors:
+// -
+// -
+type TestInlineResponse interface {
+	TestInlineImpl()
+}
+
+// TestInlineImpl implements TestInlineHeadersResponse(200) for
+func (TestInline200Inline) TestInlineImpl() {}
+
+// TestInlineImpl implements TestInlineHeadersResponse(201) for
+func (TestInline201Inline) TestInlineImpl() {}
 
 // GetUserResponse one-of enforcer
 //

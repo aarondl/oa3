@@ -16,7 +16,14 @@ type {{$.Name}}API interface {
     {{$opname}}(w http.ResponseWriter, r *http.Request
         {{- if $op.RequestBody -}}
         , {{$media := index $op.RequestBody.Content "application/json" -}}
-        body *{{refName $media.Schema.Ref}}
+        body{{" " -}}
+            {{- if $media.Schema.Ref -}}
+            *{{- refName $media.Schema.Ref -}}
+            {{- else if isInlinePrimitive $media.Schema.Schema -}}
+            {{- primitive $ $media.Schema.Schema -}}
+            {{- else -}}
+            {{title $op.OperationID}}Inline
+            {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
         , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema -}}
@@ -134,7 +141,7 @@ func (HTTPStatus{{$statusName}}) {{$opname}}Impl() {}
                 {{- /* If there's no headers */ -}}
                 {{- $schema := index $resp.Content "application/json"}}
 // {{$opname}}Impl implements {{$opname}}HeadersResponse({{$code}}) for {{refName $schema.Schema.Ref}}
-func ({{refName $schema.Schema.Ref}}) {{$opname}}Impl() {}
+func ({{if $schema.Schema.Ref}}{{refName $schema.Schema.Ref}}{{else}}{{title $opname}}{{title $code}}Inline{{end}}) {{$opname}}Impl() {}
             {{- end -}}
         {{- end -}}
     {{- end -}}

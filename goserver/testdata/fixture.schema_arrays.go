@@ -11,9 +11,9 @@ type Arrays struct {
 	Array []string `json:"array"`
 }
 
-// ValidateSchemaArrays validates the object and returns
+// VVValidateSchemaArrays validates the object and returns
 // errors that can be returned to the user.
-func (o Arrays) ValidateSchemaArrays() support.Errors {
+func (o Arrays) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

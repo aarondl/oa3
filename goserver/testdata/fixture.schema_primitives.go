@@ -41,9 +41,9 @@ var (
 	PrimitivesStrNullHello PrimitivesStrNull = PrimitivesStrNull(null.StringFrom("hello"))
 )
 
-// ValidateSchemaPrimitives validates the object and returns
+// VVValidateSchemaPrimitives validates the object and returns
 // errors that can be returned to the user.
-func (o Primitives) ValidateSchemaPrimitives() support.Errors {
+func (o Primitives) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

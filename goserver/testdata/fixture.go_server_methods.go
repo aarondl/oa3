@@ -57,6 +57,108 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// testinlineprimitivebody get /test/inline
+func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	var reqBody TestInlinePrimitiveBodyInline
+
+	if r.Body == nil {
+		return support.ErrNoBody
+	} else {
+		if err = support.ReadJSON(r, &reqBody); err != nil {
+			return err
+		}
+
+		if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
+			errs = support.MergeErrs(errs, newErrs)
+		}
+	}
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestInlinePrimitiveBody(w, r, string(reqBody))
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
+// testinline post /test/inline
+func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	var reqBody TestInlineInline
+
+	if r.Body == nil {
+		return support.ErrNoBody
+	} else {
+		if err = support.ReadJSON(r, &reqBody); err != nil {
+			return err
+		}
+
+		if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
+			errs = support.MergeErrs(errs, newErrs)
+		}
+	}
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestInline(w, r, reqBody)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case TestInline200Inline:
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	case TestInline201Inline:
+		w.WriteHeader(201)
+
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
 // getuser get /users/{id}
 func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	var err error
@@ -269,7 +371,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		if newErrs := reqBody.ValidateSchemaPrimitives(); newErrs != nil {
+		if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}

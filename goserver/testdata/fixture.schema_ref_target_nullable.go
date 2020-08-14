@@ -11,9 +11,9 @@ type RefTargetNullable struct {
 	Prop string `json:"prop"`
 }
 
-// ValidateSchemaRefTargetNullable validates the object and returns
+// VVValidateSchemaRefTargetNullable validates the object and returns
 // errors that can be returned to the user.
-func (o RefTargetNullable) ValidateSchemaRefTargetNullable() support.Errors {
+func (o RefTargetNullable) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

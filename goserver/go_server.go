@@ -242,14 +242,13 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				schema := o.Op.RequestBody.Content["application/json"].Schema
-				// Refs are taken care of already, inline primitives don't need
-				// new structs generated.
-				if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+				// Refs are taken care of already
+				if len(schema.Ref) != 0 {
 					continue
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, o.Op.OperationID+"ImplicitReq", &schema)
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema)
 				if err != nil {
 					return nil, err
 				}
@@ -266,15 +265,13 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				schema := resp.Content["application/json"].Schema
-				// Refs are taken care of already, inline primitives don't need
-				// new structs generated for responses, they will instead
-				// be new types.
-				if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+				// Refs are taken care of already
+				if len(schema.Ref) != 0 {
 					continue
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, o.Op.OperationID+strings.Title(code)+"Inline", &schema)
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema)
 				if err != nil {
 					return nil, err
 				}
@@ -286,7 +283,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 	for name, req := range spec.Components.RequestBodies {
 		schema := req.Content["application/json"].Schema
-		if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+		if len(schema.Ref) != 0 {
 			continue
 		}
 
@@ -304,7 +301,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 			continue
 		}
 		schema := resp.Content["application/json"].Schema
-		if len(schema.Ref) != 0 || isInlinePrimitive(schema.Schema) {
+		if len(schema.Ref) != 0 {
 			continue
 		}
 

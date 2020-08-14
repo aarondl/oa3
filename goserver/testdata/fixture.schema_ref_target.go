@@ -11,9 +11,9 @@ type RefTarget struct {
 	Prop string `json:"prop"`
 }
 
-// ValidateSchemaRefTarget validates the object and returns
+// VVValidateSchemaRefTarget validates the object and returns
 // errors that can be returned to the user.
-func (o RefTarget) ValidateSchemaRefTarget() support.Errors {
+func (o RefTarget) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

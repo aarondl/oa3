@@ -15,9 +15,9 @@ const (
 	EnumThree Enum = "three"
 )
 
-// ValidateSchemaEnum validates the object and returns
+// VVValidateSchemaEnum validates the object and returns
 // errors that can be returned to the user.
-func (o Enum) ValidateSchemaEnum() support.Errors {
+func (o Enum) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

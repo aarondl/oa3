@@ -85,7 +85,13 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{- if $op.RequestBody -}}
             {{- $json = index $op.RequestBody.Content "application/json"}}
 
-    var reqBody {{if $json.Schema.Nullable}}*{{end}}{{refName $json.Schema.Ref}}
+    var reqBody{{" " -}}
+            {{- if $json.Schema.Ref -}}
+                {{- if $json.Schema.Nullable}}*{{end -}}
+                {{- refName $json.Schema.Ref -}}
+            {{- else -}}
+                {{title $op.OperationID}}Inline
+            {{- end}}
 
             {{if $op.RequestBody.Required -}}
     if r.Body == nil {
@@ -99,7 +105,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             return err
         }
 
-        if newErrs := reqBody.ValidateSchema{{refName $json.Schema.Ref}}(); newErrs != nil {
+        if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
             errs = support.MergeErrs(errs, newErrs)
         }
     }
@@ -110,8 +116,11 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{end}}
 
     ret, err := o.impl.{{title $op.OperationID}}(w, r
-        {{- if $op.RequestBody -}}
-        , {{if not $json.Schema.Nullable}}&{{end}}reqBody
+        {{- if $op.RequestBody -}},{{" " -}}
+            {{- if and $json.Schema.Ref (not $json.Schema.Nullable) -}}&{{- end -}}
+            {{- if isInlinePrimitive $json.Schema.Schema -}}
+                {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
+                {{- else -}}reqBody{{- end -}}
         {{- end -}}
         {{- range $i, $param := $op.Parameters -}}
         , p{{$i}}
@@ -159,8 +168,12 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             HTTPStatus{{$statusName}}:
                 w.WriteHeader({{$code}})
         {{- else -}}
-            {{- $schema := index $resp.Content "application/json" -}}
-            {{- if $schema.Schema.Nullable}}*{{end}}{{- refName $schema.Schema.Ref -}}:
+            {{- $schema := (index $resp.Content "application/json").Schema -}}
+            {{- if $schema.Ref -}}
+                {{- if $schema.Nullable}}*{{end}}{{- refName $schema.Ref -}}:
+            {{- else -}}
+                {{title $op.OperationID}}{{title $code}}Inline:
+            {{- end -}}
             {{- if ne $code "default"}}
             w.WriteHeader({{$code}})
             {{end -}}

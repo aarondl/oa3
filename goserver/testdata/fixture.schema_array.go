@@ -9,9 +9,9 @@ import (
 // Just normal arrays
 type Array []string
 
-// ValidateSchemaArray validates the object and returns
+// VVValidateSchemaArray validates the object and returns
 // errors that can be returned to the user.
-func (o Array) ValidateSchemaArray() support.Errors {
+func (o Array) VVValidateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
