@@ -255,6 +255,12 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 				topLevelStructs = append(topLevelStructs, generated)
 			}
+		}
+
+		for _, o := range opMaps {
+			if o.Op == nil {
+				continue
+			}
 
 			for code, resp := range o.Op.Responses {
 				if len(resp.Ref) != 0 {

@@ -1,13 +1,13 @@
 {{- /* Used to output a type name, takes a TemplateData with the object set to a schema ref */ -}}
 {{- define "type_name" -}}
-    {{- if or .Object.Ref (isInlinePrimitive .Object.Schema) -}}
-        {{- if .Object.Enum -}}
-            {{.Name}}{{- refName .Object.Ref -}}
+    {{- if or $.Object.Ref (isInlinePrimitive .Object.Schema) -}}
+        {{- if $.Object.Enum -}}
+            {{- refName $.Object.Ref -}}
         {{- else -}}
-            {{- template "schema" (recurseData $ .Name .Object) -}}
+            {{- template "schema" (recurseData $ $.Name $.Object) -}}
         {{- end -}}
     {{- else -}}
-        {{- if .Object.Schema.Nullable}}*{{end}}{{.Name}}
+        {{- if $.Object.Schema.Nullable}}*{{end}}{{.Name}}
     {{- end -}}
 {{- end -}}
 
