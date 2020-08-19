@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	wd string
+	wd      string
+	version string
 )
 
 var (
@@ -47,6 +48,13 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
+	for _, a := range os.Args {
+		if a == "--version" {
+			fmt.Println("oa3 " + version)
+			return
+		}
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Println("failed to determine current working directory")
@@ -59,6 +67,9 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&flagWipe, "wipe", "w", false, "rm output directory before generation")
 	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "output", "o", "", "output directory (default "+filepath.Join(wd, "out", "<generator>")+")")
 	rootCmd.PersistentFlags().StringVarP(&flagTemplateDir, "templates", "t", "", "template directory (default "+filepath.Join(wd, "templates", "<generator>")+")")
+
+	// ignored, only for docs
+	rootCmd.PersistentFlags().BoolP("version", "", false, "output version and exit")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
