@@ -16,7 +16,7 @@ import (
 
 var (
 	wd      string
-	version string
+	version string = "unknown"
 )
 
 var (
@@ -50,7 +50,7 @@ var rootCmd = &cobra.Command{
 func main() {
 	for _, a := range os.Args {
 		if a == "--version" {
-			fmt.Println("oa3 " + version)
+			fmt.Println("oa3 version " + version)
 			return
 		}
 	}
@@ -84,6 +84,8 @@ func rootCmdRun(cmd *cobra.Command, args []string) error {
 		if len(splits) != 2 || len(splits[0]) == 0 || len(splits[1]) == 0 {
 			return fmt.Errorf("--param[%d] invalid: must be key=value pair, got: %s", i, p)
 		}
+
+		params[splits[0]] = splits[1]
 	}
 
 	files, err := generate(args[0], args[1], params)

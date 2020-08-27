@@ -1,11 +1,11 @@
 {{- $.Import "net/http" -}}
-// {{$.Name}}API is the interface that an application server must implement
+// Interface is the interface that an application server must implement
 // in order to use this package.
 {{- if $.Spec.Info.Description}}
 //
 // {{wrapWith 70 "\n// " (trimSuffix "\n" $.Spec.Info.Description)}}
 {{- end}}
-type {{$.Name}}API interface {
+type Interface interface {
 {{range $url, $path := $.Spec.Paths -}}
     {{range $method, $op := $path.Operations -}}
     {{- $opname := title $op.OperationID -}}
@@ -38,7 +38,7 @@ type {{$.Name}}API interface {
 type (
     // {{$.Name}} implements all the wrapper functionality for the API
     {{$.Name}} struct {
-        impl      {{$.Name}}API
+        impl      Interface
         converter support.ValidationConverter
         router    *chi.Mux
     }
@@ -46,14 +46,14 @@ type (
 
 // New{{$.Name}} constructor
 func New{{$.Name}}(
-    apiInterface {{$.Name}}API,
+    impl Interface,
     cnv support.ValidationConverter,
     eh support.ErrorHandler,
     mw support.MW,
     ) http.Handler {
 
     o := {{.Name}}{
-        impl:      apiInterface,
+        impl:      impl,
         converter: cnv,
         router:    chi.NewRouter(),
     }

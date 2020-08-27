@@ -55,7 +55,7 @@ type (
 )
 
 // ErrorHandler is an adapter that allows routing to special http.HandlerFuncs
-// that additionall have an error return.
+// that additionally have an error return.
 type ErrorHandler interface {
 	Wrap(func(w http.ResponseWriter, r *http.Request) error) http.Handler
 }
