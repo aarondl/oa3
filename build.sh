@@ -12,7 +12,7 @@ if ! git describe --tags > /dev/null; then
     exit 1
 fi
 
-VERSION="$(git describe --tags | sed -E 's@-[[:digit:]]+-g[a-f0-9]{7}$@@')"
+VERSION="$(git describe --tags | sed --regexp-extended 's@-[[:digit:]]+-g[a-f0-9]{7}$@@')"
 
 echo "Found latest version: ${VERSION}"
 

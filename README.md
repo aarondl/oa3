@@ -6,12 +6,14 @@
 
 * Golang >=1.14
 * `git`
-* `sed`
+* `sed` - GNU sed
+
+> **NOTE for Mac OS nerds**: BSD sed will not work. `brew install gnu-sed` then update your path. [Click here](https://stackoverflow.com/a/34815955) for more info.
 
 ## Getting Started
 
-1. `make build`
-1. `make test`
+1. `./build.sh`
+1. `go test`
 1. `./oa3 --help`
 
 ## Examples
