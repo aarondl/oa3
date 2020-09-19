@@ -151,3 +151,35 @@ func ({{if $schema.Schema.Ref}}{{refName $schema.Schema.Ref}}{{else}}{{title $op
 // HTTPStatus{{$status}} is an empty response
 type HTTPStatus{{$status}} struct {}
 {{end -}}
+
+/*
+Here is a copy pastable list of function signatures
+for implementing the main interface
+{{range $url, $path := $.Spec.Paths -}}
+    {{- range $method, $op := $path.Operations -}}
+    {{- $opname := title $op.OperationID}}
+// {{$opname}} {{$method}} {{$url}}
+{{if $op.Description -}}
+// {{wrapWith 70 "\n// " (trimSuffix "\n" $op.Description)}}
+{{end -}}
+func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
+        {{- if $op.RequestBody -}}
+        , {{$media := index $op.RequestBody.Content "application/json" -}}
+        body{{" " -}}
+            {{- if $media.Schema.Ref -}}
+            *{{$.Params.package}}.{{- refName $media.Schema.Ref -}}
+            {{- else if isInlinePrimitive $media.Schema.Schema -}}
+            {{- primitive $ $media.Schema.Schema -}}
+            {{- else -}}
+            {{$.Params.package}}.{{title $op.OperationID}}Inline
+            {{- end -}}
+        {{- end -}}
+        {{- range $param := $op.Parameters -}}
+        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema -}}
+        {{- end -}}
+    ) ({{$.Params.package}}.{{title $op.OperationID}}Response, error) {
+    panic("not implemented")
+}
+        {{- end -}}
+{{- end}}
+*/

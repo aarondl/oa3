@@ -22,6 +22,11 @@ const (
 // This file is meant to be re-generated in place and/or deleted at any time.`
 )
 
+// Constants for keys recognized in the parameters for the Go server
+const (
+	PackageKey = "package"
+)
+
 // templates for generation
 var tpls = []string{
 	"api_interface.tpl",
@@ -63,6 +68,10 @@ func (g *gen) Load(dir string) error {
 
 // Do generation for Go.
 func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]generator.File, error) {
+	if pkg, ok := params[PackageKey]; !ok || len(pkg) == 0 {
+		params[PackageKey] = DefaultPackage
+	}
+
 	var files []generator.File
 	f, err := generateTopLevelSchemas(spec, params, g.tpl)
 	if err != nil {
@@ -129,10 +138,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 	}
 
 	fileBytes := new(bytes.Buffer)
-	pkg := DefaultPackage
-	if pkgParam := params["package"]; len(pkgParam) > 0 {
-		pkg = pkgParam
-	}
+	pkg := params["package"]
 
 	fileBytes.WriteString(Disclaimer)
 	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
