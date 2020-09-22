@@ -140,7 +140,7 @@ func ValidateMultipleOfFloat64(i, factor float64) error {
 
 // ValidateMaxLength ensures a string's length is >= min
 func ValidateMaxLength(s string, max int) error {
-	if len(s) < max {
+	if len(s) >= max {
 		return fmt.Errorf("length must be less than or equal to %d", max)
 	}
 
@@ -149,7 +149,7 @@ func ValidateMaxLength(s string, max int) error {
 
 // ValidateMinLength ensures a string's length is >= min
 func ValidateMinLength(s string, min int) error {
-	if len(s) < min {
+	if len(s) <= min {
 		return fmt.Errorf("length must be greater than or equal to %d", min)
 	}
 
