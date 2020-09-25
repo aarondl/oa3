@@ -68,6 +68,9 @@ func (g *gen) Load(dir string) error {
 
 // Do generation for Go.
 func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]generator.File, error) {
+	if params == nil {
+		params = make(map[string]string)
+	}
 	if pkg, ok := params[PackageKey]; !ok || len(pkg) == 0 {
 		params[PackageKey] = DefaultPackage
 	}

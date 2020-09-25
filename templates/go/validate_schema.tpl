@@ -66,7 +66,7 @@
             {{- /* Process embedded structs */ -}}
             {{- range $name, $element := $s.Properties -}}
                 {{- if and ($element.Ref) (mustValidate $element.Schema)}}
-    if newErrs := {{$name}}.{{$element}}.Validate{{$name}}(); newErrs != nil {
+    if newErrs := o.{{camelcase $name}}.VVValidateSchema(); newErrs != nil {
         errs = support.MergeErrs(errs, newErrs)
     }
                 {{- end -}}

@@ -2,7 +2,11 @@
 {{- define "type_name" -}}
     {{- if or $.Object.Ref (isInlinePrimitive .Object.Schema) -}}
         {{- if $.Object.Enum -}}
-            {{- refName $.Object.Ref -}}
+            {{- if $.Object.Ref -}}
+                {{- refName $.Object.Ref -}}
+            {{- else -}}
+                {{- if $.Object.Schema.Nullable}}*{{end}}{{.Name}}
+            {{- end -}}
         {{- else -}}
             {{- template "schema" (recurseData $ $.Name $.Object) -}}
         {{- end -}}
