@@ -5,31 +5,7 @@ import (
 	"sort"
 
 	"github.com/aarondl/oa3/openapi3spec"
-	"github.com/aarondl/oa3/templates"
 )
-
-// templateData for go templates
-type templateData struct {
-	Name   string
-	Object interface{}
-	*templates.TemplateData
-}
-
-func newData(old templateData, name string, obj interface{}) templateData {
-	return templateData{
-		TemplateData: old.TemplateData,
-		Name:         name,
-		Object:       obj,
-	}
-}
-
-func recurseData(tplData templateData, nextName string, nextObj interface{}) templateData {
-	return templateData{
-		TemplateData: tplData.TemplateData,
-		Name:         tplData.Name + nextName,
-		Object:       nextObj,
-	}
-}
 
 type tagPath struct {
 	Tag string

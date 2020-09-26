@@ -10,11 +10,11 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
-// GoServerAPI is the interface that an application server must implement
+// Interface is the interface that an application server must implement
 // in order to use this package.
 //
 // A great api
-type GoServerAPI interface {
+type Interface interface {
 	// Authenticate post /auth
 	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
 	// TestInlinePrimitiveBody get /test/inline
@@ -34,7 +34,7 @@ type GoServerAPI interface {
 type (
 	// GoServer implements all the wrapper functionality for the API
 	GoServer struct {
-		impl      GoServerAPI
+		impl      Interface
 		converter support.ValidationConverter
 		router    *chi.Mux
 	}
@@ -42,14 +42,14 @@ type (
 
 // NewGoServer constructor
 func NewGoServer(
-	apiInterface GoServerAPI,
+	impl Interface,
 	cnv support.ValidationConverter,
 	eh support.ErrorHandler,
 	mw support.MW,
 ) http.Handler {
 
 	o := GoServer{
-		impl:      apiInterface,
+		impl:      impl,
 		converter: cnv,
 		router:    chi.NewRouter(),
 	}
@@ -163,3 +163,33 @@ type HTTPStatusNotModified struct{}
 
 // HTTPStatusOk is an empty response
 type HTTPStatusOk struct{}
+
+/*
+Here is a copy pastable list of function signatures
+for implementing the main interface
+
+// Authenticate post /auth
+func (a API) Authenticate(w http.ResponseWriter, r *http.Request) (oa3gen.AuthenticateResponse, error) {
+    panic("not implemented")
+}
+// TestInlinePrimitiveBody get /test/inline
+func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (oa3gen.TestInlinePrimitiveBodyResponse, error) {
+    panic("not implemented")
+}
+// TestInline post /test/inline
+func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.TestInlineInline) (oa3gen.TestInlineResponse, error) {
+    panic("not implemented")
+}
+// GetUser get /users/{id}
+// Retrieves a user with a long description that spans multiple lines so
+// that we can see that both wrapping and long-line support is not
+// bleeding over the sacred 80 char limit.
+func (a API) GetUser(w http.ResponseWriter, r *http.Request, validStr null.String, reqValidStr null.String, validInt int, reqValidInt int, validNum float64, reqValidNum float64, validBool bool, reqValidBool bool) (oa3gen.GetUserResponse, error) {
+    panic("not implemented")
+}
+// SetUser post /users/{id}
+// Sets a user
+func (a API) SetUser(w http.ResponseWriter, r *http.Request, body *oa3gen.Primitives) (oa3gen.SetUserResponse, error) {
+    panic("not implemented")
+}
+*/

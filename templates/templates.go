@@ -20,6 +20,8 @@ var GlobalFunctions = map[string]interface{}{
 	"mustValidateRecurse": mustValidateRecurse,
 	"keysReflect":         keysReflect,
 	"httpStatus":          http.StatusText,
+	"newData":             newData,
+	"recurseData":         recurseData,
 }
 
 func refName(ref string) string {

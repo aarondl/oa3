@@ -41,8 +41,6 @@ var tpls = []string{
 // funcs to use for generation
 var funcs = map[string]interface{}{
 	"camelSnake":        camelSnake,
-	"newData":           newData,
-	"recurseData":       recurseData,
 	"primitive":         primitive,
 	"isInlinePrimitive": isInlinePrimitive,
 	"taggedPaths":       tagPaths,
@@ -126,12 +124,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 
 	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
 
-	tData := templates.NewTemplateData(spec, params)
-	data := templateData{
-		TemplateData: tData,
-		Name:         apiName,
-		Object:       nil,
-	}
+	data := templates.NewTemplateDataWithObject(spec, params, apiName, nil)
 
 	filename := generator.FilenameFromTitle(spec.Info.Title) + ".go"
 
@@ -157,13 +150,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 	copy(content, fileBytes.Bytes())
 	files = append(files, generator.File{Name: filename, Contents: content})
 
-	tData = templates.NewTemplateData(spec, params)
-	data = templateData{
-		TemplateData: tData,
-		Name:         apiName,
-		Object:       nil,
-	}
-
+	data = templates.NewTemplateDataWithObject(spec, params, apiName, nil)
 	filename = generator.FilenameFromTitle(spec.Info.Title) + "_methods.go"
 
 	buf.Reset()
@@ -340,12 +327,7 @@ func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 	fileBuf.Reset()
 	headerBuf.Reset()
 
-	tData := templates.NewTemplateData(spec, params)
-	data := templateData{
-		TemplateData: tData,
-		Name:         name,
-		Object:       schema,
-	}
+	data := templates.NewTemplateDataWithObject(spec, params, name, schema)
 
 	if err := tpl.ExecuteTemplate(fileBuf, "schema_top", data); err != nil {
 		return generator.File{}, fmt.Errorf("failed rendering template %q: %w", "schema", err)
@@ -381,7 +363,7 @@ func isInlinePrimitive(schema *openapi3spec.Schema) bool {
 	return true
 }
 
-func primitive(tdata templateData, schema *openapi3spec.Schema) (string, error) {
+func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
 	if schema.Nullable {
 		return primitiveNil(tdata, schema)
 	}
@@ -389,7 +371,7 @@ func primitive(tdata templateData, schema *openapi3spec.Schema) (string, error) 
 	return primitiveNonNil(tdata, schema)
 }
 
-func primitiveNonNil(tdata templateData, schema *openapi3spec.Schema) (string, error) {
+func primitiveNonNil(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
 	switch schema.Type {
 	case "integer":
 		if schema.Format != nil {
@@ -422,7 +404,7 @@ func primitiveNonNil(tdata templateData, schema *openapi3spec.Schema) (string, e
 	return "", fmt.Errorf("schema expected primitive type (integer, number, string, boolean) but got: %s", schema.Type)
 }
 
-func primitiveNil(tdata templateData, schema *openapi3spec.Schema) (string, error) {
+func primitiveNil(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
 	switch schema.Type {
 	case "integer":
 		tdata.Import("github.com/volatiletech/null/v8")

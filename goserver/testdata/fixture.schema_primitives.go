@@ -20,14 +20,14 @@ type Primitives struct {
 	Float64Null null.Float64 `json:"float64_null"`
 	FloatNull   null.Float64 `json:"float_null"`
 	// Normal int
-	Int       int               `json:"int"`
-	Int32     int32             `json:"int32"`
-	Int32Null null.Int32        `json:"int32_null"`
-	Int64     int64             `json:"int64"`
-	Int64Null null.Int64        `json:"int64_null"`
-	IntNull   null.Int          `json:"int_null"`
-	Str       PrimitivesStr     `json:"str"`
-	StrNull   PrimitivesStrNull `json:"str_null"`
+	Int       int                `json:"int"`
+	Int32     int32              `json:"int32"`
+	Int32Null null.Int32         `json:"int32_null"`
+	Int64     int64              `json:"int64"`
+	Int64Null null.Int64         `json:"int64_null"`
+	IntNull   null.Int           `json:"int_null"`
+	Str       PrimitivesStr      `json:"str"`
+	StrNull   *PrimitivesStrNull `json:"str_null"`
 }
 type PrimitivesStr string
 
