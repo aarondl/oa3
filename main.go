@@ -11,6 +11,7 @@ import (
 	"github.com/aarondl/oa3/generator"
 	"github.com/aarondl/oa3/goserver"
 	"github.com/aarondl/oa3/openapi3spec"
+	"github.com/aarondl/oa3/tsclient"
 	"github.com/spf13/cobra"
 )
 
@@ -117,6 +118,8 @@ func generate(generatorID string, openapiFile string, params map[string]string) 
 		gen = goserver.New()
 	case "elm":
 		gen = elm.New()
+	case "ts":
+		gen = tsclient.New()
 	default:
 		return nil, fmt.Errorf("unknown generator: %s", generatorID)
 	}

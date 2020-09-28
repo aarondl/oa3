@@ -19,7 +19,7 @@ import (
 var (
 	rgxSemver    = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 	rgxEmail     = regexp.MustCompile(`^[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+$`)
-	rgxPathNames = regexp.MustCompile(`\{([a-z_0-9]+)\}`)
+	rgxPathNames = regexp.MustCompile(`\{([a-zA-Z_0-9]+)\}`)
 )
 
 // LoadYAML file
