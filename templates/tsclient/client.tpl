@@ -3,7 +3,7 @@
 //
 // {{wrapWith 70 "\n// " (trimSuffix "\n" $.Spec.Info.Description)}}
 {{- end}}
-export class {{.Name}} {
+export default class {{.Name}} {
     baseUrl: string;
 
     constructor(baseUrl: string) {
