@@ -138,42 +138,42 @@ func ValidateMultipleOfFloat64(i, factor float64) error {
 	return nil
 }
 
-// ValidateMaxLength ensures a string's length is >= min
+// ValidateMaxLength ensures a string's length is <= max
 func ValidateMaxLength(s string, max int) error {
-	if len(s) >= max {
-		return fmt.Errorf("length must be less than or equal to %d", max)
+	if len(s) <= max {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("length must be less than or equal to %d", max)
 }
 
 // ValidateMinLength ensures a string's length is >= min
 func ValidateMinLength(s string, min int) error {
-	if len(s) <= min {
-		return fmt.Errorf("length must be greater than or equal to %d", min)
+	if len(s) >= min {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("length must be greater than or equal to %d", min)
 }
 
-// ValidateMaxItems ensures a array's length is >= min
+// ValidateMaxItems ensures a array's length is <= max
 func ValidateMaxItems(a interface{}, max int) error {
 	val := reflect.ValueOf(a)
-	if val.Len() < max {
-		return fmt.Errorf("length must be less than or equal to %d", max)
+	if val.Len() <= max {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("length must be less than or equal to %d", max)
 }
 
 // ValidateMinItems ensures an array's length is >= min
 func ValidateMinItems(a interface{}, min int) error {
 	val := reflect.ValueOf(a)
-	if val.Len() < min {
-		return fmt.Errorf("length must be greater than or equal to %d", min)
+	if val.Len() >= min {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("length must be greater than or equal to %d", min)
 }
 
 // ValidateUniqueItems ensures an arrays items are unique. Uses
@@ -196,24 +196,24 @@ func ValidateUniqueItems(a interface{}) error {
 	return nil
 }
 
-// ValidateMaxProperties ensures a map[string]X's length is >= min
+// ValidateMaxProperties ensures a map[string]X's length is <= max
 func ValidateMaxProperties(m interface{}, max int) error {
 	val := reflect.ValueOf(m)
-	if val.Len() < max {
-		return fmt.Errorf("number of properties must be less than or equal to %d", max)
+	if val.Len() <= max {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("number of properties must be less than or equal to %d", max)
 }
 
 // ValidateMinProperties ensures a map[string]X's length is >= min
 func ValidateMinProperties(m interface{}, min int) error {
 	val := reflect.ValueOf(m)
-	if val.Len() < min {
-		return fmt.Errorf("number of properties must be greater than or equal to %d", min)
+	if val.Len() >= min {
+		return nil
 	}
 
-	return nil
+	return fmt.Errorf("number of properties must be greater than or equal to %d", min)
 }
 
 // ValidatePattern validates a string against a pattern
