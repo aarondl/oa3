@@ -91,7 +91,5 @@ func (o {{$.Name}}) VVValidateSchema() support.Errors {
 
     {{template "validate_schema_helper" (newData $ "o" $.Object)}}
 
-    errs = support.AddErrs(errs, "", ers...)
-
     return errs
 }
