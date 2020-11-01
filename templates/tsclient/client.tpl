@@ -24,7 +24,7 @@ export default class {{.Name}} {
         {{- if $op.RequestBody -}}body: any{{- end -}}
         {{- range $i, $param := $op.Parameters -}}
         {{- if or (ne $i 0) $op.RequestBody -}}, {{end -}}
-        {{- lowerFirst $param.Name -}}: {{$param.Schema.Type}}
+        {{- lowerFirst $param.Name -}}: {{if eq $param.Schema.Type "integer"}}{{"number"}}{{else}}{{$param.Schema.Type}}{{end}}
         {{- end -}}
     ): Promise<Response> {
         let url = '{{$url}}';
