@@ -64,21 +64,48 @@ func mustValidate(s *openapi3spec.Schema) bool {
 // mustValidateRecure checks to see if the current schema, or any sub-schema
 // requires validation
 func mustValidateRecurse(s *openapi3spec.Schema) bool {
+	cycleMarkers := make(map[string]struct{})
+	return mustValidateRecurseHelper(s, cycleMarkers)
+}
+
+func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct{}) bool {
 	if mustValidate(s) {
 		return true
 	}
 
 	if s.Type == "array" {
-		return mustValidateRecurse(s.Items.Schema)
+		if len(s.Items.Ref) != 0 {
+			if _, ok := visited[s.Items.Ref]; ok {
+				return false
+			}
+			visited[s.Items.Ref] = struct{}{}
+		}
+
+		return mustValidateRecurseHelper(s.Items.Schema, visited)
 	} else if s.Type == "object" {
 		mustV := false
 		if s.AdditionalProperties != nil {
-			mustV = mustV || mustValidateRecurse(s.AdditionalProperties.Schema)
+			if len(s.AdditionalProperties.Ref) != 0 {
+				if _, ok := visited[s.AdditionalProperties.Ref]; !ok {
+					visited[s.AdditionalProperties.Ref] = struct{}{}
+					mustV = mustV || mustValidateRecurseHelper(s.AdditionalProperties.Schema, visited)
+				}
+			} else {
+				mustV = mustV || mustValidateRecurseHelper(s.AdditionalProperties.Schema, visited)
+			}
 		}
 
 		for _, v := range s.Properties {
-			mustV = mustV || mustValidateRecurse(v.Schema)
+			if len(v.Ref) != 0 {
+				if _, ok := visited[v.Ref]; ok {
+					continue
+				}
+				visited[v.Ref] = struct{}{}
+			}
+
+			mustV = mustV || mustValidateRecurseHelper(v.Schema, visited)
 		}
+
 		return mustV
 	}
 
