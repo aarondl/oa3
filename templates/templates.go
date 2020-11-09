@@ -71,13 +71,15 @@ func mustValidateRecurse(s *openapi3spec.Schema) bool {
 	if s.Type == "array" {
 		return mustValidateRecurse(s.Items.Schema)
 	} else if s.Type == "object" {
+		mustV := false
 		if s.AdditionalProperties != nil {
-			return mustValidateRecurse(s.AdditionalProperties.Schema)
+			mustV = mustV || mustValidateRecurse(s.AdditionalProperties.Schema)
 		}
 
 		for _, v := range s.Properties {
-			return mustValidateRecurse(v.Schema)
+			mustV = mustV || mustValidateRecurse(v.Schema)
 		}
+		return mustV
 	}
 
 	return false
