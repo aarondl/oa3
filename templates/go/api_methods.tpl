@@ -110,10 +110,10 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         }
     }
 
+        {{end}}
     if errs != nil {
         return o.converter(errs)
     }
-        {{end}}
 
     ret, err := o.impl.{{title $op.OperationID}}(w, r
         {{- if $op.RequestBody -}},{{" " -}}
