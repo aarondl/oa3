@@ -69,13 +69,17 @@ type {{$.Name}} {{if $.Object.Nullable -}}
         {{- template "type_embedded" (recurseData $ "Item" $s.Items) -}}
 
     {{- else if eq $s.Type "object" -}}
-        {{- if $s.AdditionalProperties -}}map[string]
-            {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems must not be the bool case"}}{{- end -}}
-            {{- /* Map properties normal */ -}}
-            {{- template "type_name" (recurseData $ "Item" $s.AdditionalProperties.SchemaRef) }}
+        {{- if or (eq 0 (len $s.Properties)) $s.AdditionalProperties -}}map[string]
+            {{- if $s.AdditionalProperties -}}
+                {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems must not be the bool case"}}{{- end -}}
+                {{- /* Map properties normal */ -}}
+                {{- template "type_name" (recurseData $ "Item" $s.AdditionalProperties.SchemaRef) }}
 
-            {{- /* Map properties embedded */ -}}
-            {{- template "type_embedded" (recurseData $ "Item" $s.AdditionalProperties.SchemaRef) -}}
+                {{- /* Map properties embedded */ -}}
+                {{- template "type_embedded" (recurseData $ "Item" $s.AdditionalProperties.SchemaRef) -}}
+            {{- else -}}
+            interface{}
+            {{- end -}}
 
         {{- else if $s.Properties}}struct {
             {{- /* Process regular struct fields */ -}}

@@ -117,10 +117,10 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
 
     ret, err := o.impl.{{title $op.OperationID}}(w, r
         {{- if $op.RequestBody -}},{{" " -}}
-            {{- if and $json.Schema.Ref (not $json.Schema.Nullable) -}}&{{- end -}}
-            {{- if isInlinePrimitive $json.Schema.Schema -}}
+            {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
+            {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
                 {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
-                {{- else -}}reqBody{{- end -}}
+            {{- else -}}reqBody{{- end -}}
         {{- end -}}
         {{- range $i, $param := $op.Parameters -}}
         , p{{$i}}

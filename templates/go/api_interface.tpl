@@ -18,11 +18,12 @@ type Interface interface {
         , {{$media := index $op.RequestBody.Content "application/json" -}}
         body{{" " -}}
             {{- if $media.Schema.Ref -}}
-            *{{- refName $media.Schema.Ref -}}
+                {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
+                {{- refName $media.Schema.Ref -}}
             {{- else if isInlinePrimitive $media.Schema.Schema -}}
-            {{- primitive $ $media.Schema.Schema -}}
+                {{- primitive $ $media.Schema.Schema -}}
             {{- else -}}
-            {{title $op.OperationID}}Inline
+                {{title $op.OperationID}}Inline
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
