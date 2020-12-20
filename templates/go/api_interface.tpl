@@ -168,11 +168,12 @@ func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
         , {{$media := index $op.RequestBody.Content "application/json" -}}
         body{{" " -}}
             {{- if $media.Schema.Ref -}}
-            *{{$.Params.package}}.{{- refName $media.Schema.Ref -}}
+                {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
+                {{$.Params.package}}.{{- refName $media.Schema.Ref -}}
             {{- else if isInlinePrimitive $media.Schema.Schema -}}
-            {{- primitive $ $media.Schema.Schema -}}
+                {{- primitive $ $media.Schema.Schema -}}
             {{- else -}}
-            {{$.Params.package}}.{{title $op.OperationID}}Inline
+                {{$.Params.package}}.{{title $op.OperationID}}Inline
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
