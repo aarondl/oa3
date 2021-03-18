@@ -35,7 +35,7 @@ type Interface interface {
 }
 
 {{.Import "github.com/aarondl/oa3/support" -}}
-{{.Import "github.com/go-chi/chi" -}}
+{{.Import "github.com/go-chi/chi/v5" -}}
 type (
     // {{$.Name}} implements all the wrapper functionality for the API
     {{$.Name}} struct {
