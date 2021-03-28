@@ -2,7 +2,8 @@ package templates
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"reflect"
@@ -114,7 +115,7 @@ func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct
 
 // Load takes in funcs to apply to each template, a directory that
 // contains the files, and the file paths relative that directory
-func Load(generatorFuncs map[string]interface{}, dir string, files ...string) (*template.Template, error) {
+func Load(generatorFuncs map[string]interface{}, dir fs.FS, files ...string) (*template.Template, error) {
 	tpl := template.New("").Funcs(sprig.TxtFuncMap()).Funcs(GlobalFunctions)
 	if generatorFuncs != nil {
 		tpl = tpl.Funcs(generatorFuncs)
@@ -128,9 +129,18 @@ func Load(generatorFuncs map[string]interface{}, dir string, files ...string) (*
 			name = name[:dot]
 		}
 
-		b, err := ioutil.ReadFile(filepath.Join(dir, f))
+		file, err := dir.Open(f)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open template file: %q: %w", f, err)
+		}
+
+		b, err := io.ReadAll(file)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read template file %q: %w", f, err)
+		}
+
+		if err = file.Close(); err != nil {
+			return nil, fmt.Errorf("failed to close template file %q: %w", f, err)
 		}
 
 		_, err = tpl.New(name).Parse(string(b))

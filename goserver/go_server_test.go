@@ -1,6 +1,7 @@
 package goserver
 
 import (
+	"os"
 	"testing"
 
 	"github.com/aarondl/fixtures"
@@ -32,7 +33,7 @@ func TestGenerator(t *testing.T) {
 
 	gen := New()
 
-	err = gen.Load("../templates/go")
+	err = gen.Load(os.DirFS("../templates/go"))
 	if err != nil {
 		t.Fatal(err)
 	}

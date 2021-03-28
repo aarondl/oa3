@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"io/fs"
 	"sort"
 	"strings"
 	"text/template"
@@ -58,7 +59,7 @@ func New() generator.Interface {
 }
 
 // Load templates
-func (g *gen) Load(dir string) error {
+func (g *gen) Load(dir fs.FS) error {
 	var err error
 	g.tpl, err = templates.Load(funcs, dir, tpls...)
 	return err

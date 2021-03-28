@@ -3,6 +3,7 @@
 package generator
 
 import (
+	"io/fs"
 	"strings"
 
 	"github.com/aarondl/oa3/openapi3spec"
@@ -16,7 +17,7 @@ type File struct {
 
 // Interface can load templates and generate file data
 type Interface interface {
-	Load(templateDir string) error
+	Load(fs fs.FS) error
 	Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]File, error)
 }
 

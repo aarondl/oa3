@@ -1,7 +1,9 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,7 +15,12 @@ import (
 	"github.com/aarondl/oa3/openapi3spec"
 	"github.com/aarondl/oa3/tsclient"
 	"github.com/spf13/cobra"
+
+	_ "embed"
 )
+
+//go:embed templates
+var templates embed.FS
 
 var (
 	wd      string
@@ -36,9 +43,6 @@ var rootCmd = &cobra.Command{
 		openapi3spec.DebugOutput = flagDebug
 		if len(flagOutputDir) == 0 {
 			flagOutputDir = filepath.Join(wd, "out", args[0])
-		}
-		if len(flagTemplateDir) == 0 {
-			flagTemplateDir = filepath.Join(wd, "templates", args[0])
 		}
 	},
 
@@ -66,8 +70,8 @@ func main() {
 	rootCmd.PersistentFlags().StringSliceVarP(&flagParams, "param", "p", nil, "key=value params to the generator")
 	rootCmd.PersistentFlags().BoolVarP(&flagDebug, "debug", "", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&flagWipe, "wipe", "w", false, "rm output directory before generation")
-	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "output", "o", "", "output directory (default "+filepath.Join(wd, "out", "<generator>")+")")
-	rootCmd.PersistentFlags().StringVarP(&flagTemplateDir, "templates", "t", "", "template directory (default "+filepath.Join(wd, "templates", "<generator>")+")")
+	rootCmd.PersistentFlags().StringVarP(&flagOutputDir, "output", "o", "", "output directory (default: "+filepath.Join(wd, "out", "<generator>")+")")
+	rootCmd.PersistentFlags().StringVarP(&flagTemplateDir, "templates", "t", "", "template directory (default: embedded templates)")
 
 	// ignored, only for docs
 	rootCmd.PersistentFlags().BoolP("version", "", false, "output version and exit")
@@ -129,7 +133,17 @@ func generate(generatorID string, openapiFile string, params map[string]string) 
 		return nil, err
 	}
 
-	if err := gen.Load(flagTemplateDir); err != nil {
+	var templateFS fs.FS = templates
+	if len(flagTemplateDir) != 0 {
+		templateFS = os.DirFS(flagTemplateDir)
+	} else {
+		templateFS, err = fs.Sub(templates, generatorID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to root fs for generator: %w", err)
+		}
+	}
+
+	if err := gen.Load(templateFS); err != nil {
 		return nil, err
 	}
 
