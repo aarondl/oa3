@@ -38,7 +38,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- else if eq "header" $param.In -}}
                 := r.Header.Get(n{{$i}})
             {{- else if eq "path" $param.In -}}
-                {{- $.Import "github.com/go-chi/chi" -}}
+                {{- $.Import "github.com/go-chi/chi/v5" -}}
                 := chi.URLParam(r, n{{$i}})
             {{- else if eq "cookie" $param.In -}}
             , err := r.Cookie(n{{$i}})
