@@ -1,4 +1,4 @@
-package tsclient
+package typescript
 
 import (
 	"os"

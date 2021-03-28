@@ -13,7 +13,7 @@ import (
 	"github.com/aarondl/oa3/generator"
 	"github.com/aarondl/oa3/goserver"
 	"github.com/aarondl/oa3/openapi3spec"
-	"github.com/aarondl/oa3/tsclient"
+	"github.com/aarondl/oa3/typescript"
 	"github.com/spf13/cobra"
 
 	_ "embed"
@@ -122,8 +122,8 @@ func generate(generatorID string, openapiFile string, params map[string]string) 
 		gen = goserver.New()
 	case "elm":
 		gen = elm.New()
-	case "ts":
-		gen = tsclient.New()
+	case "typescript":
+		gen = typescript.New()
 	default:
 		return nil, fmt.Errorf("unknown generator: %s", generatorID)
 	}
@@ -137,7 +137,7 @@ func generate(generatorID string, openapiFile string, params map[string]string) 
 	if len(flagTemplateDir) != 0 {
 		templateFS = os.DirFS(flagTemplateDir)
 	} else {
-		templateFS, err = fs.Sub(templates, generatorID)
+		templateFS, err = fs.Sub(templates, filepath.Join("templates", generatorID))
 		if err != nil {
 			return nil, fmt.Errorf("failed to root fs for generator: %w", err)
 		}

@@ -1,5 +1,5 @@
-// Package tsclient generates typescript clients for the browser
-package tsclient
+// Package typescript generates typescript clients for the browser
+package typescript
 
 import (
 	"bytes"
