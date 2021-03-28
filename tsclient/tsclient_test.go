@@ -1,6 +1,7 @@
 package tsclient
 
 import (
+	"os"
 	"testing"
 
 	"github.com/aarondl/fixtures"
@@ -17,7 +18,7 @@ func TestGenerator(t *testing.T) {
 
 	gen := New()
 
-	err = gen.Load("../templates/tsclient")
+	err = gen.Load(os.DirFS("../templates/tsclient"))
 	if err != nil {
 		t.Fatal(err)
 	}

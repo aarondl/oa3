@@ -1,32 +1,45 @@
 // SwaggerPetstore is a client package to interact with the api.
-export class SwaggerPetstore {
+export default class SwaggerPetstore {
     baseUrl: string;
 
     constructor(baseUrl: string) {
-        this.baseUrl = baseUrl;
+        if (baseUrl === null) {
+            this.baseUrl = 'http://petstore.swagger.io/v1';
+        } else {
+            this.baseUrl = baseUrl;
+        }
     }
 
     // listPets get /pets
-    listPets(body: any, limit: integer) : Promise<Response> {
+    listPets(body: any, limit: number): Promise<Response> {
         let url = '/pets';
 
-        let headers = new(Headers);
+        let query = '';
+        if (limit !== undefined) {
+            if (query.length != 0) { query += '&' }
+            query += 'limit=' + encodeURIComponent(limit.toString());
+        }
+        if (query.length != 0) {
+            query = '?' + query;
+        }
+
+        let headers = new Headers();
         headers.set('Content-Type', 'application/json');
 
         const params = {
             method: 'GET',
             headers: headers,
-            body = JSON.stringify(body),
+            body: JSON.stringify(body),
         };
 
-        return fetch(new Request(this.baseUrl + url, params));
+        return fetch(new Request(this.baseUrl + url + query, params));
     }
 
     // createPets post /pets
-    createPets() : Promise<Response> {
+    createPets(): Promise<Response> {
         let url = '/pets';
 
-        let headers = new(Headers);
+        let headers = new Headers();
         headers.set('Content-Type', 'application/json');
 
         const params = {
@@ -38,11 +51,11 @@ export class SwaggerPetstore {
     }
 
     // showPetById get /pets/{petId}
-    showPetById(petId: string) : Promise<Response> {
+    showPetById(petId: string): Promise<Response> {
         let url = '/pets/{petId}';
-        url = url.replace('{petId}', petId.toString();
+        url = url.replace('{petId}', petId.toString());
 
-        let headers = new(Headers);
+        let headers = new Headers();
         headers.set('Content-Type', 'application/json');
 
         const params = {
