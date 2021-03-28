@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/aarondl/oa3/support"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/volatiletech/null/v8"
 )
 

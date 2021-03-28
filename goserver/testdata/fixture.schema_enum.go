@@ -23,7 +23,5 @@ func (o Enum) VVValidateSchema() support.Errors {
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
 
-	errs = support.AddErrs(errs, "", ers...)
-
 	return errs
 }

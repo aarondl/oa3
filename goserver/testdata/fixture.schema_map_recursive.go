@@ -53,7 +53,5 @@ func (o MapRecursive) VVValidateSchema() support.Errors {
 		ctx = ctx[:len(ctx)-1]
 	}
 
-	errs = support.AddErrs(errs, "", ers...)
-
 	return errs
 }

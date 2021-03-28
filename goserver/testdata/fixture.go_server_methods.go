@@ -36,6 +36,10 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
 
+	if errs != nil {
+		return o.converter(errs)
+	}
+
 	ret, err := o.impl.Authenticate(w, r)
 	if err != nil {
 		if alreadyHandled, ok := err.(AlreadyHandled); ok {
@@ -332,6 +336,10 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			errs = support.AddErrs(errs, n7, errors.New(`was not in a valid format`))
 		}
+	}
+
+	if errs != nil {
+		return o.converter(errs)
 	}
 
 	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7)

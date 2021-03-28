@@ -21,8 +21,6 @@ func (o MapEmbeddedItem) VVValidateSchema() support.Errors {
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
 
-	errs = support.AddErrs(errs, "", ers...)
-
 	return errs
 }
 
@@ -33,8 +31,6 @@ func (o MapEmbedded) VVValidateSchema() support.Errors {
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
-
-	errs = support.AddErrs(errs, "", ers...)
 
 	return errs
 }
