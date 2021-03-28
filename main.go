@@ -15,8 +15,6 @@ import (
 	"github.com/aarondl/oa3/openapi3spec"
 	"github.com/aarondl/oa3/typescript"
 	"github.com/spf13/cobra"
-
-	_ "embed"
 )
 
 //go:embed templates
