@@ -22,6 +22,7 @@ type Components struct {
 	SecuritySchemes map[string]*SecuritySchemeRef `json:"securitySchemes,omitempty" yaml:"securitySchemes,omitempty"`
 	Links           map[string]*LinkRef           `json:"links,omitempty" yaml:"links,omitempty"`
 	Callbacks       map[string]*CallbackRef       `json:"callbacks,omitempty" yaml:"callbacks,omitempty"`
+	PathItems       map[string]*PathRef           `json:"pathItems,omitempty" yaml:"pathItems,omitempty"`
 
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
 }

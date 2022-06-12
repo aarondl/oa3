@@ -9,7 +9,7 @@ import (
 // ObjectUnmarshaler is used as a last ditch resort for particularly horrifying
 // structs.
 type ObjectUnmarshaler interface {
-	UnmarshalYAMLObject(intf interface{}) error
+	UnmarshalYAMLObject(intf any) error
 }
 
 type mismatchErr struct {
@@ -20,7 +20,7 @@ func (m mismatchErr) Error() string {
 	return fmt.Sprintf("type mismatch go:(%s) yaml:(%s)", m.goType, m.yamlType)
 }
 
-func mismatch(goVal reflect.Value, yamlVal interface{}) error {
+func mismatch(goVal reflect.Value, yamlVal any) error {
 	var err mismatchErr
 	if goVal.IsValid() {
 		err.goType = goVal.Type().Name()
@@ -45,8 +45,8 @@ func mismatch(goVal reflect.Value, yamlVal interface{}) error {
 // UnmarshalYAML completely overrides the typical recursive yaml decoder
 // behavior with its own ideas about how to unmarshal in order to handle
 // some idiosynchracies in the spec.
-func (o *OpenAPI3) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	untyped := make(map[interface{}]interface{})
+func (o *OpenAPI3) UnmarshalYAML(unmarshal func(any) error) error {
+	untyped := make(map[any]any)
 
 	if err := unmarshal(untyped); err != nil {
 		return err
@@ -55,7 +55,7 @@ func (o *OpenAPI3) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return yamlStruct(reflect.ValueOf(o), untyped)
 }
 
-func yamlStruct(goValue reflect.Value, yamlObj map[interface{}]interface{}) error {
+func yamlStruct(goValue reflect.Value, yamlObj map[any]any) error {
 	if goValue.Kind() == reflect.Ptr {
 		goValue = goValue.Elem()
 	}
@@ -126,7 +126,7 @@ func yamlStruct(goValue reflect.Value, yamlObj map[interface{}]interface{}) erro
 	return nil
 }
 
-func yamlSlice(goSlice reflect.Value, yamlSlice []interface{}) error {
+func yamlSlice(goSlice reflect.Value, yamlSlice []any) error {
 	for i, v := range yamlSlice {
 		goItem := goSlice.Index(i)
 		if err := allocAndSet(goItem, v); err != nil {
@@ -137,7 +137,7 @@ func yamlSlice(goSlice reflect.Value, yamlSlice []interface{}) error {
 	return nil
 }
 
-func yamlMap(goMap reflect.Value, yamlObject map[interface{}]interface{}) error {
+func yamlMap(goMap reflect.Value, yamlObject map[any]any) error {
 	mapValueType := goMap.Type().Elem()
 
 	for k, v := range yamlObject {
@@ -168,7 +168,7 @@ func yamlMap(goMap reflect.Value, yamlObject map[interface{}]interface{}) error 
 	return nil
 }
 
-func allocAndSet(val reflect.Value, yamlVal interface{}) error {
+func allocAndSet(val reflect.Value, yamlVal any) error {
 	typ := val.Type()
 
 	if typ.Kind() == reflect.Ptr {
@@ -188,7 +188,7 @@ func allocAndSet(val reflect.Value, yamlVal interface{}) error {
 
 	switch val.Kind() {
 	case reflect.Slice:
-		yamlArray, ok := yamlVal.([]interface{})
+		yamlArray, ok := yamlVal.([]any)
 		if !ok {
 			return mismatch(val, yamlVal)
 		}
@@ -206,7 +206,7 @@ func allocAndSet(val reflect.Value, yamlVal interface{}) error {
 			return err
 		}
 	case reflect.Struct:
-		yamlObj, ok := yamlVal.(map[interface{}]interface{})
+		yamlObj, ok := yamlVal.(map[any]any)
 		if !ok {
 			return mismatch(val, yamlVal)
 		}
@@ -215,7 +215,7 @@ func allocAndSet(val reflect.Value, yamlVal interface{}) error {
 			return err
 		}
 	case reflect.Map:
-		yamlObj, ok := yamlVal.(map[interface{}]interface{})
+		yamlObj, ok := yamlVal.(map[any]any)
 		if !ok {
 			return mismatch(val, yamlVal)
 		}
@@ -236,7 +236,7 @@ func allocAndSet(val reflect.Value, yamlVal interface{}) error {
 	return nil
 }
 
-func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive interface{}) error {
+func yamlPrimitive(goPrimitive reflect.Value, yamlPrimitive any) error {
 	switch goPrimitive.Kind() {
 	case reflect.Float32, reflect.Float64:
 		float, ok := yamlPrimitive.(float64)

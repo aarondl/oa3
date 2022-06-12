@@ -13,7 +13,27 @@ import (
 // Technically Paths can have extensions as per the spec, but we make a choice
 // not to conform in order to be able to avoid an object graph that is also
 // against the spec: OpenAPI3.Paths.Paths["/url"]
-type Paths map[string]*Path
+type Paths map[string]*PathRef
+
+// PathRef refers to a path
+type PathRef struct {
+	Ref string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	*Path
+}
+
+// Validate param ref
+func (p *PathRef) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
+	// Don't validate references
+	if p == nil || len(p.Ref) != 0 {
+		return nil
+	}
+
+	if err := p.Path.Validate(pathTemplates, opIDs); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Path describes the operations available on a single path. A Path Item MAY
 // be empty, due to ACL constraints. The path itself is still exposed to the

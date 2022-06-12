@@ -1,0 +1,13 @@
+openapi: 3.0.0
+
+info:
+  title: title
+  description: description
+
+servers:
+  - url: http://server
+    description: desc
+
+paths:
+  /path/one:
+    $ref: './testdata/path_file.yaml'

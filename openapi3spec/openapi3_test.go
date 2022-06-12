@@ -2,7 +2,6 @@ package openapi3spec
 
 import (
 	"flag"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -15,57 +14,21 @@ var (
 	flagUpdateGolden = flag.Bool("golden", false, "Update golden files")
 )
 
-func TestFindRefs(t *testing.T) {
-	t.Parallel()
-
-	var testGraph = &OpenAPI3{
-		Paths: Paths{
-			"/path/to/api": &Path{
-				Get: &Operation{
-					RequestBody: &RequestBodyRef{
-						RequestBody: &RequestBody{
-							Content: map[string]*MediaType{
-								"application/json": &MediaType{
-									Schema: SchemaRef{
-										Ref: "#/components/schemas/A",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Components: &Components{
-			Schemas: map[string]*SchemaRef{
-				"A": &SchemaRef{Ref: "#/components/schemas/B"},
-				"B": &SchemaRef{Ref: "#/components/schemas/C"},
-				"C": &SchemaRef{Schema: &Schema{Type: "string"}},
-			},
-		},
-	}
-
-	refs := findAllRefs(reflect.ValueOf(testGraph))
-	if len(refs) != 5 {
-		// In Paths: RequestBodyRef (val), SchemaRef (ref)
-		// In Components: SchemaRef (ref), SchemaRef (ref), SchemaRef (val)
-		t.Error("number of refs wrong:", len(refs))
-	}
-}
-
 func TestResolveRefs(t *testing.T) {
 	t.Parallel()
 
 	var testGraph = &OpenAPI3{
 		Paths: Paths{
-			"/path/to/api": &Path{
-				Get: &Operation{
-					RequestBody: &RequestBodyRef{
-						RequestBody: &RequestBody{
-							Content: map[string]*MediaType{
-								"application/json": &MediaType{
-									Schema: SchemaRef{
-										Ref: "#/components/schemas/A",
+			"/path/to/api": &PathRef{
+				Path: &Path{
+					Get: &Operation{
+						RequestBody: &RequestBodyRef{
+							RequestBody: &RequestBody{
+								Content: map[string]*MediaType{
+									"application/json": &MediaType{
+										Schema: SchemaRef{
+											Ref: "#/components/schemas/A",
+										},
 									},
 								},
 							},
@@ -73,12 +36,34 @@ func TestResolveRefs(t *testing.T) {
 					},
 				},
 			},
+			"/path/to/ref": &PathRef{
+				Ref: "#/components/pathItems/Path",
+			},
 		},
 		Components: &Components{
 			Schemas: map[string]*SchemaRef{
 				"A": &SchemaRef{Ref: "#/components/schemas/B"},
 				"B": &SchemaRef{Ref: "#/components/schemas/C"},
 				"C": &SchemaRef{Schema: &Schema{Type: "string"}},
+			},
+			PathItems: map[string]*PathRef{
+				"Path": &PathRef{
+					Path: &Path{
+						Post: &Operation{
+							RequestBody: &RequestBodyRef{
+								RequestBody: &RequestBody{
+									Content: map[string]*MediaType{
+										"application/json": &MediaType{
+											Schema: SchemaRef{
+												Ref: "#/components/schemas/B",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -89,6 +74,10 @@ func TestResolveRefs(t *testing.T) {
 
 	if testGraph.Paths["/path/to/api"].Get.RequestBody.Content["application/json"].Schema.Schema == nil {
 		t.Error("the path/requestbody schema was not resolved correctly")
+	}
+
+	if testGraph.Paths["/path/to/ref"].Post == nil {
+		t.Error("the path was not resolved correctly")
 	}
 
 	if testGraph.Components.Schemas["A"].Schema == nil {
@@ -107,14 +96,16 @@ func TestCycle(t *testing.T) {
 
 	var testGraph = &OpenAPI3{
 		Paths: Paths{
-			"/path/to/api": &Path{
-				Get: &Operation{
-					RequestBody: &RequestBodyRef{
-						RequestBody: &RequestBody{
-							Content: map[string]*MediaType{
-								"application/json": &MediaType{
-									Schema: SchemaRef{
-										Ref: "#/components/schemas/A",
+			"/path/to/api": &PathRef{
+				Path: &Path{
+					Get: &Operation{
+						RequestBody: &RequestBodyRef{
+							RequestBody: &RequestBody{
+								Content: map[string]*MediaType{
+									"application/json": &MediaType{
+										Schema: SchemaRef{
+											Ref: "#/components/schemas/A",
+										},
 									},
 								},
 							},
@@ -145,45 +136,49 @@ func TestCopyInherited(t *testing.T) {
 	var testGraph = &OpenAPI3{
 		Servers: []Server{{URL: "a"}},
 		Paths: Paths{
-			"/path/overrider": &Path{
-				Parameters: []*ParameterRef{
-					&ParameterRef{Parameter: &Parameter{
-						Name:            "X_Parent",
-						In:              "header",
-						AllowEmptyValue: false,
-					}},
-				},
-				// Should override parent
-				Servers: []Server{{URL: "c"}},
-				Get: &Operation{
-					// Should override parent
-					Servers: []Server{{URL: "d"}},
-
+			"/path/overrider": &PathRef{
+				Path: &Path{
 					Parameters: []*ParameterRef{
-						// Should override parent
 						&ParameterRef{Parameter: &Parameter{
-							Name:          "X_Parent",
-							In:            "header",
-							AllowReserved: true,
+							Name:            "X_Parent",
+							In:              "header",
+							AllowEmptyValue: false,
 						}},
+					},
+					// Should override parent
+					Servers: []Server{{URL: "c"}},
+					Get: &Operation{
+						// Should override parent
+						Servers: []Server{{URL: "d"}},
+
+						Parameters: []*ParameterRef{
+							// Should override parent
+							&ParameterRef{Parameter: &Parameter{
+								Name:          "X_Parent",
+								In:            "header",
+								AllowReserved: true,
+							}},
+						},
 					},
 				},
 			},
-			"/path/inheritor": &Path{
-				// Servers should be inherited
-				Parameters: []*ParameterRef{
-					&ParameterRef{Parameter: &Parameter{
-						Name: "X_Parent",
-						In:   "header",
-					}},
-				},
-				Get: &Operation{
+			"/path/inheritor": &PathRef{
+				Path: &Path{
+					// Servers should be inherited
 					Parameters: []*ParameterRef{
 						&ParameterRef{Parameter: &Parameter{
-							Name: "X_Child",
+							Name: "X_Parent",
 							In:   "header",
 						}},
-						// X_Parent should be inherited
+					},
+					Get: &Operation{
+						Parameters: []*ParameterRef{
+							&ParameterRef{Parameter: &Parameter{
+								Name: "X_Child",
+								In:   "header",
+							}},
+							// X_Parent should be inherited
+						},
 					},
 				},
 			},

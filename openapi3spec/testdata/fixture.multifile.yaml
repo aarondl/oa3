@@ -1,0 +1,43 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "title",
+    "description": "description"
+  },
+  "servers": [
+    {
+      "url": "http://server",
+      "description": "desc"
+    }
+  ],
+  "paths": {
+    "/path/one": {
+      "$ref": "./testdata/path_file.yaml",
+      "get": {
+        "summary": "summary",
+        "description": "description",
+        "operationId": "operationid",
+        "requestBody": {
+          "description": "description",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "./testdata/schema_file.yaml",
+                "type": "object",
+                "required": [
+                  "age"
+                ],
+                "properties": {
+                  "age": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  }
+}

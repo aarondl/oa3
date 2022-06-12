@@ -1,0 +1,10 @@
+get:
+  summary: summary
+  description: description
+  operationId: operationid
+  requestBody:
+    required: true
+    description: description
+    content:
+      application/json:
+        schema: { $ref: './testdata/schema_file.yaml' }

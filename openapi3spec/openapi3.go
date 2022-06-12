@@ -196,115 +196,140 @@ func (o *OpenAPI3) CopyInheritedItems() {
 	}
 }
 
-// ResolveRefs finds all the $ref's in the spec and uses the
-// components to set them. Currently the only supported references are local
-// references to the components object.
+// ResolveRefs finds all the $ref's in the spec and attempts to set them to
+// real values.
 //
-// In order to resolve the references properly we first find all the references.
-// These references become an directed acyclic graph (or it should be, we do
-// cycle checking just in case). We can then perform a DFS on the references
-// we found to determine proper resolution order.
-//
-// Once we have the order, we simply iterate and set pointers to the correct
-// objects.
+// In order to do so we use a simple recursive DFS and resolve as we go, because
+// this must be an acyclic graph we also fail gracefully on cycles.
 func (o *OpenAPI3) ResolveRefs() error {
-	refs := findAllRefs(reflect.ValueOf(o))
-
-	resolveOrder := make([]interface{}, 0, len(refs))
-
-	for _, ref := range refs {
-		var err error
-		resolveOrder, err = o.resolveRefsDFS(ref, resolveOrder)
-		if err != nil {
-			return err
-		}
-		debugln()
-	}
-
-	for i := len(resolveOrder) - 1; i >= 0; i-- {
-		ref := reflect.ValueOf(resolveOrder[i])
-		refStructType := ref.Type()
-		ref = ref.Elem()
-		debugf("resolving %s (%s)\n", ref.Type(), ref.Field(0).Interface().(string))
-
-		if !ref.Field(1).IsNil() {
-			// Already resolved
-			continue
-		}
-
-		refName := ref.Field(0).Interface().(string)
-
-		lookup, err := o.lookupReference(refStructType, refName)
-		if err != nil {
-			return err
-		}
-
-		ref.Field(1).Set(lookup.Elem().Field(1))
-	}
-
-	return nil
+	return o.resolveRefsDFS(o, 0, make(map[string]bool))
 }
 
-func (o *OpenAPI3) resolveRefsDFS(ref interface{}, order []interface{}) ([]interface{}, error) {
-	stack := []interface{}{ref}
-	seen := make(map[interface{}]bool)
+func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]bool) error {
+	nodeVal := reflect.ValueOf(node)
+	nodeType := nodeVal.Type()
+	debugf("%svisit:     %s\n", strings.Repeat(" ", 2*depth), nodeVal.Type())
+	if nodeVal.Kind() == reflect.Ptr {
+		nodeVal = nodeVal.Elem()
+	}
 
-DFS:
-	for len(stack) > 0 {
-		ref := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
-
-		refValue := reflect.ValueOf(ref)
-		debugf("pop:     %s (%s)\n", refValue.Elem().Type(), refValue.Elem().Field(0).Interface().(string))
-
-		// They all must be pointers
-		refStructType := reflect.TypeOf(ref)
-		refStruct := reflect.ValueOf(ref).Elem()
-		refURI := refStruct.Field(0).Interface().(string)
-
-		if seen[ref] {
-			return nil, fmt.Errorf("cycle detected: %s", refURI)
-		}
-		seen[ref] = true
-
-		for _, v := range order {
-			if v == ref {
-				debugf("done(v): %s (%s)\n", refValue.Elem().Type(), refValue.Elem().Field(0).Interface().(string))
-				continue DFS
+	kind := nodeVal.Kind()
+	switch kind {
+	case reflect.Struct:
+		ln := nodeVal.NumField()
+		for i := 0; i < ln; i++ {
+			field := nodeVal.Field(i)
+			debugf("%sdfs(struct): %T\n", strings.Repeat(" ", 2*depth), field.Interface())
+			if field.Kind() != reflect.Ptr {
+				field = field.Addr()
+			}
+			if err := o.resolveRefsDFS(field.Interface(), depth+1, processing); err != nil {
+				return err
 			}
 		}
 
-		order = append(order, ref)
-		hasValue := !refStruct.Field(1).IsNil()
-		if hasValue {
-			debugf("done(h): %s (%s)\n", refValue.Elem().Type(), refValue.Elem().Field(0).Interface().(string))
-			continue
+		// Check if we are a reference struct, in which case we must resolve
+		// it.
+		if ln == 2 && nodeType.Elem().Field(0).Name == "Ref" {
+			refURI := nodeVal.Field(0).Interface().(string)
+			debugf("%sref(%s): %s %s\n", strings.Repeat(" ", 2*depth), refURI, nodeType, nodeType.Elem().Field(1).Type)
+
+			// If the ref already has a value that means it's already
+			// been completed or rather that it does not require resolution
+			// it may require recursive resolution for refs inside of itself
+			// but that will have been handled by the loop above.
+			hasValue := !nodeVal.Field(1).IsNil()
+			if hasValue {
+				debugf("%sdone: %s (%s)\n", strings.Repeat(" ", 2*depth), nodeVal.Type(), refURI)
+				return nil
+			}
+
+			// When we begin processing a reference uri, we store it to check
+			// for cycles while we process.
+			if processing[refURI] {
+				return fmt.Errorf("cycle detected: %s depth %d", refURI, depth)
+			}
+			processing[refURI] = true
+
+			// Fetch a ref pointer value from the referenced location
+			debugf("%sresolve: %s (%s)\n", strings.Repeat(" ", 2*depth), nodeVal.Type(), nodeVal.Field(0).Interface().(string))
+			lookup, err := o.lookupReference(nodeType, refURI)
+			if err != nil {
+				return err
+			}
+
+			// Before we can resolve ourselves, we have to ensure that the
+			// refs inside the object we've resolved are also resolved.
+			if err := o.resolveRefsDFS(lookup.Interface(), depth+1, processing); err != nil {
+				return err
+			}
+
+			// After all the refs are resolved inside the lookup set our current
+			// ref to the completely resolved value.
+			nodeVal.Field(1).Set(lookup.Elem().Field(1))
+
+			delete(processing, refURI)
 		}
-
-		debugf("resolve: %s (%s)\n", refValue.Elem().Type(), refValue.Elem().Field(0).Interface().(string))
-		// Here we must actually resolve this
-		// Find the pointer to set this reference to
-
-		lookup, err := o.lookupReference(refStructType, refURI)
-		if err != nil {
-			return nil, err
+	case reflect.Map:
+		iter := nodeVal.MapRange()
+		for iter.Next() {
+			// debugf("dfs(map): %s\n", strings.Repeat(" ", 2*depth), iter.Key().Interface())
+			if err := o.resolveRefsDFS(iter.Value().Interface(), depth+1, processing); err != nil {
+				return err
+			}
 		}
-
-		debugf("push:    %s (%s)\n", lookup.Elem().Type(), lookup.Elem().Field(0).Interface().(string))
-		stack = append(stack, lookup.Interface())
+	case reflect.Slice:
+		ln := nodeVal.Len()
+		for i := 0; i < ln; i++ {
+			// debugf("dfs(slice): %d\n", strings.Repeat(" ", 2*depth), i)
+			val := nodeVal.Index(i)
+			if val.Kind() != reflect.Ptr {
+				val = val.Addr()
+			}
+			if err := o.resolveRefsDFS(val.Interface(), depth+1, processing); err != nil {
+				return err
+			}
+		}
 	}
 
-	return order, nil
+	return nil
 }
 
 func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string) (reflect.Value, error) {
 	uri, err := url.Parse(refURI)
 	if err != nil {
 		return reflect.Value{}, fmt.Errorf("invalid ref(%s): %w", refURI, err)
-	} else if len(uri.Scheme) != 0 || len(uri.Path) != 0 || len(uri.Host) != 0 {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): only fragment style refs supported", refURI)
-	} else if len(uri.Fragment) == 0 {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): must include fragment", refURI)
+	}
+
+	if err := validateRefURI(refURI, uri); err != nil {
+		return reflect.Value{}, err
+	}
+
+	if len(uri.Fragment) == 0 {
+		newRef := reflect.New(refStructType.Elem())
+		newVal := reflect.New(refStructType.Elem().Field(1).Type.Elem())
+		if strings.HasSuffix(uri.Path, ".json") {
+			return reflect.Value{}, errors.New("json loading not implemented")
+		} else if strings.HasSuffix(uri.Path, ".yaml") || strings.HasSuffix(uri.Path, ".yml") {
+			b, err := os.ReadFile(uri.Path)
+			if err != nil {
+				return reflect.Value{}, fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not read file: %v", refURI, err)
+			}
+
+			var untyped map[any]any
+			if err := yaml.Unmarshal(b, &untyped); err != nil {
+				return reflect.Value{}, fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not unmarshal yaml: %v", refURI, err)
+			}
+
+			if err := yamlStruct(newVal, untyped); err != nil {
+				return reflect.Value{}, fmt.Errorf("error resolving ref(%s): failed to merge unmarshalled data into struct: %v", refURI, err)
+			}
+		} else {
+			return reflect.Value{}, fmt.Errorf("invalid ref(%s): only yaml/json file refs are supported (must have proper file extension)", refURI)
+		}
+
+		newRef.Elem().Field(1).Set(newVal)
+		return newRef, nil
 	}
 
 	splits := strings.Split(uri.Fragment, "/")
@@ -336,6 +361,8 @@ func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string) (r
 		refMap = reflect.ValueOf(o.Components.Links)
 	case "callbacks":
 		refMap = reflect.ValueOf(o.Components.Callbacks)
+	case "pathItems":
+		refMap = reflect.ValueOf(o.Components.PathItems)
 	default:
 		return reflect.Value{}, fmt.Errorf("invalid ref(%s): fragment did not contain a valid type (%s)", refURI, refType)
 	}
@@ -346,7 +373,7 @@ func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string) (r
 	}
 
 	if lookup.Type() != refStructType {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): %T references %s", refURI, refStructType.Name(), refType)
+		return reflect.Value{}, fmt.Errorf("invalid ref(%s): %s references %s (%s)", refURI, refStructType, lookup.Type(), refType)
 	}
 
 	if lookup.IsNil() {
@@ -356,54 +383,15 @@ func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string) (r
 	return lookup, nil
 }
 
-func findAllRefs(val reflect.Value) []interface{} {
-	kind := val.Kind()
-	if kind == reflect.Ptr {
-		if val.IsNil() {
-			return nil
-		}
-		val = val.Elem()
-		kind = val.Kind()
+func validateRefURI(refURI string, uri *url.URL) error {
+	if (len(uri.Scheme) == 0 || uri.Scheme == "file://") && len(uri.Fragment) == 0 && (len(uri.Host) == 0 || uri.Host == "localhost") && len(uri.Path) != 0 {
+		return nil
+	}
+	if len(uri.Fragment) != 0 && len(uri.Scheme) == 0 && (len(uri.Host) == 0 || uri.Host == "localhost") && len(uri.Path) == 0 {
+		return nil
 	}
 
-	refs := make([]interface{}, 0)
-
-	switch kind {
-	case reflect.Struct:
-		ln := val.NumField()
-
-		typ := val.Type()
-
-		if ln == 2 && typ.Field(0).Name == "Ref" {
-			// Reference struct, add it to our list of refs
-			refs = append(refs, val.Addr().Interface())
-		}
-
-		for i := 0; i < ln; i++ {
-			field := val.Field(i)
-			//debugf("findref(struct): %T\n", field.Interface())
-			fieldRefs := findAllRefs(field)
-			refs = append(refs, fieldRefs...)
-		}
-	case reflect.Map:
-		iter := val.MapRange()
-		for iter.Next() {
-			//debugf("findref(map): %s\n", iter.Key().Interface())
-			mapRefs := findAllRefs(iter.Value())
-			refs = append(refs, mapRefs...)
-		}
-	case reflect.Slice:
-		ln := val.Len()
-		for i := 0; i < ln; i++ {
-			//debugf("findref(slice): %d\n", i)
-			sliceRefs := findAllRefs(val.Index(i))
-			refs = append(refs, sliceRefs...)
-		}
-	default:
-		//debugf("skipping %s\n", val.Type().Name())
-	}
-
-	return refs
+	return fmt.Errorf("invalid ref(%s): only #/fragment or (file://localhost)?/path/to/file.(yaml|yml|json) refs supported", refURI)
 }
 
 // Validate the openapi3 object
@@ -646,4 +634,4 @@ func (i *Info) Validate() error {
 
 // Extensions are for x- extensions to the open api spec, they can be
 // any json value
-type Extensions map[string]interface{}
+type Extensions map[string]any
