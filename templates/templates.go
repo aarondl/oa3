@@ -16,13 +16,15 @@ import (
 
 // GlobalFunctions for templates
 var GlobalFunctions = map[string]interface{}{
-	"refName":             refName,
-	"mustValidate":        mustValidate,
-	"mustValidateRecurse": mustValidateRecurse,
-	"keysReflect":         keysReflect,
-	"httpStatus":          http.StatusText,
-	"newData":             newData,
-	"recurseData":         recurseData,
+	"refName":                refName,
+	"mustValidate":           mustValidate,
+	"mustValidateRecurse":    mustValidateRecurse,
+	"keysReflect":            keysReflect,
+	"httpStatus":             http.StatusText,
+	"newData":                newData,
+	"newDataRequired":        newDataRequired,
+	"recurseData":            recurseData,
+	"recurseDataSetRequired": recurseDataSetRequired,
 }
 
 func refName(ref string) string {
@@ -59,7 +61,8 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.MinItems != nil ||
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
-		s.MinProperties != nil
+		s.MinProperties != nil ||
+		s.Format != nil
 }
 
 // mustValidateRecure checks to see if the current schema, or any sub-schema

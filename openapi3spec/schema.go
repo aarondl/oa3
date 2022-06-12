@@ -113,18 +113,6 @@ func (s *Schema) Validate() error {
 		if len(s.Properties) == 0 {
 			return errors.New("properties if present must not be empty")
 		}
-
-		for name, prop := range s.Properties {
-			// If it's nullable or has a default value, we don't need to
-			// validate it's required
-			if prop.Schema.Nullable || prop.Schema.Default != nil {
-				continue
-			}
-
-			if !s.IsRequired(name) {
-				return fmt.Errorf("properties(%s): must be required, nullable, or have a default value", name)
-			}
-		}
 	}
 
 	if s.MultipleOf != nil {

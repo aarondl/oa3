@@ -43,6 +43,8 @@ var tpls = []string{
 var funcs = map[string]interface{}{
 	"camelSnake":        camelSnake,
 	"primitive":         primitive,
+	"primitiveRaw":      primitiveRaw,
+	"primitiveBits":     primitiveBits,
 	"isInlinePrimitive": isInlinePrimitive,
 	"taggedPaths":       tagPaths,
 	"responseKind":      responseKind,
@@ -125,7 +127,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 
 	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
 
-	data := templates.NewTemplateDataWithObject(spec, params, apiName, nil)
+	data := templates.NewTemplateDataWithObject(spec, params, apiName, nil, false)
 
 	filename := generator.FilenameFromTitle(spec.Info.Title) + ".go"
 
@@ -151,7 +153,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 	copy(content, fileBytes.Bytes())
 	files = append(files, generator.File{Name: filename, Contents: content})
 
-	data = templates.NewTemplateDataWithObject(spec, params, apiName, nil)
+	data = templates.NewTemplateDataWithObject(spec, params, apiName, nil, false)
 	filename = generator.FilenameFromTitle(spec.Info.Title) + "_methods.go"
 
 	buf.Reset()
@@ -209,7 +211,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		v := spec.Components.Schemas[k]
 		filename := "schema_" + camelSnake(k) + ".go"
 
-		generated, err := makePseudoFile(spec, params, tpl, filename, k, v)
+		generated, err := makePseudoFile(spec, params, tpl, filename, k, v, false)
 		if err != nil {
 			return nil, err
 		}
@@ -245,7 +247,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema)
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema, o.Op.RequestBody.Required)
 				if err != nil {
 					return nil, err
 				}
@@ -274,7 +276,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema)
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema, true)
 				if err != nil {
 					return nil, err
 				}
@@ -291,7 +293,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		}
 
 		filename := "schema_" + camelSnake(name) + "_reqbody.go"
-		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema)
+		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, req.Required)
 		if err != nil {
 			return nil, err
 		}
@@ -309,7 +311,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		}
 
 		filename := "schema_" + camelSnake(name) + "_respbody.go"
-		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema)
+		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, true)
 		if err != nil {
 			return nil, err
 		}
@@ -324,11 +326,11 @@ var (
 	headerBuf = new(bytes.Buffer)
 )
 
-func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, filename string, name string, schema *openapi3spec.SchemaRef) (generator.File, error) {
+func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, filename string, name string, schema *openapi3spec.SchemaRef, required bool) (generator.File, error) {
 	fileBuf.Reset()
 	headerBuf.Reset()
 
-	data := templates.NewTemplateDataWithObject(spec, params, name, schema)
+	data := templates.NewTemplateDataWithObject(spec, params, name, schema, required)
 
 	if err := tpl.ExecuteTemplate(fileBuf, "schema_top", data); err != nil {
 		return generator.File{}, fmt.Errorf("failed rendering template %q: %w", "schema", err)
@@ -364,15 +366,16 @@ func isInlinePrimitive(schema *openapi3spec.Schema) bool {
 	return true
 }
 
-func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
-	if schema.Nullable {
-		return primitiveNil(tdata, schema)
+func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema, required bool) (string, error) {
+	if schema.Nullable || !required {
+		return primitiveWrapped(tdata, schema, schema.Nullable, required)
 	}
 
-	return primitiveNonNil(tdata, schema)
+	// When it's required && !nullable
+	return primitiveRaw(tdata, schema)
 }
 
-func primitiveNonNil(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
+func primitiveRaw(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
 	switch schema.Type {
 	case "integer":
 		if schema.Format != nil {
@@ -405,40 +408,72 @@ func primitiveNonNil(tdata templates.TemplateData, schema *openapi3spec.Schema) 
 	return "", fmt.Errorf("schema expected primitive type (integer, number, string, boolean) but got: %s", schema.Type)
 }
 
-func primitiveNil(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
+func primitiveBits(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
+	s, err := primitiveRaw(tdata, schema)
+	if err != nil {
+		return "", nil
+	}
+
+	ret := strings.Map(func(r rune) rune {
+		if unicode.IsLetter(r) {
+			return -1
+		}
+		return r
+	}, s)
+
+	if len(ret) == 0 {
+		return "64", nil
+	} else {
+		return ret, nil
+	}
+}
+
+func primitiveWrapped(tdata templates.TemplateData, schema *openapi3spec.Schema, nullable bool, required bool) (string, error) {
+	var kind string
+	switch {
+	case nullable && required:
+		kind = "null"
+	case nullable && !required:
+		kind = "omitnull"
+	case !nullable && !required:
+		kind = "omit"
+	default:
+		panic("invalid combination: !nullable && required")
+	}
+
 	switch schema.Type {
 	case "integer":
-		tdata.Import("github.com/volatiletech/null/v8")
+		tdata.Import("github.com/aarondl/opt/" + kind)
 
 		if schema.Format != nil {
 			switch *schema.Format {
 			case "int32":
-				return "null.Int32", nil
+				return kind + ".Val[int32]", nil
 			case "int64":
-				return "null.Int64", nil
+				return kind + ".Val[int64]", nil
 			}
 		}
 
-		return "null.Int", nil
+		return kind + ".Val[int]", nil
 	case "number":
-		tdata.Import("github.com/volatiletech/null/v8")
+		tdata.Import("github.com/aarondl/opt/" + kind)
 
 		if schema.Format != nil {
 			switch *schema.Format {
 			case "float":
-				return "null.Float32", nil
+				return kind + ".Val[float32]", nil
 			case "double":
-				return "null.Float64", nil
+				return kind + ".Val[float64]", nil
 			}
 		}
 
-		return "null.Float64", nil
+		return kind + ".Val[float64]", nil
 	case "string":
-		tdata.Import("github.com/volatiletech/null/v8")
-		return "null.String", nil
+		tdata.Import("github.com/aarondl/opt/" + kind)
+		return kind + ".Val[string]", nil
 	case "boolean":
-		tdata.Import("github.com/volatiletech/null/v8")
-		return "null.Bool", nil
+		tdata.Import("github.com/aarondl/opt/" + kind)
+		return kind + ".Val[bool]", nil
 	}
 
 	return "", fmt.Errorf("schema had expected primitive nil type (integer, number, string, boolean) but got: %s", schema.Type)

@@ -7,7 +7,9 @@ import (
 	"net/http"
 
 	"github.com/aarondl/oa3/support"
-	"github.com/volatiletech/null/v8"
+	"github.com/aarondl/opt/null"
+	"github.com/aarondl/opt/omit"
+	"github.com/aarondl/opt/omitnull"
 )
 
 // AlreadyHandled is an interface which an error return type can optionally
@@ -172,21 +174,26 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	const n0 = `valid_str`
 	s0 := r.URL.Query().Get(n0)
-	var p0 null.String
+	var p0 omitnull.Val[string]
 	if len(s0) != 0 {
-		p0, err = support.StringToNullstring(s0)
+		if s0 == "null" {
+			p0.Null()
+		} else {
+			p0.Set(s0)
+		}
+		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n0, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxLength(string(p0.String), 5); err != nil {
+		if err := support.ValidateMaxLength(omitnull.Val[string](p0).GetOrZero(), 5); err != nil {
 			ers = append(ers, err)
 		}
 
-		if err := support.ValidateMinLength(string(p0.String), 2); err != nil {
+		if err := support.ValidateMinLength(omitnull.Val[string](p0).GetOrZero(), 2); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateEnum(string(p0.String), []string{"he\"llo"}); err != nil {
+		if err := support.ValidateEnum(omitnull.Val[string](p0).GetOrZero(), []string{"he\"llo"}); err != nil {
 			ers = append(ers, err)
 		}
 
@@ -197,23 +204,28 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	const n1 = `req_valid_str`
 	s1 := r.URL.Query().Get(n1)
-	var p1 null.String
+	var p1 null.Val[string]
 	if len(s1) == 0 {
 		errs = support.AddErrs(errs, n1, errors.New(`must not be empty`))
 	} else {
-		p1, err = support.StringToNullstring(s1)
+		if s0 == "null" {
+			p1.Null()
+		} else {
+			p1.Set(s0)
+		}
+		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxLength(string(p1.String), 5); err != nil {
+		if err := support.ValidateMaxLength(null.Val[string](p1).GetOrZero(), 5); err != nil {
 			ers = append(ers, err)
 		}
 
-		if err := support.ValidateMinLength(string(p1.String), 2); err != nil {
+		if err := support.ValidateMinLength(null.Val[string](p1).GetOrZero(), 2); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateEnum(string(p1.String), []string{"he\"llo"}); err != nil {
+		if err := support.ValidateEnum(null.Val[string](p1).GetOrZero(), []string{"he\"llo"}); err != nil {
 			ers = append(ers, err)
 		}
 
@@ -224,20 +236,21 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	const n2 = `valid_int`
 	s2 := r.URL.Query().Get(n2)
-	var p2 int
+	var p2 omit.Val[int]
 	if len(s2) != 0 {
-		p2, err = support.StringToInt(s2)
+		p2c, err := support.StringToInt[int](s2, 64)
+		p2.Set(p2c)
 		if err != nil {
 			errs = support.AddErrs(errs, n2, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxInt(int64(p2), 5, true); err != nil {
+		if err := support.ValidateMaxNumber(p2.GetOrZero(), 5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinInt(int64(p2), 2, false); err != nil {
+		if err := support.ValidateMinNumber(p2.GetOrZero(), 2, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfInt(int64(p2), 2); err != nil {
+		if err := support.ValidateMultipleOfInt(p2.GetOrZero(), 2); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -251,18 +264,18 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	if len(s3) == 0 {
 		errs = support.AddErrs(errs, n3, errors.New(`must not be empty`))
 	} else {
-		p3, err = support.StringToInt(s3)
+		p3, err = support.StringToInt[int](s3, 64)
 		if err != nil {
 			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxInt(int64(p3), 5, true); err != nil {
+		if err := support.ValidateMaxNumber(p3, 5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinInt(int64(p3), 2, false); err != nil {
+		if err := support.ValidateMinNumber(p3, 2, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfInt(int64(p3), 2); err != nil {
+		if err := support.ValidateMultipleOfInt(p3, 2); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -272,20 +285,21 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	const n4 = `valid_num`
 	s4 := r.URL.Query().Get(n4)
-	var p4 float64
+	var p4 omit.Val[float64]
 	if len(s4) != 0 {
-		p4, err = support.StringToFloat64(s4)
+		p4c, err := support.StringToFloat[float64](s4, 64)
+		p4.Set(p4c)
 		if err != nil {
 			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxFloat64(float64(p4), 10.5, false); err != nil {
+		if err := support.ValidateMaxNumber(p4.GetOrZero(), 10.5, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinFloat64(float64(p4), 5.5, true); err != nil {
+		if err := support.ValidateMinNumber(p4.GetOrZero(), 5.5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfFloat64(float64(p4), 2.5); err != nil {
+		if err := support.ValidateMultipleOfFloat(p4.GetOrZero(), 2.5); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -296,19 +310,21 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	const n5 = `req_valid_num`
 	s5 := r.URL.Query().Get(n5)
 	var p5 float64
-	if len(s5) != 0 {
-		p5, err = support.StringToFloat64(s5)
+	if len(s5) == 0 {
+		errs = support.AddErrs(errs, n5, errors.New(`must not be empty`))
+	} else {
+		p5, err = support.StringToFloat[float64](s5, 64)
 		if err != nil {
 			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxFloat64(float64(p5), 10.5, false); err != nil {
+		if err := support.ValidateMaxNumber(p5, 10.5, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinFloat64(float64(p5), 5.5, true); err != nil {
+		if err := support.ValidateMinNumber(p5, 5.5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfFloat64(float64(p5), 2.5); err != nil {
+		if err := support.ValidateMultipleOfFloat(p5, 2.5); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -318,9 +334,8 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	const n6 = `valid_bool`
 	s6 := r.URL.Query().Get(n6)
-	var p6 bool
+	var p6 omit.Val[bool]
 	if len(s6) != 0 {
-		p6, err = support.StringToBool(s6)
 		if err != nil {
 			errs = support.AddErrs(errs, n6, errors.New(`was not in a valid format`))
 		}
@@ -338,11 +353,28 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	const n8 = `req_str_format`
+	s8 := r.URL.Query().Get(n8)
+	var p8 string
+	if len(s8) == 0 {
+		errs = support.AddErrs(errs, n8, errors.New(`must not be empty`))
+	} else {
+		p8 = s8
+		ers = nil
+		if err := support.ValidateFormatUUIDv4(p8); err != nil {
+			ers = append(ers, err)
+		}
+
+		if len(ers) != 0 {
+			errs = support.AddErrs(errs, n8, ers...)
+		}
+	}
+
 	if errs != nil {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7)
+	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8)
 	if err != nil {
 		if alreadyHandled, ok := err.(AlreadyHandled); ok {
 			if alreadyHandled.AlreadyHandled() {
@@ -401,8 +433,8 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 	switch respBody := ret.(type) {
 	case SetUser200WrappedResponse:
 		headers := w.Header()
-		if respBody.HeaderXResponseHeader.Valid {
-			headers.Set("X-Response-Header", respBody.HeaderXResponseHeader.String)
+		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
+			headers.Set("X-Response-Header", val)
 		}
 		w.WriteHeader(200)
 		if err := support.WriteJSON(w, respBody); err != nil {

@@ -20,7 +20,7 @@
         var ers []error
         {{- $.Import "fmt"}}
         ctx = append(ctx, fmt.Sprintf("[%d]", i))
-        {{template "validate_schema_helper" (newData $ $.Name $s.Items)}}
+        {{template "validate_schema_helper" (newDataRequired $ $.Name $s.Items true)}}
         {{- $.Import "strings"}}
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
@@ -43,7 +43,7 @@
     for k, {{$.Name}} := range {{$.Name}} {
         var ers []error
         ctx = append(ctx, k)
-            {{template "validate_schema_helper" (newData $ $.Name $s.AdditionalProperties) }}
+            {{template "validate_schema_helper" (newDataRequired $ $.Name $s.AdditionalProperties true) }}
             {{- $.Import "strings"}}
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
@@ -53,7 +53,8 @@
             {{- /* Process regular struct fields */ -}}
             {{- range $name, $element := $s.Properties -}}
                 {{- if and (not $element.Ref) (mustValidate $element.Schema)}}
-    {{template "validate_field" (recurseData $ (printf ".%s" (camelcase $name)) $element.Schema)}}
+                // VALIDATING {{$name}} {{$element.Schema.Nullable}} {{$s.IsRequired $name}}
+    {{template "validate_field" (recurseDataSetRequired $ (printf ".%s" (camelcase $name)) $element.Schema ($s.IsRequired $name))}}
     if len(ers) != 0 {
         ctx = append(ctx, {{printf "%q" $name}})
                 {{- $.Import "strings"}}
@@ -74,7 +75,7 @@
         {{- end}}
     {{- else -}}
         {{- if mustValidate $.Object.Schema -}}
-            {{- template "validate_field" (newData $ "o" $.Object.Schema) -}}
+            {{- template "validate_field" (newDataRequired $ "o" $.Object.Schema true) -}}
         {{- end -}}
     {{- end}}
 

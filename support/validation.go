@@ -3,17 +3,20 @@ package support
 import (
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"golang.org/x/exp/constraints"
 )
 
 var (
 	rgxUUIDv4 = regexp.MustCompile(`(?i)^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$`)
 )
 
-// ValidateUUIDv4 makes it look like it's in a UUID v4 shape
-func ValidateUUIDv4(s string) error {
+// ValidateFormatUUIDv4 makes it look like it's in a UUID v4 shape
+func ValidateFormatUUIDv4(s string) error {
 	if !rgxUUIDv4.MatchString(s) {
 		return errors.New("must be a valid uuid v4")
 	}
@@ -21,117 +24,48 @@ func ValidateUUIDv4(s string) error {
 	return nil
 }
 
-// ValidateMaxInt checks that i <= max or if exclusive then i < max
-func ValidateMaxInt(i int64, max int, exclusive bool) error {
+// ValidateMaxNumber checks that val <= max or if exclusive then val < max
+func ValidateMaxNumber[N constraints.Integer | constraints.Float](val, max N, exclusive bool) error {
 	if exclusive {
-		if i >= int64(max) {
-			return fmt.Errorf("must be less than %d", max)
+		if val >= max {
+			return fmt.Errorf("must be less than %v", max)
 		}
 	} else {
-		if i > int64(max) {
-			return fmt.Errorf("must be less than or equal to %d", max)
+		if val > max {
+			return fmt.Errorf("must be less than or equal to %v", max)
 		}
 	}
 
 	return nil
 }
 
-// ValidateMinInt checks that i >= min or if exclusive then i > min
-func ValidateMinInt(i int64, min int, exclusive bool) error {
+// ValidateMinNumber checks that val >= min or if exclusive then val > min
+func ValidateMinNumber[N constraints.Integer | constraints.Float](val, min N, exclusive bool) error {
 	if exclusive {
-		if i <= int64(min) {
-			return fmt.Errorf("must be greater than %d", min)
+		if val <= min {
+			return fmt.Errorf("must be greater than %v", min)
 		}
 	} else {
-		if i < int64(min) {
-			return fmt.Errorf("must be greater than or equal to %d", min)
+		if val < min {
+			return fmt.Errorf("must be greater than or equal to %v", min)
 		}
 	}
 
 	return nil
 }
 
-// ValidateMultipleOfInt checks that i % factor == 0
-func ValidateMultipleOfInt(i int64, factor int) error {
-	if i%int64(factor) != 0 {
+// ValidateMultipleOfInt checks that val % factor == 0
+func ValidateMultipleOfInt[N constraints.Integer](val, factor N) error {
+	if (val % factor) != 0 {
 		return fmt.Errorf("must be a multiple of %d", factor)
 	}
 
 	return nil
 }
 
-// ValidateMaxUint checks that i <= max or if exclusive then i < max
-func ValidateMaxUint(i uint64, max uint, exclusive bool) error {
-	if exclusive {
-		if i >= uint64(max) {
-			return fmt.Errorf("must be less than %d", max)
-		}
-	} else {
-		if i > uint64(max) {
-			return fmt.Errorf("must be less than or equal to %d", max)
-		}
-	}
-
-	return nil
-}
-
-// ValidateMinUint checks that i >= min or if exclusive then i > min
-func ValidateMinUint(i uint64, min uint, exclusive bool) error {
-	if exclusive {
-		if i <= uint64(min) {
-			return fmt.Errorf("must be greater than %d", min)
-		}
-	} else {
-		if i < uint64(min) {
-			return fmt.Errorf("must be greater than or equal to %d", min)
-		}
-	}
-
-	return nil
-}
-
-// ValidateMultipleOfUint checks that i % factor == 0
-func ValidateMultipleOfUint(i uint64, factor uint) error {
-	if i%uint64(factor) != 0 {
-		return fmt.Errorf("must be a multiple of %d", factor)
-	}
-
-	return nil
-}
-
-// ValidateMaxFloat64 checks that i <= max or if exclusive then i < max
-func ValidateMaxFloat64(f float64, max float64, exclusive bool) error {
-	if exclusive {
-		if f >= float64(max) {
-			return fmt.Errorf("must be less than %f", max)
-		}
-	} else {
-		if f > float64(max) {
-			return fmt.Errorf("must be less than or equal to %f", max)
-		}
-	}
-
-	return nil
-}
-
-// ValidateMinFloat64 checks that i >= min or if exclusive then i > min
-func ValidateMinFloat64(f float64, min float64, exclusive bool) error {
-	if exclusive {
-		if f <= float64(min) {
-			return fmt.Errorf("must be greater than %f", min)
-		}
-	} else {
-		if f < float64(min) {
-			return fmt.Errorf("must be greater than or equal to %f", min)
-		}
-	}
-
-	return nil
-}
-
-// ValidateMultipleOfFloat64 checks that i / factor == 0
-func ValidateMultipleOfFloat64(i, factor float64) error {
-	if i/factor != 0 {
+// ValidateMultipleOfInt checks that val % factor == 0
+func ValidateMultipleOfFloat[N constraints.Float](val, factor N) error {
+	if quot := float64(val / factor); math.Trunc(quot) != quot {
 		return fmt.Errorf("must be a multiple of %f", factor)
 	}
 
@@ -139,7 +73,7 @@ func ValidateMultipleOfFloat64(i, factor float64) error {
 }
 
 // ValidateMaxLength ensures a string's length is <= max
-func ValidateMaxLength(s string, max int) error {
+func ValidateMaxLength[S ~string](s S, max int) error {
 	if len(s) <= max {
 		return nil
 	}
@@ -148,7 +82,7 @@ func ValidateMaxLength(s string, max int) error {
 }
 
 // ValidateMinLength ensures a string's length is >= min
-func ValidateMinLength(s string, min int) error {
+func ValidateMinLength[S ~string](s S, min int) error {
 	if len(s) >= min {
 		return nil
 	}
@@ -157,9 +91,8 @@ func ValidateMinLength(s string, min int) error {
 }
 
 // ValidateMaxItems ensures a array's length is <= max
-func ValidateMaxItems(a interface{}, max int) error {
-	val := reflect.ValueOf(a)
-	if val.Len() <= max {
+func ValidateMaxItems[T any](a []T, max int) error {
+	if len(a) <= max {
 		return nil
 	}
 
@@ -167,9 +100,8 @@ func ValidateMaxItems(a interface{}, max int) error {
 }
 
 // ValidateMinItems ensures an array's length is >= min
-func ValidateMinItems(a interface{}, min int) error {
-	val := reflect.ValueOf(a)
-	if val.Len() >= min {
+func ValidateMinItems[T any](a []T, min int) error {
+	if len(a) >= min {
 		return nil
 	}
 
@@ -197,9 +129,8 @@ func ValidateUniqueItems(a interface{}) error {
 }
 
 // ValidateMaxProperties ensures a map[string]X's length is <= max
-func ValidateMaxProperties(m interface{}, max int) error {
-	val := reflect.ValueOf(m)
-	if val.Len() <= max {
+func ValidateMaxProperties[V any, M ~map[string]V](m M, max int) error {
+	if len(m) <= max {
 		return nil
 	}
 
@@ -207,9 +138,8 @@ func ValidateMaxProperties(m interface{}, max int) error {
 }
 
 // ValidateMinProperties ensures a map[string]X's length is >= min
-func ValidateMinProperties(m interface{}, min int) error {
-	val := reflect.ValueOf(m)
-	if val.Len() >= min {
+func ValidateMinProperties[V any, M ~map[string]V](m M, min int) error {
+	if len(m) >= min {
 		return nil
 	}
 
@@ -217,8 +147,8 @@ func ValidateMinProperties(m interface{}, min int) error {
 }
 
 // ValidatePattern validates a string against a pattern
-func ValidatePattern(s string, pattern string) error {
-	matched, err := regexp.MatchString(pattern, s)
+func ValidatePattern[S ~string](s S, pattern string) error {
+	matched, err := regexp.MatchString(pattern, string(s))
 	if err != nil {
 		panic(err)
 	}
@@ -231,9 +161,9 @@ func ValidatePattern(s string, pattern string) error {
 }
 
 // ValidateEnum validates a string against a whitelisted set of values
-func ValidateEnum(s string, whitelist []string) error {
+func ValidateEnum[S ~string](s S, whitelist []string) error {
 	for _, w := range whitelist {
-		if s == w {
+		if string(s) == w {
 			return nil
 		}
 	}

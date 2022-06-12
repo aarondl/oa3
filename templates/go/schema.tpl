@@ -5,7 +5,7 @@
             {{- if $.Object.Ref -}}
                 {{- refName $.Object.Ref -}}
             {{- else -}}
-                {{- if $.Object.Schema.Nullable}}*{{end}}{{.Name}}
+                {{.Name}}
             {{- end -}}
         {{- else -}}
             {{- template "schema" (recurseData $ $.Name $.Object) -}}
@@ -17,14 +17,20 @@
 
 {{- /* Outputs enum constants */ -}}
 {{- define "type_enum" -}}
-{{if $.Object.Nullable}}var{{else}}const{{end}} (
+{{if or ($.Object.Nullable) (not $.Required)}}var{{else}}const{{end}} (
     {{- range $value := $.Object.Enum}}
     {{$.Name}}{{camelcase $value}} {{$.Name}} =
-        {{- if $.Object.Nullable -}}
-        {{- $.Import "github.com/volatiletech/null/v8" -}}
-        {{$.Name}}(null.StringFrom({{printf "%q" $value}}))
+        {{- if and ($.Object.Nullable) ($.Required) -}}
+            {{- $.Import "github.com/aarondl/opt/null" -}}
+            {{$.Name}}(null.From({{printf "%q" $value}}))
+        {{- else if and ($.Object.Nullable) (not $.Required) -}}
+            {{- $.Import "github.com/aarondl/opt/omitnull" -}}
+            {{$.Name}}(omitnull.From({{printf "%q" $value}}))
+        {{- else if and (not $.Object.Nullable) (not $.Required) -}}
+            {{- $.Import "github.com/aarondl/opt/omit" -}}
+            {{$.Name}}(omit.From({{printf "%q" $value}}))
         {{- else -}}
-        {{printf "%q" $value}}
+            {{printf "%q" $value}}
         {{- end -}}
     {{- end}}
 )
@@ -34,9 +40,15 @@
 to a schema ref */ -}}
 {{- define "type_embedded" -}}
     {{- if and (not $.Object.Ref) $.Object.Enum}}
-type {{$.Name}} {{if $.Object.Nullable -}}
-                    {{- $.Import "github.com/volatiletech/null/v8" -}}
-                        null.String
+type {{$.Name}} {{if and ($.Object.Nullable) ($.Required) -}}
+                    {{- $.Import "github.com/aarondl/opt/null" -}}
+                        null.Val[string]
+                    {{- else if and ($.Object.Nullable) (not $.Required) -}}
+                    {{- $.Import "github.com/aarondl/opt/omitnull" -}}
+                        omitnull.Val[string]
+                    {{- else if and (not $.Object.Nullable) (not $.Required) -}}
+                    {{- $.Import "github.com/aarondl/opt/omit" -}}
+                        omit.Val[string]
                     {{- else -}}
                         string
                     {{- end}}
@@ -53,7 +65,7 @@ type {{$.Name}} {{if $.Object.Nullable -}}
 
     {{- if $s.Enum -}}string
 
-    {{template "type_enum" $}}
+    {{template "type_enum" (newDataRequired $ $.Name $s true)}}
 
     {{- else if or $s.AnyOf $s.OneOf -}}interface {
         {{$.Name}}TypeCheck()
@@ -63,20 +75,20 @@ type {{$.Name}} {{if $.Object.Nullable -}}
         {{$.Name}}TypeCheck()
     }
     {{- else if eq $s.Type "array" -}}[]
-        {{- template "type_name" (recurseData $ "Item" $s.Items) -}}
+        {{- template "type_name" (recurseDataSetRequired $ "Item" $s.Items true) -}}
 
         {{- /* Array properties embedded */ -}}
-        {{- template "type_embedded" (recurseData $ "Item" $s.Items) -}}
+        {{- template "type_embedded" (recurseDataSetRequired $ "Item" $s.Items true) -}}
 
     {{- else if eq $s.Type "object" -}}
         {{- if or (eq 0 (len $s.Properties)) $s.AdditionalProperties -}}map[string]
             {{- if $s.AdditionalProperties -}}
                 {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems must not be the bool case"}}{{- end -}}
                 {{- /* Map properties normal */ -}}
-                {{- template "type_name" (recurseData $ "Item" $s.AdditionalProperties.SchemaRef) }}
+                {{- template "type_name" (recurseDataSetRequired $ "Item" $s.AdditionalProperties.SchemaRef true) }}
 
                 {{- /* Map properties embedded */ -}}
-                {{- template "type_embedded" (recurseData $ "Item" $s.AdditionalProperties.SchemaRef) -}}
+                {{- template "type_embedded" (recurseDataSetRequired $ "Item" $s.AdditionalProperties.SchemaRef true) -}}
             {{- else -}}
             interface{}
             {{- end -}}
@@ -89,17 +101,17 @@ type {{$.Name}} {{if $.Object.Nullable -}}
     // {{$c}}
                     {{- end -}}
                 {{- end}}
-    {{camelcase $name}} {{template "type_name" (recurseData $ (camelcase $name) $element)}} `json:"{{$name}}{{if not ($s.IsRequired $name)}},omitempty{{end}}"`
+    {{camelcase $name}} {{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element ($s.IsRequired $name))}} `json:"{{$name}}{{if not ($s.IsRequired $name)}},omitempty{{end}}"`
             {{- end}}
 }
 
             {{- /* Process embedded structs */ -}}
             {{- range $name, $element := $s.Properties -}}
-                {{- template "type_embedded" (recurseData $ (camelcase $name) $element) -}}
+                {{- template "type_embedded" (recurseDataSetRequired $ (camelcase $name) $element ($s.IsRequired $name)) -}}
             {{- end -}}
         {{- end}}
     {{- else}}
-        {{- primitive $ $s -}}
+        {{- primitive $ $s $.Required -}}
     {{- end -}}
 {{- end -}}
 

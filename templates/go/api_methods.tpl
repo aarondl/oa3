@@ -28,8 +28,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
 
         {{- /* Process parameters */ -}}
         {{- range $i, $param := $op.Parameters -}}
-            {{- $prim := (primitive $ $param.Schema.Schema) -}}
-            {{- $primNoDot := $prim | replace "." ""}}
+            {{- $prim := (primitive $ $param.Schema.Schema $param.Required)}}
 
     const n{{$i}} = `{{$param.Name}}`
     s{{$i}} {{/* This holds the space to the left */}}
@@ -57,10 +56,35 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     if len(s{{$i}}) != 0 {
             {{- end -}}
             {{- if ne $prim "string" -}}
-                {{- $.Import "github.com/aarondl/oa3/support"}}
-    p{{$i}}, err = support.StringTo{{camelcase $primNoDot}}(s{{$i}})
+                {{- $.Import "github.com/aarondl/oa3/support" -}}
+                {{- $primRaw := primitiveRaw $ $param.Schema.Schema -}}
+                {{- if ne $primRaw "bool"}}
+                    {{- $convFn := "Float" -}}
+                    {{- if hasPrefix "int" $primRaw -}}
+                        {{- $convFn = "Int" -}}
+                    {{- else if hasPrefix "uint" $primRaw -}}
+                        {{- $convFn = "Uint" -}}
+                    {{- end -}}
+                    {{- if eq $primRaw "string"}}
+    if s0 == "null" {
+        p{{$i}}.Null()
+    } else {
+        p{{$i}}.Set(s0)
+    }
+    err = nil
+                    {{- else -}}
+                        {{- if or (hasPrefix "null" $prim) (hasPrefix "omit" $prim)}}
+    p{{$i}}c, err := support.StringTo{{$convFn}}[{{$primRaw}}](s{{$i}}, {{primitiveBits $ $param.Schema.Schema}})
+    p{{$i}}.Set(p{{$i}}c)
+                        {{- else}}
+    p{{$i}}, err = support.StringTo{{$convFn}}[{{$primRaw}}](s{{$i}}, {{primitiveBits $ $param.Schema.Schema}})
+                        {{- end -}}
+                    {{- end -}}
+                {{- else if eq $prim "bool"}}
+    p{{$i}}, err = support.StringToBool(s{{$i}})
+                {{- end}}
     if err != nil {
-            {{- $.Import "errors"}}
+                {{- $.Import "errors"}}
         errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
     }
             {{- else}}
@@ -68,15 +92,9 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- end -}}
             {{- if mustValidate $param.Schema.Schema -}}
                 {{- $.Import "github.com/aarondl/oa3/support"}}
-    {{template "validate_field" (newData $ (printf "p%d" $i) $param.Schema.Schema)}}
+    {{template "validate_field" (newDataRequired $ (printf "p%d" $i) $param.Schema.Schema $param.Required)}}
     if len(ers) != 0 {
         errs = support.AddErrs(errs, n{{$i}}, ers...)
-    }
-            {{end -}}
-            {{- if and $param.Schema.Format (eq (print $param.Schema.Format) "uuid") -}}
-                {{- $.Import "github.com/aarondl/oa3/support"}}
-    if newErrs := support.ValidateUUIDv4(string(p{{$i}})); newErrs != nil {
-        errs = support.AddErrs(errs, n{{$i}}, newErrs...)
     }
             {{end -}}
     }{{- /* This bracket closes the validation if above */ -}}
@@ -119,7 +137,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{- if $op.RequestBody -}},{{" " -}}
             {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
             {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
-                {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
+                {{- $p := primitive $ $json.Schema.Schema $op.RequestBody.Required}}{{$p}}(reqBody)
             {{- else -}}reqBody{{- end -}}
         {{- end -}}
         {{- range $i, $param := $op.Parameters -}}
@@ -146,8 +164,8 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                 {{- range $hname, $header := $resp.Headers -}}
                     {{- $headername := $hname | replace "-" "" | title -}}
                     {{- if not $header.Required}}
-            if respBody.Header{{$headername}}.Valid {
-                headers.Set("{{$hname}}", respBody.Header{{$headername}}.String)
+            if val, ok := respBody.Header{{$headername}}.Get(); ok {
+                headers.Set("{{$hname}}", val)
             }
                     {{- else}}
             headers.Set("{{$hname}}", respBody.Header{{$headername}})

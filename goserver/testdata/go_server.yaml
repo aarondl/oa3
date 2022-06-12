@@ -33,6 +33,7 @@ paths:
           schema: { type: number, multipleOf: 2.5, maximum: 10.5, minimum: 5.5, exclusiveMinimum: true }
         - name: req_valid_num
           in: query
+          required: true
           schema: { type: number, multipleOf: 2.5, maximum: 10.5, minimum: 5.5, exclusiveMinimum: true }
         - name: valid_bool
           in: query
@@ -41,6 +42,10 @@ paths:
           in: query
           required: true
           schema: { type: boolean }
+        - name: req_str_format
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
       responses:
         '304': { description: Ok }
 
@@ -114,7 +119,8 @@ components:
       description: Checks to see that all Go primitives work
       type: object
       required: [int, int32, int64, float, float32, float64, str, bool,
-        int_null, int32_null, int64_null, float_null, float32_null, float64_null, str_null, bool_null]
+        int_null, int32_null, int64_null, float_null, float32_null, float64_null, str_null, bool_null,
+        str_format]
       properties:
         int:   { type: integer, description: "Normal int", multipleOf: 5 }
         int32: { type: integer, format: int32, maximum: 5 }
@@ -133,6 +139,8 @@ components:
         float64_null: { type: number, format: double, nullable: true, minimum: 5 }
         str_null:  { type: string, nullable: true, maxLength: 5, minLength: 5, enum: ["hello"] }
         bool_null: { type: boolean, nullable: true }
+
+        str_format: { type: string, format: uuid }
 
     Array:
       description: Just normal arrays
@@ -203,7 +211,7 @@ components:
           minProperties: 5
           maxProperties: 6
           additionalProperties: { type: string }
-    
+
     Ref:
       description: References to other objects
       type: object

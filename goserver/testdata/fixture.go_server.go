@@ -6,8 +6,10 @@ import (
 	"net/http"
 
 	"github.com/aarondl/oa3/support"
+	"github.com/aarondl/opt/null"
+	"github.com/aarondl/opt/omit"
+	"github.com/aarondl/opt/omitnull"
 	"github.com/go-chi/chi/v5"
-	"github.com/volatiletech/null/v8"
 )
 
 // Interface is the interface that an application server must implement
@@ -25,7 +27,7 @@ type Interface interface {
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
 	// bleeding over the sacred 80 char limit.
-	GetUser(w http.ResponseWriter, r *http.Request, validStr null.String, reqValidStr null.String, validInt int, reqValidInt int, validNum float64, reqValidNum float64, validBool bool, reqValidBool bool) (GetUserResponse, error)
+	GetUser(w http.ResponseWriter, r *http.Request, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string) (GetUserResponse, error)
 	// SetUser post /users/{id}
 	// Sets a user
 	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives) (SetUserResponse, error)
@@ -141,7 +143,7 @@ type SetUserResponse interface {
 // struct to be able to additionally return headers or differentiate between
 // multiple response codes with the same response body.
 type SetUser200WrappedResponse struct {
-	HeaderXResponseHeader null.String
+	HeaderXResponseHeader omit.Val[string]
 	Body                  Primitives
 }
 
@@ -184,7 +186,7 @@ func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.Test
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (a API) GetUser(w http.ResponseWriter, r *http.Request, validStr null.String, reqValidStr null.String, validInt int, reqValidInt int, validNum float64, reqValidNum float64, validBool bool, reqValidBool bool) (oa3gen.GetUserResponse, error) {
+func (a API) GetUser(w http.ResponseWriter, r *http.Request, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string) (oa3gen.GetUserResponse, error) {
     panic("not implemented")
 }
 // SetUser post /users/{id}

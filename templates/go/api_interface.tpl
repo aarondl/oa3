@@ -21,13 +21,13 @@ type Interface interface {
                 {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
                 {{- refName $media.Schema.Ref -}}
             {{- else if isInlinePrimitive $media.Schema.Schema -}}
-                {{- primitive $ $media.Schema.Schema -}}
+                {{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
             {{- else -}}
                 {{title $op.OperationID}}Inline
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
-        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema -}}
+        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema $param.Required -}}
         {{- end -}}
     ) ({{title $op.OperationID}}Response, error)
         {{end -}}
@@ -122,8 +122,8 @@ type {{$opname}}{{$code}}WrappedResponse struct {
     Header{{$hname | replace "-" "" | title}} {{if $header.Required -}}
                                     string
                                 {{- else -}}
-                                    {{- $.Import "github.com/volatiletech/null/v8" -}}
-                                    null.String
+                                    {{- $.Import "github.com/aarondl/opt/omit" -}}
+                                    omit.Val[string]
                                 {{- end -}}
                 {{- end -}}
     {{- $statusName := camelcase (httpStatus (atoi $code))}}
@@ -171,13 +171,13 @@ func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
                 {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
                 {{$.Params.package}}.{{- refName $media.Schema.Ref -}}
             {{- else if isInlinePrimitive $media.Schema.Schema -}}
-                {{- primitive $ $media.Schema.Schema -}}
+                {{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
             {{- else -}}
                 {{$.Params.package}}.{{title $op.OperationID}}Inline
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
-        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema -}}
+        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema $param.Required -}}
         {{- end -}}
     ) ({{$.Params.package}}.{{title $op.OperationID}}Response, error) {
     panic("not implemented")
