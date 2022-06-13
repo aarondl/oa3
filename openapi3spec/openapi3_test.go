@@ -68,7 +68,7 @@ func TestResolveRefs(t *testing.T) {
 		},
 	}
 
-	if err := testGraph.ResolveRefs(); err != nil {
+	if err := testGraph.ResolveRefs(""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -123,7 +123,7 @@ func TestCycle(t *testing.T) {
 		},
 	}
 
-	if err := testGraph.ResolveRefs(); err == nil {
+	if err := testGraph.ResolveRefs(""); err == nil {
 		t.Fatal("it should have given us a cycle error")
 	} else if !strings.Contains(err.Error(), "cycle detected") {
 		t.Fatal("it should have given us a cycle error, but got:", err)

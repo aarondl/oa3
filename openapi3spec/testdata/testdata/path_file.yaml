@@ -7,4 +7,4 @@ get:
     description: description
     content:
       application/json:
-        schema: { $ref: './testdata/schema_file.yaml' }
+        schema: { $ref: './schema_file.yaml' }

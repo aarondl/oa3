@@ -22,7 +22,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "./testdata/schema_file.yaml",
+                "$ref": "./schema_file.yaml",
                 "type": "object",
                 "required": [
                   "age"

@@ -20,12 +20,14 @@ func TestYAML(t *testing.T) {
 func TestFileRefs(t *testing.T) {
 	t.Parallel()
 
-	oa, err := LoadYAML("testdata/multi_file.yaml", false)
+	path := "testdata/multi_file.yaml"
+
+	oa, err := LoadYAML(path, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := oa.ResolveRefs(); err != nil {
+	if err := oa.ResolveRefs(path); err != nil {
 		t.Fatal(err)
 	}
 

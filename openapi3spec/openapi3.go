@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
@@ -31,7 +32,7 @@ func LoadYAML(filename string, postProcess bool) (*OpenAPI3, error) {
 		return nil, err
 	}
 
-	oa, err := LoadYAMLReader(file, postProcess)
+	oa, err := loadYAMLReader(file, postProcess, filename)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func LoadJSON(filename string, postProcess bool) (*OpenAPI3, error) {
 		return nil, err
 	}
 
-	oa, err := LoadJSONReader(file, postProcess)
+	oa, err := loadJSONReader(file, postProcess, filename)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +69,10 @@ func LoadJSON(filename string, postProcess bool) (*OpenAPI3, error) {
 //
 // Optionally post-process by validating, resolving references, etc.
 func LoadYAMLReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
+	return loadYAMLReader(reader, postProcess, "")
+}
+
+func loadYAMLReader(reader io.Reader, postProcess bool, filename string) (*OpenAPI3, error) {
 	b, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -79,7 +84,7 @@ func LoadYAMLReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 	}
 
 	if postProcess {
-		if err = oa.PostProcess(); err != nil {
+		if err = oa.PostProcess(filename); err != nil {
 			return nil, err
 		}
 	}
@@ -91,6 +96,10 @@ func LoadYAMLReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 //
 // Optionally post-process by validating, resolving references, etc.
 func LoadJSONReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
+	return loadJSONReader(reader, postProcess, "")
+}
+
+func loadJSONReader(reader io.Reader, postProcess bool, filename string) (*OpenAPI3, error) {
 	b, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -102,7 +111,7 @@ func LoadJSONReader(reader io.Reader, postProcess bool) (*OpenAPI3, error) {
 	}
 
 	if postProcess {
-		if err = oa.PostProcess(); err != nil {
+		if err = oa.PostProcess(filename); err != nil {
 			return nil, err
 		}
 	}
@@ -125,9 +134,9 @@ type OpenAPI3 struct {
 }
 
 // PostProcess the loaded openapi3 document
-func (o *OpenAPI3) PostProcess() error {
+func (o *OpenAPI3) PostProcess(filename string) error {
 	var err error
-	if err = o.ResolveRefs(); err != nil {
+	if err = o.ResolveRefs(filename); err != nil {
 		return fmt.Errorf("error resolving references: %w", err)
 	}
 	if err = o.Validate(); err != nil {
@@ -201,11 +210,11 @@ func (o *OpenAPI3) CopyInheritedItems() {
 //
 // In order to do so we use a simple recursive DFS and resolve as we go, because
 // this must be an acyclic graph we also fail gracefully on cycles.
-func (o *OpenAPI3) ResolveRefs() error {
-	return o.resolveRefsDFS(o, 0, make(map[string]bool))
+func (o *OpenAPI3) ResolveRefs(filename string) error {
+	return o.resolveRefsDFS(o, 0, make(map[string]bool), filename)
 }
 
-func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]bool) error {
+func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]bool, filename string) error {
 	nodeVal := reflect.ValueOf(node)
 	nodeType := nodeVal.Type()
 	debugf("%svisit:     %s\n", strings.Repeat(" ", 2*depth), nodeVal.Type())
@@ -223,7 +232,7 @@ func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]boo
 			if field.Kind() != reflect.Ptr {
 				field = field.Addr()
 			}
-			if err := o.resolveRefsDFS(field.Interface(), depth+1, processing); err != nil {
+			if err := o.resolveRefsDFS(field.Interface(), depth+1, processing, filename); err != nil {
 				return err
 			}
 		}
@@ -253,14 +262,14 @@ func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]boo
 
 			// Fetch a ref pointer value from the referenced location
 			debugf("%sresolve: %s (%s)\n", strings.Repeat(" ", 2*depth), nodeVal.Type(), nodeVal.Field(0).Interface().(string))
-			lookup, err := o.lookupReference(nodeType, refURI)
+			lookup, newFilename, err := o.lookupReference(nodeType, refURI, filename)
 			if err != nil {
 				return err
 			}
 
 			// Before we can resolve ourselves, we have to ensure that the
 			// refs inside the object we've resolved are also resolved.
-			if err := o.resolveRefsDFS(lookup.Interface(), depth+1, processing); err != nil {
+			if err := o.resolveRefsDFS(lookup.Interface(), depth+1, processing, newFilename); err != nil {
 				return err
 			}
 
@@ -274,7 +283,7 @@ func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]boo
 		iter := nodeVal.MapRange()
 		for iter.Next() {
 			// debugf("dfs(map): %s\n", strings.Repeat(" ", 2*depth), iter.Key().Interface())
-			if err := o.resolveRefsDFS(iter.Value().Interface(), depth+1, processing); err != nil {
+			if err := o.resolveRefsDFS(iter.Value().Interface(), depth+1, processing, filename); err != nil {
 				return err
 			}
 		}
@@ -286,7 +295,7 @@ func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]boo
 			if val.Kind() != reflect.Ptr {
 				val = val.Addr()
 			}
-			if err := o.resolveRefsDFS(val.Interface(), depth+1, processing); err != nil {
+			if err := o.resolveRefsDFS(val.Interface(), depth+1, processing, filename); err != nil {
 				return err
 			}
 		}
@@ -295,46 +304,23 @@ func (o *OpenAPI3) resolveRefsDFS(node any, depth int, processing map[string]boo
 	return nil
 }
 
-func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string) (reflect.Value, error) {
+func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string, filename string) (reflect.Value, string, error) {
 	uri, err := url.Parse(refURI)
 	if err != nil {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): %w", refURI, err)
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): %w", refURI, err)
 	}
 
 	if err := validateRefURI(refURI, uri); err != nil {
-		return reflect.Value{}, err
+		return reflect.Value{}, "", err
 	}
 
 	if len(uri.Fragment) == 0 {
-		newRef := reflect.New(refStructType.Elem())
-		newVal := reflect.New(refStructType.Elem().Field(1).Type.Elem())
-		if strings.HasSuffix(uri.Path, ".json") {
-			return reflect.Value{}, errors.New("json loading not implemented")
-		} else if strings.HasSuffix(uri.Path, ".yaml") || strings.HasSuffix(uri.Path, ".yml") {
-			b, err := os.ReadFile(uri.Path)
-			if err != nil {
-				return reflect.Value{}, fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not read file: %v", refURI, err)
-			}
-
-			var untyped map[any]any
-			if err := yaml.Unmarshal(b, &untyped); err != nil {
-				return reflect.Value{}, fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not unmarshal yaml: %v", refURI, err)
-			}
-
-			if err := yamlStruct(newVal, untyped); err != nil {
-				return reflect.Value{}, fmt.Errorf("error resolving ref(%s): failed to merge unmarshalled data into struct: %v", refURI, err)
-			}
-		} else {
-			return reflect.Value{}, fmt.Errorf("invalid ref(%s): only yaml/json file refs are supported (must have proper file extension)", refURI)
-		}
-
-		newRef.Elem().Field(1).Set(newVal)
-		return newRef, nil
+		return o.lookupFileRef(refStructType, uri, refURI, filename)
 	}
 
 	splits := strings.Split(uri.Fragment, "/")
 	if len(splits) != 4 || splits[0] != "" || splits[1] != "components" {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): fragment should be #/components/TYPE/NAME", refURI)
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): fragment should be #/components/TYPE/NAME", refURI)
 	}
 
 	refType := splits[2]
@@ -364,23 +350,71 @@ func (o *OpenAPI3) lookupReference(refStructType reflect.Type, refURI string) (r
 	case "pathItems":
 		refMap = reflect.ValueOf(o.Components.PathItems)
 	default:
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): fragment did not contain a valid type (%s)", refURI, refType)
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): fragment did not contain a valid type (%s)", refURI, refType)
 	}
 
 	lookup := refMap.MapIndex(reflect.ValueOf(refName))
 	if !lookup.IsValid() {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): could not find object %s.%s", refURI, refType, refName)
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): could not find object %s.%s", refURI, refType, refName)
 	}
 
 	if lookup.Type() != refStructType {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): %s references %s (%s)", refURI, refStructType, lookup.Type(), refType)
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): %s references %s (%s)", refURI, refStructType, lookup.Type(), refType)
 	}
 
 	if lookup.IsNil() {
-		return reflect.Value{}, fmt.Errorf("invalid ref(%s): struct referred to is nil", refURI)
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): struct referred to is nil", refURI)
 	}
 
-	return lookup, nil
+	return lookup, "", nil
+}
+
+func (o *OpenAPI3) lookupFileRef(refStructType reflect.Type, uri *url.URL, refURI string, filename string) (reflect.Value, string, error) {
+	newRef := reflect.New(refStructType.Elem())
+	newVal := reflect.New(refStructType.Elem().Field(1).Type.Elem())
+
+	var path = uri.Path
+	var err error
+	if !filepath.IsAbs(uri.Path) {
+		var base = filename
+		if len(base) == 0 {
+			base, err = os.Getwd()
+			if err != nil {
+				return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): determine working directory: %w", refURI, err)
+			}
+		} else {
+			base = filepath.Dir(filename)
+		}
+
+		path = filepath.Join(base, path)
+		if err != nil {
+			return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): could not compute final path using base: %s and path %s", refURI, base, path)
+		}
+	}
+
+	switch {
+	case strings.HasSuffix(path, ".json"):
+		return reflect.Value{}, "", errors.New("json loading not implemented")
+	case strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".yml"):
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not read file: %w", refURI, err)
+		}
+
+		var untyped map[any]any
+		if err := yaml.Unmarshal(b, &untyped); err != nil {
+			return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not unmarshal yaml: %w", refURI, err)
+		}
+
+		if err := yamlStruct(newVal, untyped); err != nil {
+			return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): failed to merge unmarshalled data into struct: %w", refURI, err)
+		}
+	default:
+		return reflect.Value{}, "", fmt.Errorf("invalid ref(%s): only yaml/json file refs are supported (must have proper file extension)", refURI)
+	}
+
+	newRef.Elem().Field(1).Set(newVal)
+	return newRef, path, nil
 }
 
 func validateRefURI(refURI string, uri *url.URL) error {
