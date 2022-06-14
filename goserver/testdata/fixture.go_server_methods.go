@@ -173,14 +173,10 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	_, _, _ = err, ers, errs
 
 	const n0 = `valid_str`
-	s0 := r.URL.Query().Get(n0)
+	s0, s0Exists := r.URL.Query().Get(n0), r.URL.Query().Has(n0)
 	var p0 omitnull.Val[string]
-	if len(s0) != 0 {
-		if s0 == "null" {
-			p0.Null()
-		} else {
-			p0.Set(s0)
-		}
+	if s0Exists {
+		p0.Set(s0)
 		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n0, errors.New(`was not in a valid format`))
@@ -203,16 +199,12 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n1 = `req_valid_str`
-	s1 := r.URL.Query().Get(n1)
+	s1, s1Exists := r.URL.Query().Get(n1), r.URL.Query().Has(n1)
 	var p1 null.Val[string]
-	if len(s1) == 0 {
-		errs = support.AddErrs(errs, n1, errors.New(`must not be empty`))
+	if !s1Exists || len(s1) == 0 {
+		errs = support.AddErrs(errs, n1, errors.New(`must be provided and not be empty`))
 	} else {
-		if s0 == "null" {
-			p1.Null()
-		} else {
-			p1.Set(s0)
-		}
+		p1.Set(s0)
 		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
@@ -235,9 +227,9 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n2 = `valid_int`
-	s2 := r.URL.Query().Get(n2)
+	s2, s2Exists := r.URL.Query().Get(n2), r.URL.Query().Has(n2)
 	var p2 omit.Val[int]
-	if len(s2) != 0 {
+	if s2Exists {
 		p2c, err := support.StringToInt[int](s2, 64)
 		p2.Set(p2c)
 		if err != nil {
@@ -259,10 +251,10 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n3 = `req_valid_int`
-	s3 := r.URL.Query().Get(n3)
+	s3, s3Exists := r.URL.Query().Get(n3), r.URL.Query().Has(n3)
 	var p3 int
-	if len(s3) == 0 {
-		errs = support.AddErrs(errs, n3, errors.New(`must not be empty`))
+	if !s3Exists || len(s3) == 0 {
+		errs = support.AddErrs(errs, n3, errors.New(`must be provided and not be empty`))
 	} else {
 		p3, err = support.StringToInt[int](s3, 64)
 		if err != nil {
@@ -284,9 +276,9 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n4 = `valid_num`
-	s4 := r.URL.Query().Get(n4)
+	s4, s4Exists := r.URL.Query().Get(n4), r.URL.Query().Has(n4)
 	var p4 omit.Val[float64]
-	if len(s4) != 0 {
+	if s4Exists {
 		p4c, err := support.StringToFloat[float64](s4, 64)
 		p4.Set(p4c)
 		if err != nil {
@@ -308,10 +300,10 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n5 = `req_valid_num`
-	s5 := r.URL.Query().Get(n5)
+	s5, s5Exists := r.URL.Query().Get(n5), r.URL.Query().Has(n5)
 	var p5 float64
-	if len(s5) == 0 {
-		errs = support.AddErrs(errs, n5, errors.New(`must not be empty`))
+	if !s5Exists || len(s5) == 0 {
+		errs = support.AddErrs(errs, n5, errors.New(`must be provided and not be empty`))
 	} else {
 		p5, err = support.StringToFloat[float64](s5, 64)
 		if err != nil {
@@ -333,19 +325,21 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n6 = `valid_bool`
-	s6 := r.URL.Query().Get(n6)
+	s6, s6Exists := r.URL.Query().Get(n6), r.URL.Query().Has(n6)
 	var p6 omit.Val[bool]
-	if len(s6) != 0 {
+	if s6Exists {
+		p6c, err := support.StringToBool(s6)
+		p6.Set(p6c)
 		if err != nil {
 			errs = support.AddErrs(errs, n6, errors.New(`was not in a valid format`))
 		}
 	}
 
 	const n7 = `req_valid_bool`
-	s7 := r.URL.Query().Get(n7)
+	s7, s7Exists := r.URL.Query().Get(n7), r.URL.Query().Has(n7)
 	var p7 bool
-	if len(s7) == 0 {
-		errs = support.AddErrs(errs, n7, errors.New(`must not be empty`))
+	if !s7Exists || len(s7) == 0 {
+		errs = support.AddErrs(errs, n7, errors.New(`must be provided and not be empty`))
 	} else {
 		p7, err = support.StringToBool(s7)
 		if err != nil {
@@ -354,10 +348,10 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	const n8 = `req_str_format`
-	s8 := r.URL.Query().Get(n8)
+	s8, s8Exists := r.URL.Query().Get(n8), r.URL.Query().Has(n8)
 	var p8 string
-	if len(s8) == 0 {
-		errs = support.AddErrs(errs, n8, errors.New(`must not be empty`))
+	if !s8Exists || len(s8) == 0 {
+		errs = support.AddErrs(errs, n8, errors.New(`must be provided and not be empty`))
 	} else {
 		p8 = s8
 		ers = nil

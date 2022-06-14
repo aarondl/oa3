@@ -153,6 +153,10 @@ func paramDuplicateKeyCheck(params []*ParameterRef) error {
 		if ok {
 			return fmt.Errorf("name %s is duplicated where in is: %s", p.Name, p.In)
 		}
+
+		if !p.Required && p.In == "path" {
+			return fmt.Errorf(`when in="path" then "required" is itself required and must be set to true`)
+		}
 	}
 
 	return nil

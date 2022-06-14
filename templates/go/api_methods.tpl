@@ -31,71 +31,80 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- $prim := (primitive $ $param.Schema.Schema $param.Required)}}
 
     const n{{$i}} = `{{$param.Name}}`
-    s{{$i}} {{/* This holds the space to the left */}}
-            {{- if eq "query" $param.In -}}
-                := r.URL.Query().Get(n{{$i}})
-            {{- else if eq "header" $param.In -}}
-                := r.Header.Get(n{{$i}})
+            {{- if eq "query" $param.In}}
+    s{{$i}}, s{{$i}}Exists := r.URL.Query().Get(n{{$i}}), r.URL.Query().Has(n{{$i}})
+            {{- else if eq "header" $param.In}}
+    s{{$i}}, s{{$i}}Exists := r.Header.Get(n{{$i}}), len(r.Header.Values(n{{$i}})) != 0
             {{- else if eq "path" $param.In -}}
-                {{- $.Import "github.com/go-chi/chi/v5" -}}
-                := chi.URLParam(r, n{{$i}})
+                {{- $.Import "github.com/go-chi/chi/v5"}}
+    s{{$i}}, s{{$i}}Exists := chi.URLParam(r, n{{$i}}), true
             {{- else if eq "cookie" $param.In -}}
-            , err := r.Cookie(n{{$i}})
-    if err != nil {
+                {{- $.Import "net/http"}}
+    var s{{$i}} string
+    s{{$i}}Exists := true
+    c{{$i}}, err := r.Cookie(n{{$i}})
+    if err == http.ErrNoCookie {
+        s{{$i}}Exists = false
+    } err != nil {
         return fmt.Errorf("failed to read cookie '{{$param.Name}}': %w", err)
+    } else if err = c{{$i}}.Valid(); err != nil {
+        return fmt.Errorf("failed to validate cookie '{{$param.Name}}': %w", err)
+    } else {
+        s{{$i}} = c{{$i}}.Value
     }
             {{- end}}
     var p{{$i}} {{$prim}}
             {{- if $param.Required -}}
     {{- /* Warning: This starts an else { block that covers a great deal of code */}}
-    if len(s{{$i}}) == 0 {
+    if !s{{$i}}Exists || len(s{{$i}}) == 0 {
             {{- $.Import "errors"}}
-        errs = support.AddErrs(errs, n{{$i}}, errors.New(`must not be empty`))
+        errs = support.AddErrs(errs, n{{$i}}, errors.New(`must be provided and not be empty`))
     } else {
             {{- else}}
-    if len(s{{$i}}) != 0 {
+    if s{{$i}}Exists {
             {{- end -}}
+            {{/*
+                There are many cases for the property type:
+                * string - Just assign
+                * int/uint/float/bool - Convert and assign
+                * (omit|null|omitnull).Val[string] - Set string without conversion
+                * (omit|null|omitnull).Val[int/uint/float/bool] - Convert then set
+            */}}
             {{- if ne $prim "string" -}}
                 {{- $.Import "github.com/aarondl/oa3/support" -}}
                 {{- $primRaw := primitiveRaw $ $param.Schema.Schema -}}
-                {{- if ne $primRaw "bool"}}
-                    {{- $convFn := "Float" -}}
-                    {{- if hasPrefix "int" $primRaw -}}
-                        {{- $convFn = "Int" -}}
-                    {{- else if hasPrefix "uint" $primRaw -}}
-                        {{- $convFn = "Uint" -}}
-                    {{- end -}}
-                    {{- if eq $primRaw "string"}}
-    if s0 == "null" {
-        p{{$i}}.Null()
-    } else {
+                {{- if eq $primRaw "string"}}
         p{{$i}}.Set(s0)
-    }
-    err = nil
-                    {{- else -}}
-                        {{- if or (hasPrefix "null" $prim) (hasPrefix "omit" $prim)}}
-    p{{$i}}c, err := support.StringTo{{$convFn}}[{{$primRaw}}](s{{$i}}, {{primitiveBits $ $param.Schema.Schema}})
-    p{{$i}}.Set(p{{$i}}c)
-                        {{- else}}
-    p{{$i}}, err = support.StringTo{{$convFn}}[{{$primRaw}}](s{{$i}}, {{primitiveBits $ $param.Schema.Schema}})
-                        {{- end -}}
+        err = nil
+                {{- else -}}
+                    {{- $convFn := printf "support.StringToBool(s%d)" $i -}}
+                    {{- if hasPrefix "int" $primRaw -}}
+                        {{- $convFn = printf "support.StringToInt[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
+                    {{- else if hasPrefix "uint" $primRaw -}}
+                        {{- $convFn = printf "support.StringToUint[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
+                    {{- else if hasPrefix "float" $primRaw -}}
+                        {{- $convFn = printf "support.StringToFloat[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
                     {{- end -}}
-                {{- else if eq $prim "bool"}}
-    p{{$i}}, err = support.StringToBool(s{{$i}})
+                    {{- if or (hasPrefix "null." $prim) (hasPrefix "omit." $prim) (hasPrefix "omitnull." $prim)}}
+        p{{$i}}c, err := {{$convFn}}
+        p{{$i}}.Set(p{{$i}}c)
+                    {{- else}}
+        p{{$i}}, err = {{$convFn}}
+                    {{- end -}}
                 {{- end}}
-    if err != nil {
+        if err != nil {
                 {{- $.Import "errors"}}
-        errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
-    }
+            errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
+        }
             {{- else}}
         p{{$i}} = s{{$i}}
             {{- end -}}
             {{- if mustValidate $param.Schema.Schema -}}
                 {{- $.Import "github.com/aarondl/oa3/support"}}
-    {{template "validate_field" (newDataRequired $ (printf "p%d" $i) $param.Schema.Schema $param.Required)}}
-    if len(ers) != 0 {
-        errs = support.AddErrs(errs, n{{$i}}, ers...)
-    }
+        {{template "validate_field" (newDataRequired $ (printf "p%d" $i) $param.Schema.Schema $param.Required)}}
+        if len(ers) != 0 {
+            errs = support.AddErrs(errs, n{{$i}}, ers...)
+        }
             {{end -}}
     }{{- /* This bracket closes the validation if above */ -}}
         {{- end}}
