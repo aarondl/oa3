@@ -53,7 +53,6 @@
             {{- /* Process regular struct fields */ -}}
             {{- range $name, $element := $s.Properties -}}
                 {{- if and (not $element.Ref) (mustValidate $element.Schema)}}
-                // VALIDATING {{$name}} {{$element.Schema.Nullable}} {{$s.IsRequired $name}}
     {{template "validate_field" (recurseDataSetRequired $ (printf ".%s" (camelcase $name)) $element.Schema ($s.IsRequired $name))}}
     if len(ers) != 0 {
         ctx = append(ctx, {{printf "%q" $name}})

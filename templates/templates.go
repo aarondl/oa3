@@ -65,7 +65,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.Format != nil
 }
 
-// mustValidateRecure checks to see if the current schema, or any sub-schema
+// mustValidateRecurse checks to see if the current schema, or any sub-schema
 // requires validation
 func mustValidateRecurse(s *openapi3spec.Schema) bool {
 	cycleMarkers := make(map[string]struct{})

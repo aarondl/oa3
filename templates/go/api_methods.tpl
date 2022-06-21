@@ -78,7 +78,24 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         err = nil
                 {{- else -}}
                     {{- $convFn := printf "support.StringToBool(s%d)" $i -}}
-                    {{- if hasPrefix "int" $primRaw -}}
+                    {{- if eq $primRaw "chrono.DateTime" -}}
+                        {{- $convFn = printf "support.StringToChronoDateTime(s%d)" $i -}}
+                    {{- else if eq $primRaw "chrono.Date" -}}
+                        {{- $convFn = printf "support.StringToChronoDate(s%d)" $i -}}
+                    {{- else if eq $primRaw "chrono.Time" -}}
+                        {{- $convFn = printf "support.StringToChronoTime(s%d)" $i -}}
+                    {{- else if eq $primRaw "time.Time" -}}
+                        {{- $primFmt := printf "%s" $param.Schema.Schema.Format -}}
+                        {{- if eq $primFmt "date-time" -}}
+                            {{- $convFn = printf "support.StringToDateTime(s%d)" $i -}}
+                        {{- else if eq $primFmt "date" -}}
+                            {{- $convFn = printf "support.StringToDate(s%d)" $i -}}
+                        {{- else if eq $primFmt "time" -}}
+                            {{- $convFn = printf "support.StringToTime(s%d)" $i -}}
+                        {{- end -}}
+                    {{- else if eq $primRaw "time.Duration" -}}
+                        {{- $convFn = printf "support.StringToDuration(s%d)" $i -}}
+                    {{- else if hasPrefix "int" $primRaw -}}
                         {{- $convFn = printf "support.StringToInt[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
                     {{- else if hasPrefix "uint" $primRaw -}}
                         {{- $convFn = printf "support.StringToUint[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}

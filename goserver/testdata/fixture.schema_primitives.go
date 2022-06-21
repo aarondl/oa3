@@ -4,31 +4,43 @@ package oa3gen
 
 import (
 	"strings"
+	"time"
 
+	"github.com/aarondl/chrono"
 	"github.com/aarondl/oa3/support"
 	"github.com/aarondl/opt/null"
+	"github.com/aarondl/opt/omit"
+	"github.com/aarondl/opt/omitnull"
 )
 
 // Checks to see that all Go primitives work
 type Primitives struct {
-	Bool        bool              `json:"bool"`
-	BoolNull    null.Val[bool]    `json:"bool_null"`
-	Float       float64           `json:"float"`
-	Float32     float32           `json:"float32"`
-	Float32Null null.Val[float32] `json:"float32_null"`
-	Float64     float64           `json:"float64"`
-	Float64Null null.Val[float64] `json:"float64_null"`
-	FloatNull   null.Val[float64] `json:"float_null"`
+	Bool         bool                        `json:"bool"`
+	BoolNull     null.Val[bool]              `json:"bool_null"`
+	DateNull     null.Val[chrono.Date]       `json:"date_null"`
+	DateVal      chrono.Date                 `json:"date_val"`
+	DatetimeNull null.Val[chrono.DateTime]   `json:"datetime_null"`
+	DatetimeVal  chrono.DateTime             `json:"datetime_val"`
+	DurationNull omitnull.Val[time.Duration] `json:"duration_null,omitempty"`
+	DurationVal  omit.Val[time.Duration]     `json:"duration_val,omitempty"`
+	Float        float64                     `json:"float"`
+	Float32      float32                     `json:"float32"`
+	Float32Null  null.Val[float32]           `json:"float32_null"`
+	Float64      float64                     `json:"float64"`
+	Float64Null  null.Val[float64]           `json:"float64_null"`
+	FloatNull    null.Val[float64]           `json:"float_null"`
 	// Normal int
-	Int       int               `json:"int"`
-	Int32     int32             `json:"int32"`
-	Int32Null null.Val[int32]   `json:"int32_null"`
-	Int64     int64             `json:"int64"`
-	Int64Null null.Val[int64]   `json:"int64_null"`
-	IntNull   null.Val[int]     `json:"int_null"`
-	Str       PrimitivesStr     `json:"str"`
-	StrFormat string            `json:"str_format"`
-	StrNull   PrimitivesStrNull `json:"str_null"`
+	Int       int                   `json:"int"`
+	Int32     int32                 `json:"int32"`
+	Int32Null null.Val[int32]       `json:"int32_null"`
+	Int64     int64                 `json:"int64"`
+	Int64Null null.Val[int64]       `json:"int64_null"`
+	IntNull   null.Val[int]         `json:"int_null"`
+	Str       PrimitivesStr         `json:"str"`
+	StrFormat string                `json:"str_format"`
+	StrNull   PrimitivesStrNull     `json:"str_null"`
+	TimeNull  null.Val[chrono.Time] `json:"time_null"`
+	TimeVal   chrono.Time           `json:"time_val"`
 }
 type PrimitivesStr string
 
@@ -50,7 +62,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
 
-	// VALIDATING float false true
 	ers = nil
 	if err := support.ValidateMultipleOfFloat(o.Float, 5.5); err != nil {
 		ers = append(ers, err)
@@ -60,7 +71,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING float32 false true
 	ers = nil
 	if err := support.ValidateMaxNumber(o.Float32, 5.5, false); err != nil {
 		ers = append(ers, err)
@@ -70,7 +80,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING float32_null true true
 	ers = nil
 	if err := support.ValidateMaxNumber(o.Float32Null.GetOrZero(), 5, false); err != nil {
 		ers = append(ers, err)
@@ -80,7 +89,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING float64 false true
 	ers = nil
 	if err := support.ValidateMinNumber(o.Float64, 5.5, false); err != nil {
 		ers = append(ers, err)
@@ -90,7 +98,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING float64_null true true
 	ers = nil
 	if err := support.ValidateMinNumber(o.Float64Null.GetOrZero(), 5, false); err != nil {
 		ers = append(ers, err)
@@ -100,7 +107,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING float_null true true
 	ers = nil
 	if err := support.ValidateMultipleOfFloat(o.FloatNull.GetOrZero(), 5.5); err != nil {
 		ers = append(ers, err)
@@ -110,7 +116,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING int false true
 	ers = nil
 	if err := support.ValidateMultipleOfInt(o.Int, 5); err != nil {
 		ers = append(ers, err)
@@ -120,7 +125,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING int32 false true
 	ers = nil
 	if err := support.ValidateMaxNumber(o.Int32, 5, false); err != nil {
 		ers = append(ers, err)
@@ -130,7 +134,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING int32_null true true
 	ers = nil
 	if err := support.ValidateMaxNumber(o.Int32Null.GetOrZero(), 5, false); err != nil {
 		ers = append(ers, err)
@@ -140,7 +143,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING int64 false true
 	ers = nil
 	if err := support.ValidateMinNumber(o.Int64, 5, false); err != nil {
 		ers = append(ers, err)
@@ -150,7 +152,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING int64_null true true
 	ers = nil
 	if err := support.ValidateMinNumber(o.Int64Null.GetOrZero(), 5, false); err != nil {
 		ers = append(ers, err)
@@ -160,7 +161,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING int_null true true
 	ers = nil
 	if err := support.ValidateMultipleOfInt(o.IntNull.GetOrZero(), 5); err != nil {
 		ers = append(ers, err)
@@ -170,7 +170,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING str false true
 	ers = nil
 	if err := support.ValidateMaxLength(o.Str, 5); err != nil {
 		ers = append(ers, err)
@@ -188,7 +187,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING str_format false true
 	ers = nil
 	if err := support.ValidateFormatUUIDv4(o.StrFormat); err != nil {
 		ers = append(ers, err)
@@ -199,7 +197,6 @@ func (o Primitives) VVValidateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	// VALIDATING str_null true true
 	ers = nil
 	if err := support.ValidateMaxLength(null.Val[string](o.StrNull).GetOrZero(), 5); err != nil {
 		ers = append(ers, err)

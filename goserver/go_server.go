@@ -25,7 +25,8 @@ const (
 
 // Constants for keys recognized in the parameters for the Go server
 const (
-	PackageKey = "package"
+	ParamKeyPackage  = "package"
+	ParamKeyTimeType = "timetype"
 )
 
 // templates for generation
@@ -48,6 +49,9 @@ var funcs = map[string]interface{}{
 	"isInlinePrimitive": isInlinePrimitive,
 	"taggedPaths":       tagPaths,
 	"responseKind":      responseKind,
+
+	// overrides of the defaults
+	"mustValidate": mustValidate,
 }
 
 // generator generates templates for Go
@@ -72,8 +76,8 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	if params == nil {
 		params = make(map[string]string)
 	}
-	if pkg, ok := params[PackageKey]; !ok || len(pkg) == 0 {
-		params[PackageKey] = DefaultPackage
+	if pkg, ok := params[ParamKeyPackage]; !ok || len(pkg) == 0 {
+		params[ParamKeyPackage] = DefaultPackage
 	}
 
 	var files []generator.File
@@ -400,6 +404,37 @@ func primitiveRaw(tdata templates.TemplateData, schema *openapi3spec.Schema) (st
 
 		return "float64", nil
 	case "string":
+		if schema.Format != nil {
+			switch *schema.Format {
+			case "date":
+				if tdata.Params[ParamKeyTimeType] == "chrono" {
+					tdata.Import("github.com/aarondl/chrono")
+					return "chrono.Date", nil
+				} else {
+					tdata.Import("time")
+					return "time.Time", nil
+				}
+			case "time":
+				if tdata.Params[ParamKeyTimeType] == "chrono" {
+					tdata.Import("github.com/aarondl/chrono")
+					return "chrono.Time", nil
+				} else {
+					tdata.Import("time")
+					return "time.Time", nil
+				}
+			case "date-time":
+				if tdata.Params[ParamKeyTimeType] == "chrono" {
+					tdata.Import("github.com/aarondl/chrono")
+					return "chrono.DateTime", nil
+				} else {
+					tdata.Import("time")
+					return "time.Time", nil
+				}
+			case "duration":
+				tdata.Import("time")
+				return "time.Duration", nil
+			}
+		}
 		return "string", nil
 	case "boolean":
 		return "bool", nil
@@ -429,6 +464,11 @@ func primitiveBits(tdata templates.TemplateData, schema *openapi3spec.Schema) (s
 }
 
 func primitiveWrapped(tdata templates.TemplateData, schema *openapi3spec.Schema, nullable bool, required bool) (string, error) {
+	prim, err := primitiveRaw(tdata, schema)
+	if err != nil {
+		return "", err
+	}
+
 	var kind string
 	switch {
 	case nullable && required:
@@ -441,42 +481,30 @@ func primitiveWrapped(tdata templates.TemplateData, schema *openapi3spec.Schema,
 		panic("invalid combination: !nullable && required")
 	}
 
-	switch schema.Type {
-	case "integer":
-		tdata.Import("github.com/aarondl/opt/" + kind)
+	tdata.Import("github.com/aarondl/opt/" + kind)
+	return kind + `.Val[` + prim + `]`, nil
+}
 
-		if schema.Format != nil {
-			switch *schema.Format {
-			case "int32":
-				return kind + ".Val[int32]", nil
-			case "int64":
-				return kind + ".Val[int64]", nil
-			}
-		}
-
-		return kind + ".Val[int]", nil
-	case "number":
-		tdata.Import("github.com/aarondl/opt/" + kind)
-
-		if schema.Format != nil {
-			switch *schema.Format {
-			case "float":
-				return kind + ".Val[float32]", nil
-			case "double":
-				return kind + ".Val[float64]", nil
-			}
-		}
-
-		return kind + ".Val[float64]", nil
-	case "string":
-		tdata.Import("github.com/aarondl/opt/" + kind)
-		return kind + ".Val[string]", nil
-	case "boolean":
-		tdata.Import("github.com/aarondl/opt/" + kind)
-		return kind + ".Val[bool]", nil
-	}
-
-	return "", fmt.Errorf("schema had expected primitive nil type (integer, number, string, boolean) but got: %s", schema.Type)
+// mustValidate checks to see if the schema requires any kind of validation
+// overrides the generic definition
+//
+// The general reason to have overridded this is because
+// date/datetime/time/duration types are handled by using a type that validates
+// it on parse/convert so there's no reason to generate validation after
+// the conversion has already been done.
+func mustValidate(s *openapi3spec.Schema) bool {
+	return s.MultipleOf != nil ||
+		s.Maximum != nil ||
+		s.Minimum != nil ||
+		s.MaxLength != nil ||
+		s.MinLength != nil ||
+		s.Pattern != nil ||
+		s.MaxItems != nil ||
+		s.MinItems != nil ||
+		s.UniqueItems != nil ||
+		s.MaxProperties != nil ||
+		s.MinProperties != nil ||
+		(s.Format != nil && *s.Format != "date" && *s.Format != "date-time" && *s.Format != "time" && *s.Format != "duration")
 }
 
 func imports(imps map[string]struct{}) string {

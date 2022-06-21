@@ -5,7 +5,9 @@ package oa3gen
 import (
 	"errors"
 	"net/http"
+	"time"
 
+	"github.com/aarondl/chrono"
 	"github.com/aarondl/oa3/support"
 	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
@@ -364,11 +366,59 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	const n9 = `date_time`
+	s9, s9Exists := r.URL.Query().Get(n9), r.URL.Query().Has(n9)
+	var p9 chrono.DateTime
+	if !s9Exists || len(s9) == 0 {
+		errs = support.AddErrs(errs, n9, errors.New(`must be provided and not be empty`))
+	} else {
+		p9, err = support.StringToChronoDateTime(s9)
+		if err != nil {
+			errs = support.AddErrs(errs, n9, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n10 = `date`
+	s10, s10Exists := r.URL.Query().Get(n10), r.URL.Query().Has(n10)
+	var p10 chrono.Date
+	if !s10Exists || len(s10) == 0 {
+		errs = support.AddErrs(errs, n10, errors.New(`must be provided and not be empty`))
+	} else {
+		p10, err = support.StringToChronoDate(s10)
+		if err != nil {
+			errs = support.AddErrs(errs, n10, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n11 = `time_val`
+	s11, s11Exists := r.URL.Query().Get(n11), r.URL.Query().Has(n11)
+	var p11 chrono.Time
+	if !s11Exists || len(s11) == 0 {
+		errs = support.AddErrs(errs, n11, errors.New(`must be provided and not be empty`))
+	} else {
+		p11, err = support.StringToChronoTime(s11)
+		if err != nil {
+			errs = support.AddErrs(errs, n11, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n12 = `duration_val`
+	s12, s12Exists := r.URL.Query().Get(n12), r.URL.Query().Has(n12)
+	var p12 time.Duration
+	if !s12Exists || len(s12) == 0 {
+		errs = support.AddErrs(errs, n12, errors.New(`must be provided and not be empty`))
+	} else {
+		p12, err = support.StringToDuration(s12)
+		if err != nil {
+			errs = support.AddErrs(errs, n12, errors.New(`was not in a valid format`))
+		}
+	}
+
 	if errs != nil {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8)
+	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)
 	if err != nil {
 		if alreadyHandled, ok := err.(AlreadyHandled); ok {
 			if alreadyHandled.AlreadyHandled() {

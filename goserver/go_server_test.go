@@ -38,7 +38,7 @@ func TestGenerator(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	files, err := gen.Do(oa, nil)
+	files, err := gen.Do(oa, map[string]string{"timetype": "chrono"})
 	if err != nil {
 		t.Fatal(err)
 	}

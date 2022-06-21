@@ -19,3 +19,18 @@
 ## Examples
 
 Coming Soon™
+
+## Parameters
+
+This is an exhaustive list of things that are supported as a paremeter
+
+### Go Server
+
+| Name     | Values         | Description |
+|----------|----------------|-------------|
+| timetype | time (default) | Uses time.Time for date/datetime/time
+|          | chrono         | Uses chrono.X for date/datetime/time
+
+### Typescript Client
+
+Currently no parameters are supported.

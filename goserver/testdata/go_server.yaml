@@ -46,6 +46,22 @@ paths:
           in: query
           required: true
           schema: { type: string, format: uuid }
+        - name: date_time
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: time_val
+          in: query
+          required: true
+          schema: { type: string, format: time }
+        - name: duration_val
+          in: query
+          required: true
+          schema: { type: string, format: duration }
       responses:
         '304': { description: Ok }
 
@@ -118,9 +134,32 @@ components:
     Primitives:
       description: Checks to see that all Go primitives work
       type: object
-      required: [int, int32, int64, float, float32, float64, str, bool,
-        int_null, int32_null, int64_null, float_null, float32_null, float64_null, str_null, bool_null,
-        str_format]
+      required:
+        - int
+        - int32
+        - int64
+        - float
+        - float32
+        - float64
+        - str
+        - bool
+
+        - int_null
+        - int32_null
+        - int64_null
+        - float_null
+        - float32_null
+        - float64_null
+        - str_null
+        - bool_null
+
+        - str_format
+        - time_val
+        - time_null
+        - datetime_val
+        - datetime_null
+        - date_val
+        - date_null
       properties:
         int:   { type: integer, description: "Normal int", multipleOf: 5 }
         int32: { type: integer, format: int32, maximum: 5 }
@@ -140,7 +179,15 @@ components:
         str_null:  { type: string, nullable: true, maxLength: 5, minLength: 5, enum: ["hello"] }
         bool_null: { type: boolean, nullable: true }
 
-        str_format: { type: string, format: uuid }
+        str_format:    { type: string, format: uuid }
+        time_val:      { type: string, format: time }
+        time_null:     { type: string, format: time, nullable: true }
+        datetime_val:  { type: string, format: date-time }
+        datetime_null: { type: string, format: date-time, nullable: true }
+        date_val:      { type: string, format: date }
+        date_null:     { type: string, format: date, nullable: true }
+        duration_val:  { type: string, format: duration }
+        duration_null: { type: string, format: duration, nullable: true }
 
     Array:
       description: Just normal arrays
