@@ -17,6 +17,7 @@
         {{end -}}
         {{- if mustValidateRecurse $s.Items.Schema}}
     for i, {{$.Name}} := range {{$.Name}} {
+        _ = {{$.Name}}
         var ers []error
         {{- $.Import "fmt"}}
         ctx = append(ctx, fmt.Sprintf("[%d]", i))
@@ -41,6 +42,7 @@
             {{end -}}
             {{- if mustValidateRecurse $s.AdditionalProperties.Schema -}}
     for k, {{$.Name}} := range {{$.Name}} {
+        _ = {{$.Name}}
         var ers []error
         ctx = append(ctx, k)
             {{template "validate_schema_helper" (newDataRequired $ $.Name $s.AdditionalProperties true) }}
