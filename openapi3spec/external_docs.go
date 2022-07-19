@@ -17,6 +17,10 @@ type ExternalDocs struct {
 
 // Validate external docs
 func (e *ExternalDocs) Validate() error {
+	if e == nil {
+		return nil
+	}
+
 	if e.Description != nil && len(strings.TrimSpace(*e.Description)) == 0 {
 		return errors.New("description if present must not be blank")
 	}
