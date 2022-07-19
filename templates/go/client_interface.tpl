@@ -1,6 +1,8 @@
 {{- $.Import "net/http" -}}
 {{- $.Import "net/http/httputil" -}}
 {{- $.Import "context" -}}
+{{- $.Import "fmt" -}}
+{{- $.Import "time" -}}
 
 type ctxKey string
 
@@ -12,7 +14,6 @@ var (
 	apiHTTPClient = &http.Client{Timeout: time.Second * 5}
 )
 
-
 // Client is a generated package for consuming an openapi spec.
 {{- if $.Spec.Info.Description}}
 //
@@ -20,6 +21,7 @@ var (
 {{end -}}
 type Client struct {
 	httpClient *http.Client
+	{{- $.Import "golang.org/x/time/rate"}}
 	limiter *rate.Limiter
 }
 
@@ -43,19 +45,19 @@ func hasDebug(ctx context.Context) bool {
 // It also takes an optional rate limiter to implement rate limiting.
 func NewClient(httpClient *http.Client, limiter *rate.Limiter) Client {
 	if httpClient != nil {
-		return Client{client: httpClient}
+		return Client{httpClient: httpClient}
 	}
-	return Client{client: apiHTTPClient}
+	return Client{httpClient: apiHTTPClient}
 }
 
-func (c Client) doRequest(req *http.Request) (*http.Response, error) {
+func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
 	if c.limiter != nil {
-		if err := c.limiter.Wait(req.Context(), 1); err != nil {
+		if err := c.limiter.Wait(ctx); err != nil {
 			return nil, err
 		}
 	}
 
-	if hasDebug(req.Context()) {
+	if hasDebug(ctx) {
 		reqDump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to emit debugging info: %w", err)
@@ -68,7 +70,7 @@ func (c Client) doRequest(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	if hasDebug(req.Context()) {
+	if hasDebug(ctx) {
 		respDump, err := httputil.DumpResponse(resp, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to emit debugging info: %w", err)
@@ -78,3 +80,5 @@ func (c Client) doRequest(req *http.Request) (*http.Response, error) {
 
 	return resp, nil
 }
+
+{{template "responses" $}}

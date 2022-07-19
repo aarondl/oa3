@@ -4,8 +4,13 @@ package oa3gen
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"time"
+
+	"github.com/aarondl/opt/omit"
+	"golang.org/x/time/rate"
 )
 
 type ctxKey string
@@ -46,19 +51,19 @@ func hasDebug(ctx context.Context) bool {
 // It also takes an optional rate limiter to implement rate limiting.
 func NewClient(httpClient *http.Client, limiter *rate.Limiter) Client {
 	if httpClient != nil {
-		return Client{client: httpClient}
+		return Client{httpClient: httpClient}
 	}
-	return Client{client: apiHTTPClient}
+	return Client{httpClient: apiHTTPClient}
 }
 
-func (c Client) doRequest(req *http.Request) (*http.Response, error) {
+func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
 	if c.limiter != nil {
-		if err := c.limiter.Wait(req.Context(), 1); err != nil {
+		if err := c.limiter.Wait(ctx); err != nil {
 			return nil, err
 		}
 	}
 
-	if hasDebug(req.Context()) {
+	if hasDebug(ctx) {
 		reqDump, err := httputil.DumpRequestOut(req, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to emit debugging info: %w", err)
@@ -71,7 +76,7 @@ func (c Client) doRequest(req *http.Request) (*http.Response, error) {
 		return nil, err
 	}
 
-	if hasDebug(req.Context()) {
+	if hasDebug(ctx) {
 		respDump, err := httputil.DumpResponse(resp, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to emit debugging info: %w", err)
@@ -81,3 +86,87 @@ func (c Client) doRequest(req *http.Request) (*http.Response, error) {
 
 	return resp, nil
 }
+
+// AuthenticateResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type AuthenticateResponse interface {
+	AuthenticateImpl()
+}
+
+// AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) AuthenticateImpl() {}
+
+// TestInlinePrimitiveBodyResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestInlinePrimitiveBodyResponse interface {
+	TestInlinePrimitiveBodyImpl()
+}
+
+// TestInlinePrimitiveBodyImpl implements TestInlinePrimitiveBodyResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
+
+// TestInlineResponse one-of enforcer
+//
+// Implementors:
+// - TestInline200Inline
+// - TestInline201Inline
+type TestInlineResponse interface {
+	TestInlineImpl()
+}
+
+// TestInlineImpl implements TestInlineHeadersResponse(200) for
+func (TestInline200Inline) TestInlineImpl() {}
+
+// TestInlineImpl implements TestInlineHeadersResponse(201) for
+func (TestInline201Inline) TestInlineImpl() {}
+
+// GetUserResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusNotModified
+type GetUserResponse interface {
+	GetUserImpl()
+}
+
+// GetUserImpl implements GetUserResponse(304) for HTTPStatusNotModified
+func (HTTPStatusNotModified) GetUserImpl() {}
+
+// SetUserResponse one-of enforcer
+//
+// Implementors:
+// - SetUser200HeadersResponse
+// - Primitives
+type SetUserResponse interface {
+	SetUserImpl()
+}
+
+// SetUser200WrappedResponse wraps the normal body response with a
+// struct to be able to additionally return headers or differentiate between
+// multiple response codes with the same response body.
+type SetUser200WrappedResponse struct {
+	HeaderXResponseHeader omit.Val[string]
+	Body                  Primitives
+}
+
+// SetUserImpl implements SetUserResponse(200) for SetUser200WrappedResponse
+func (SetUser200WrappedResponse) SetUserImpl() {}
+
+// SetUserdefaultWrappedResponse wraps the normal body response with a
+// struct to be able to additionally return headers or differentiate between
+// multiple response codes with the same response body.
+type SetUserdefaultWrappedResponse struct {
+	Body Primitives
+}
+
+// SetUserImpl implements SetUserResponse(default) for SetUserdefaultWrappedResponse
+func (SetUserdefaultWrappedResponse) SetUserImpl() {}
+
+// HTTPStatusNotModified is an empty response
+type HTTPStatusNotModified struct{}
+
+// HTTPStatusOk is an empty response
+type HTTPStatusOk struct{}

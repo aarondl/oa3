@@ -20,6 +20,7 @@ var tpls = []string{
 	"client_methods.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
+	"responses.tpl",
 
 	"validate_schema_noop.tpl",
 }

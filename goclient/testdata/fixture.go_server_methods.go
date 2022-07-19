@@ -3,9 +3,13 @@
 package oa3gen
 
 import (
-	"errors"
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -16,282 +20,226 @@ import (
 )
 
 // Authenticate post /auth
-func (c GoServer) Authenticate(ctx context.Context) (AuthenticateResponse, *http.Response, error) {
-	urlStr := `/auth`
-	req := http.NewRequest(http.MethodPost, urlStr, nil)
-	var queryStringValues url.Values
-
-	if len(queryStringValues) > 0 {
-		req.URL.RawQuery = queryStringValues.Encode()
+func (_c Client) Authenticate(_ctx context.Context) (AuthenticateResponse, *http.Response, error) {
+	_urlStr := `/auth`
+	_req, _err := http.NewRequestWithContext(_ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
 	}
 
-	httpResp, err := c.doRequest(req)
-	if err != nil {
-		return nil, nil, err
+	_httpResp, _err := _c.doRequest(_ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
 	}
 
-	var resp AuthenticateResponse
-	switch httpResp.Status {
-	case 200:
-
+	var _resp AuthenticateResponse
+	switch _httpResp.Status {
+	case `200`:
+		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, errors.Errorf("unknown response code")
+		return nil, nil, fmt.Errorf("unknown response code")
 	}
 
-	return resp, httpResp, nil
+	return _resp, _httpResp, nil
 }
 
-// Testinlineprimitivebody get /test/inline
-func (c GoServer) Testinlineprimitivebody(ctx context.Context, body string) (TestInlinePrimitiveBodyResponse, *http.Response, error) {
-	urlStr := `/test/inline`
-	req := http.NewRequest(http.MethodGet, urlStr, nil)
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
+// TestInlinePrimitiveBody get /test/inline
+func (_c Client) TestInlinePrimitiveBody(_ctx context.Context, body string) (TestInlinePrimitiveBodyResponse, *http.Response, error) {
+	_urlStr := `/test/inline`
+	_req, _err := http.NewRequestWithContext(_ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
 	}
-	req.Body = bytes.NewReader(bodyBytes)
-	var queryStringValues url.Values
-
-	if len(queryStringValues) > 0 {
-		req.URL.RawQuery = queryStringValues.Encode()
+	_bodyBytes, _err := json.Marshal(body)
+	if _err != nil {
+		return nil, nil, _err
 	}
-
-	httpResp, err := c.doRequest(req)
-	if err != nil {
-		return nil, nil, err
+	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
 	}
 
-	var resp TestInlinePrimitiveBodyResponse
-	switch httpResp.Status {
-	case 200:
+	_httpResp, _err := _c.doRequest(_ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
 
+	var _resp TestInlinePrimitiveBodyResponse
+	switch _httpResp.Status {
+	case `200`:
+		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, errors.Errorf("unknown response code")
+		return nil, nil, fmt.Errorf("unknown response code")
 	}
 
-	return resp, httpResp, nil
+	return _resp, _httpResp, nil
 }
 
-// Testinline post /test/inline
-func (c GoServer) Testinline(ctx context.Context, body TestInlineInline) (TestInlineResponse, *http.Response, error) {
-	urlStr := `/test/inline`
-	req := http.NewRequest(http.MethodPost, urlStr, nil)
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
+// TestInline post /test/inline
+func (_c Client) TestInline(_ctx context.Context, body TestInlineInline) (TestInlineResponse, *http.Response, error) {
+	_urlStr := `/test/inline`
+	_req, _err := http.NewRequestWithContext(_ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
 	}
-	req.Body = bytes.NewReader(bodyBytes)
-	var queryStringValues url.Values
-
-	if len(queryStringValues) > 0 {
-		req.URL.RawQuery = queryStringValues.Encode()
+	_bodyBytes, _err := json.Marshal(body)
+	if _err != nil {
+		return nil, nil, _err
 	}
-
-	httpResp, err := c.doRequest(req)
-	if err != nil {
-		return nil, nil, err
+	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
 	}
 
-	var resp TestInlineResponse
-	switch httpResp.Status {
-	case 200:
+	_httpResp, _err := _c.doRequest(_ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
 
-	case 201:
-
+	var _resp TestInlineResponse
+	switch _httpResp.Status {
+	case `200`:
+		var _respObject TestInline200Inline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return nil, nil, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return nil, nil, _err
+		}
+		_resp = _respObject
+	case `201`:
+		var _respObject TestInline201Inline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return nil, nil, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return nil, nil, _err
+		}
+		_resp = _respObject
 	default:
-		return nil, nil, errors.Errorf("unknown response code")
+		return nil, nil, fmt.Errorf("unknown response code")
 	}
 
-	return resp, httpResp, nil
+	return _resp, _httpResp, nil
 }
 
-// Getuser get /users/{id}
+// GetUser get /users/{id}
 //
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (c GoServer) Getuser(ctx context.Context, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
-	urlStr := `/users/{id}`
-	urlStr = strings.Replace(urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
-	req := http.NewRequest(http.MethodGet, urlStr, nil)
-	if val, ok := validStr.Get(); ok {
-		req.Header().Set(`valid_str`, fmt.Sprintf("%v", val))
+func (_c Client) GetUser(_ctx context.Context, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
+	_urlStr := `/users/{id}`
+	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
+	_req, _err := http.NewRequestWithContext(_ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
 	}
-	var queryStringValues url.Values
-	if queryStringValues == nil {
-		queryStringValues = make(url.Values)
+	if val, ok := validStr.Get(); ok {
+		_req.Header.Set(`valid_str`, fmt.Sprintf("%v", val))
+	}
+	var _query url.Values
+	if _query == nil {
+		_query = make(url.Values)
 	}
 	if val, ok := reqValidStr.Get(); ok {
-		req.queryStringValues.Set(`req_valid_str`, fmt.Sprintf("%v", val))
+		_query.Set(`req_valid_str`, fmt.Sprintf("%v", val))
 	}
 	if val, ok := validInt.Get(); ok {
-		req.queryStringValues.Set(`valid_int`, fmt.Sprintf("%v", val))
+		_query.Set(`valid_int`, fmt.Sprintf("%v", val))
 	}
-	req.queryStringValues.Set(`req_valid_int`, fmt.Sprintf("%v", reqValidInt))
+	_query.Set(`req_valid_int`, fmt.Sprintf("%v", reqValidInt))
 	if val, ok := validNum.Get(); ok {
-		req.queryStringValues.Set(`valid_num`, fmt.Sprintf("%v", val))
+		_query.Set(`valid_num`, fmt.Sprintf("%v", val))
 	}
-	req.queryStringValues.Set(`req_valid_num`, fmt.Sprintf("%v", reqValidNum))
+	_query.Set(`req_valid_num`, fmt.Sprintf("%v", reqValidNum))
 	if val, ok := validBool.Get(); ok {
-		req.queryStringValues.Set(`valid_bool`, fmt.Sprintf("%v", val))
+		_query.Set(`valid_bool`, fmt.Sprintf("%v", val))
 	}
-	req.queryStringValues.Set(`req_valid_bool`, fmt.Sprintf("%v", reqValidBool))
-	req.queryStringValues.Set(`req_str_format`, fmt.Sprintf("%v", reqStrFormat))
-	req.queryStringValues.Set(`date_time`, fmt.Sprintf("%v", dateTime))
-	req.queryStringValues.Set(`date`, fmt.Sprintf("%v", date))
-	req.queryStringValues.Set(`time_val`, fmt.Sprintf("%v", timeVal))
-	req.queryStringValues.Set(`duration_val`, fmt.Sprintf("%v", durationVal))
-	if len(queryStringValues) > 0 {
-		req.URL.RawQuery = queryStringValues.Encode()
-	}
-
-	httpResp, err := c.doRequest(req)
-	if err != nil {
-		return nil, nil, err
+	_query.Set(`req_valid_bool`, fmt.Sprintf("%v", reqValidBool))
+	_query.Set(`req_str_format`, fmt.Sprintf("%v", reqStrFormat))
+	_query.Set(`date_time`, fmt.Sprintf("%v", dateTime))
+	_query.Set(`date`, fmt.Sprintf("%v", date))
+	_query.Set(`time_val`, fmt.Sprintf("%v", timeVal))
+	_query.Set(`duration_val`, fmt.Sprintf("%v", durationVal))
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
 	}
 
-	var resp GetUserResponse
-	switch httpResp.Status {
-	case 304:
+	_httpResp, _err := _c.doRequest(_ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
 
+	var _resp GetUserResponse
+	switch _httpResp.Status {
+	case `304`:
+		_resp = HTTPStatusNotModified{}
 	default:
-		return nil, nil, errors.Errorf("unknown response code")
+		return nil, nil, fmt.Errorf("unknown response code")
 	}
 
-	return resp, httpResp, nil
+	return _resp, _httpResp, nil
 }
 
-// Setuser post /users/{id}
+// SetUser post /users/{id}
 //
 // Sets a user
-func (c GoServer) Setuser(ctx context.Context, body *Primitives) (SetUserResponse, *http.Response, error) {
-	urlStr := `/users/{id}`
-	req := http.NewRequest(http.MethodPost, urlStr, nil)
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
+func (_c Client) SetUser(_ctx context.Context, body *Primitives) (SetUserResponse, *http.Response, error) {
+	_urlStr := `/users/{id}`
+	_req, _err := http.NewRequestWithContext(_ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
 	}
-	req.Body = bytes.NewReader(bodyBytes)
-	var queryStringValues url.Values
-
-	if len(queryStringValues) > 0 {
-		req.URL.RawQuery = queryStringValues.Encode()
+	_bodyBytes, _err := json.Marshal(body)
+	if _err != nil {
+		return nil, nil, _err
 	}
-
-	httpResp, err := c.doRequest(req)
-	if err != nil {
-		return nil, nil, err
+	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
 	}
 
-	var resp SetUserResponse
-	switch httpResp.Status {
-	case 200:
+	_httpResp, _err := _c.doRequest(_ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
 
-		var bodyObject Setuser200WrappedResponse
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, nil, err
+	var _resp SetUserResponse
+	switch _httpResp.Status {
+	case `200`:
+		var _respObject SetUser200WrappedResponse
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return nil, nil, _err
 		}
-		if err = json.Unmarshal(b, &bodyObject); err != nil {
-			return nil, nil, err
+		if _err = json.Unmarshal(_b, &_respObject.Body); _err != nil {
+			return nil, nil, _err
 		}
-		resp = bodyObject
+		if hdr := _httpResp.Header.Get(`X-Response-Header`); len(hdr) != 0 {
+			_respObject.HeaderXResponseHeader.Set(hdr)
+		}
+		_resp = _respObject
 	default:
-
-		var bodyObject SetuserdefaultWrappedResponse
-		b, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, nil, err
+		var _respObject SetUserdefaultWrappedResponse
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return nil, nil, _err
 		}
-		if err = json.Unmarshal(b, &bodyObject); err != nil {
-			return nil, nil, err
+		if _err = json.Unmarshal(_b, &_respObject.Body); _err != nil {
+			return nil, nil, _err
 		}
-		resp = bodyObject
+		_resp = _respObject
 	}
 
-	return resp, httpResp, nil
+	return _resp, _httpResp, nil
 }
-
-// AuthenticateResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type AuthenticateResponse interface {
-	AuthenticateImpl()
-}
-
-// AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) AuthenticateImpl() {}
-
-// TestInlinePrimitiveBodyResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestInlinePrimitiveBodyResponse interface {
-	TestInlinePrimitiveBodyImpl()
-}
-
-// TestInlinePrimitiveBodyImpl implements TestInlinePrimitiveBodyResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
-
-// TestInlineResponse one-of enforcer
-//
-// Implementors:
-// -
-// -
-type TestInlineResponse interface {
-	TestInlineImpl()
-}
-
-// TestInlineImpl implements TestInlineHeadersResponse(200) for
-func (TestInline200Inline) TestInlineImpl() {}
-
-// TestInlineImpl implements TestInlineHeadersResponse(201) for
-func (TestInline201Inline) TestInlineImpl() {}
-
-// GetUserResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusNotModified
-type GetUserResponse interface {
-	GetUserImpl()
-}
-
-// GetUserImpl implements GetUserResponse(304) for HTTPStatusNotModified
-func (HTTPStatusNotModified) GetUserImpl() {}
-
-// SetUserResponse one-of enforcer
-//
-// Implementors:
-// - SetUser200HeadersResponse
-// - #/components/schemas/Primitives
-type SetUserResponse interface {
-	SetUserImpl()
-}
-
-// SetUser200WrappedResponse wraps the normal body response with a
-// struct to be able to additionally return headers or differentiate between
-// multiple response codes with the same response body.
-type SetUser200WrappedResponse struct {
-	HeaderXResponseHeader omit.Val[string]
-	Body                  Primitives
-}
-
-// SetUserImpl implements SetUserResponse(200) for SetUser200WrappedResponse
-func (SetUser200WrappedResponse) SetUserImpl() {}
-
-// SetUserdefaultWrappedResponse wraps the normal body response with a
-// struct to be able to additionally return headers or differentiate between
-// multiple response codes with the same response body.
-type SetUserdefaultWrappedResponse struct {
-	Body Primitives
-}
-
-// SetUserImpl implements SetUserResponse(default) for SetUserdefaultWrappedResponse
-func (SetUserdefaultWrappedResponse) SetUserImpl() {}
-
-// HTTPStatusNotModified is an empty response
-type HTTPStatusNotModified struct{}
-
-// HTTPStatusOk is an empty response
-type HTTPStatusOk struct{}
