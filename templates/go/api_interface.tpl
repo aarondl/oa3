@@ -30,7 +30,7 @@ type Interface interface {
         , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema $param.Required -}}
         {{- end -}}
     ) ({{title $op.OperationID}}Response, error)
-        {{end -}}
+    {{end -}}
 {{end -}}
 }
 

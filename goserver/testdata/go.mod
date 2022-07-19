@@ -1,4 +1,4 @@
-module rofl
+module oa3gen
 
 go 1.18
 

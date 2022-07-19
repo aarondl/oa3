@@ -11,6 +11,7 @@ import (
 
 	"github.com/aarondl/oa3/elm"
 	"github.com/aarondl/oa3/generator"
+	"github.com/aarondl/oa3/goclient"
 	"github.com/aarondl/oa3/goserver"
 	"github.com/aarondl/oa3/openapi3spec"
 	"github.com/aarondl/oa3/typescript"
@@ -36,6 +37,12 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "oa3 [flags] <generator> <openapifile>",
 	Short: "Generate a language library for an openapi3 spec file",
+	Long: `Generate a language library for an openapi3 spec file
+
+Generators available:
+- go
+- go-client
+- typescript`,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		openapi3spec.DebugOutput = flagDebug
@@ -118,6 +125,11 @@ func generate(generatorID string, openapiFile string, params map[string]string) 
 	switch generatorID {
 	case "go":
 		gen = goserver.New()
+	case "go-client":
+		gen = goclient.New()
+		// masquerade as the original go server template folder to avoid
+		// having to split all the templates up
+		generatorID = "go"
 	case "elm":
 		gen = elm.New()
 	case "typescript":
