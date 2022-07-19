@@ -46,6 +46,9 @@ func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) 
 	if o.Description != nil && len(strings.TrimSpace(*o.Description)) == 0 {
 		return errors.New("description if present must not be blank")
 	}
+	if err := o.ExternalDocs.Validate(); err != nil {
+		return fmt.Errorf("externalDocs.%w", err)
+	}
 
 	if len(strings.TrimSpace(o.OperationID)) == 0 {
 		return errors.New("operationId must not be blank")

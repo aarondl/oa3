@@ -115,6 +115,9 @@ func (s *Schema) Validate() error {
 		}
 	}
 
+	if err := s.ExternalDocs.Validate(); err != nil {
+		return fmt.Errorf("externalDocs.%w", err)
+	}
 	if s.MultipleOf != nil {
 		switch s.Type {
 		case "integer", "number":

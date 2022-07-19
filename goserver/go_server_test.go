@@ -17,7 +17,7 @@ func TestCamelSnake(t *testing.T) {
 	}
 
 	for test, want := range tests {
-		if got := camelSnake(test); got != want {
+		if got := CamelSnake(test); got != want {
 			t.Errorf("test: %q, want: %q, got %q", test, want, got)
 		}
 	}

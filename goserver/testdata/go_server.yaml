@@ -14,8 +14,12 @@ paths:
         over the sacred 80 char limit.
       tags: [users]
       parameters:
+        - name: id
+          in: path
+          schema: { type: string }
+          required: true
         - name: valid_str
-          in: query
+          in: header
           schema: { nullable: true, type: string, maxLength: 5, minLength: 2, enum: [he"llo] }
         - name: req_valid_str
           in: query

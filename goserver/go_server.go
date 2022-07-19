@@ -30,7 +30,7 @@ const (
 )
 
 // templates for generation
-var tpls = []string{
+var TemplateList = []string{
 	"api_interface.tpl",
 	"api_methods.tpl",
 	"schema.tpl",
@@ -40,9 +40,9 @@ var tpls = []string{
 	"validate_field.tpl",
 }
 
-// funcs to use for generation
-var funcs = map[string]interface{}{
-	"camelSnake":        camelSnake,
+// TemplateFunctions to use for generation
+var TemplateFunctions = map[string]interface{}{
+	"camelSnake":        CamelSnake,
 	"primitive":         primitive,
 	"primitiveRaw":      primitiveRaw,
 	"primitiveBits":     primitiveBits,
@@ -67,7 +67,7 @@ func New() generator.Interface {
 // Load templates
 func (g *gen) Load(dir fs.FS) error {
 	var err error
-	g.tpl, err = templates.Load(funcs, dir, tpls...)
+	g.tpl, err = templates.Load(TemplateFunctions, dir, TemplateList...)
 	return err
 }
 
@@ -81,7 +81,7 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	}
 
 	var files []generator.File
-	f, err := generateTopLevelSchemas(spec, params, g.tpl)
+	f, err := GenerateTopLevelSchemas(spec, params, g.tpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate schemas: %w", err)
 	}
@@ -91,13 +91,6 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	f, err = generateAPIInterface(spec, params, g.tpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to api interface: %w", err)
-	}
-
-	files = append(files, f...)
-
-	f, err = generateAPIMethods(spec, params, g.tpl)
-	if err != nil {
-		return nil, fmt.Errorf("failed to api methods: %w", err)
 	}
 
 	files = append(files, f...)
@@ -112,14 +105,6 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 	}
 
 	return files, nil
-}
-
-func generateAPIMethods(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
-	if spec.Paths == nil {
-		return nil, nil
-	}
-
-	return nil, nil
 }
 
 func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
@@ -145,9 +130,9 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 
 	fileBytes.WriteString(Disclaimer)
 	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
-	if imps := imports(data.Imports); len(imps) != 0 {
+	if imps := Imports(data.Imports); len(imps) != 0 {
 		fileBytes.WriteByte('\n')
-		fileBytes.WriteString(imports(data.Imports))
+		fileBytes.WriteString(Imports(data.Imports))
 		fileBytes.WriteByte('\n')
 	}
 	fileBytes.WriteByte('\n')
@@ -168,9 +153,9 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 
 	fileBytes.WriteString(Disclaimer)
 	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
-	if imps := imports(data.Imports); len(imps) != 0 {
+	if imps := Imports(data.Imports); len(imps) != 0 {
 		fileBytes.WriteByte('\n')
-		fileBytes.WriteString(imports(data.Imports))
+		fileBytes.WriteString(Imports(data.Imports))
 		fileBytes.WriteByte('\n')
 	}
 	fileBytes.WriteByte('\n')
@@ -181,7 +166,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 	return files, nil
 }
 
-// generateSchemas creates files for the topLevel-level referenceable types
+// GenerateSchemas creates files for the topLevel-level referenceable types
 //
 // Some supported Inline are also generated.
 // Prefixed with their recursive names and Inline.
@@ -198,7 +183,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 // paths.(get|put...).responses[name].headers[headername].schema
 // paths.(get|put...).responses[name].content[mime-type].schema
 // paths.(get|put...).responses[name].content[mime-type].encoding[propname].headers[headername].schema
-func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
+func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
 	if spec.Components == nil {
 		return nil, nil
 	}
@@ -213,7 +198,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 	for _, k := range keys {
 		v := spec.Components.Schemas[k]
-		filename := "schema_" + camelSnake(k) + ".go"
+		filename := "schema_" + CamelSnake(k) + ".go"
 
 		generated, err := makePseudoFile(spec, params, tpl, filename, k, v, false)
 		if err != nil {
@@ -250,7 +235,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 					continue
 				}
 
-				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
+				filename := "schema_" + CamelSnake(o.Op.OperationID) + "_reqbody.go"
 				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema, o.Op.RequestBody.Required)
 				if err != nil {
 					return nil, err
@@ -279,7 +264,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 					continue
 				}
 
-				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
+				filename := "schema_" + CamelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
 				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema, true)
 				if err != nil {
 					return nil, err
@@ -296,7 +281,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 			continue
 		}
 
-		filename := "schema_" + camelSnake(name) + "_reqbody.go"
+		filename := "schema_" + CamelSnake(name) + "_reqbody.go"
 		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, req.Required)
 		if err != nil {
 			return nil, err
@@ -314,7 +299,7 @@ func generateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 			continue
 		}
 
-		filename := "schema_" + camelSnake(name) + "_respbody.go"
+		filename := "schema_" + CamelSnake(name) + "_respbody.go"
 		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, true)
 		if err != nil {
 			return nil, err
@@ -347,9 +332,9 @@ func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 
 	headerBuf.WriteString(Disclaimer)
 	fmt.Fprintf(headerBuf, "\npackage %s\n", pkg)
-	if imps := imports(data.Imports); len(imps) != 0 {
+	if imps := Imports(data.Imports); len(imps) != 0 {
 		headerBuf.WriteByte('\n')
-		headerBuf.WriteString(imports(data.Imports))
+		headerBuf.WriteString(Imports(data.Imports))
 		headerBuf.WriteByte('\n')
 	}
 	headerBuf.WriteByte('\n')
@@ -507,7 +492,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		(s.Format != nil && *s.Format != "date" && *s.Format != "date-time" && *s.Format != "time" && *s.Format != "duration")
 }
 
-func imports(imps map[string]struct{}) string {
+func Imports(imps map[string]struct{}) string {
 	if len(imps) == 0 {
 		return ""
 	}
@@ -544,7 +529,7 @@ func imports(imps map[string]struct{}) string {
 
 // schema_UserIDProfile -> schema_user_id_profile
 // ID -> id
-func camelSnake(filename string) string {
+func CamelSnake(filename string) string {
 	build := new(strings.Builder)
 
 	var upper bool

@@ -506,6 +506,10 @@ func (o *OpenAPI3) Validate() error {
 		}
 	}
 
+	if err := o.ExternalDocs.Validate(); err != nil {
+		return fmt.Errorf("externalDocs.%w", err)
+	}
+
 	return nil
 }
 
