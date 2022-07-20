@@ -4,13 +4,17 @@ package oa3gen
 
 import (
 	"github.com/aarondl/oa3/support"
+	"github.com/aarondl/opt/null"
+	"github.com/aarondl/opt/omit"
+	"github.com/aarondl/opt/omitnull"
 )
 
 // Referred to object
 type RefTargetOmittableNullable struct {
-	One   RefTarget         `json:"one"`
-	Three RefTargetNullable `json:"three,omitempty"`
-	Two   RefTargetNullable `json:"two"`
+	Four  omitnull.Val[RefTargetNullable] `json:"four,omitempty"`
+	One   RefTarget                       `json:"one"`
+	Three null.Val[RefTargetNullable]     `json:"three"`
+	Two   omit.Val[RefTarget]             `json:"two,omitempty"`
 }
 
 // validateSchema validates the object and returns

@@ -290,10 +290,10 @@ components:
     Ref:
       description: References to other objects
       type: object
-      required: [ref_normal]
+      required: [ref_normal, ref_null]
       properties:
         ref_normal: { $ref: '#/components/schemas/RefTarget' }
-        ref_null: { $ref: '#/components/schemas/RefTargetNullable' }
+        ref_null:   { $ref: '#/components/schemas/RefTargetNullable' }
 
     RefTarget:
       description: Referred to object
@@ -313,11 +313,12 @@ components:
     RefTargetOmittableNullable:
       description: Referred to object
       type: object
-      required: [one, two]
+      required: [one, three]
       properties:
         one:   { $ref: '#/components/schemas/RefTarget' }
-        two:   { $ref: '#/components/schemas/RefTargetNullable' }
+        two:   { $ref: '#/components/schemas/RefTarget' }
         three: { $ref: '#/components/schemas/RefTargetNullable' }
+        four:  { $ref: '#/components/schemas/RefTargetNullable' }
 
     Enum:
       description: Enum type

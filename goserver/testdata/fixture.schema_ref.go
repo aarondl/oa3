@@ -4,12 +4,13 @@ package oa3gen
 
 import (
 	"github.com/aarondl/oa3/support"
+	"github.com/aarondl/opt/null"
 )
 
 // References to other objects
 type Ref struct {
-	RefNormal RefTarget         `json:"ref_normal"`
-	RefNull   RefTargetNullable `json:"ref_null,omitempty"`
+	RefNormal RefTarget                   `json:"ref_normal"`
+	RefNull   null.Val[RefTargetNullable] `json:"ref_null"`
 }
 
 // validateSchema validates the object and returns

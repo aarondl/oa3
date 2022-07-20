@@ -15,7 +15,7 @@
     {{- end -}}
 {{- end -}}
 
-{{- /* Outputs enum constants */ -}}
+{{- /* Outputs enum constants, takes a Schema (not a ref) */ -}}
 {{- define "type_enum" -}}
 {{if or ($.Object.Nullable) (not $.Required)}}var{{else}}const{{end}} (
     {{- range $value := $.Object.Enum}}
@@ -77,8 +77,21 @@ type {{$.Name}} {{omitnullWrap $ $.Object.Schema "string" $.Object.Nullable $.Re
                     {{- range $c := split "\n" (trim $element.Schema.Description)}}
     // {{$c}}
                     {{- end -}}
-                {{- end}}
-    {{camelcase $name}} {{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element ($s.IsRequired $name))}} `json:"{{$name}}{{if not ($s.IsRequired $name)}},omitempty{{end}}"`
+                {{- end -}}
+                {{- $elementRequired := $s.IsRequired $name -}}
+                {{- $isPrimitive := isInlinePrimitive $element.Schema}}
+    {{camelcase $name}} {{if and (not $isPrimitive) ($element.Schema.Nullable) (not $elementRequired) -}}
+                    {{- $.Import "github.com/aarondl/opt/omitnull" -}}
+                    omitnull.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
+                {{- else if and (not $isPrimitive) ($element.Schema.Nullable) $elementRequired -}}
+                    {{- $.Import "github.com/aarondl/opt/null" -}}
+                    null.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
+                {{- else if and (not $isPrimitive) (not $element.Schema.Nullable) (not $elementRequired) -}}
+                    {{- $.Import "github.com/aarondl/opt/omit" -}}
+                    omit.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
+                {{- else -}}
+                    {{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}
+                {{- end}} `json:"{{$name}}{{if not $elementRequired}},omitempty{{end}}"`
             {{- end}}
 }
 
