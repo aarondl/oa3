@@ -19,7 +19,7 @@
      {{- else if $resp.Content -}}
             {{- $schema := index $resp.Content "application/json" -}}
 			{{- if $schema.Schema.Ref -}}
-				{{- refName $schema.Schema.Ref -}}
+				{{- refName $schema.Schema.Ref}} - {{ $schema.Schema.Ref -}}
 			{{- else -}}
 				{{title $opname}}{{title $code}}Inline
 			{{- end -}}

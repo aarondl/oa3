@@ -29,7 +29,7 @@ type Interface interface {
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
 	// bleeding over the sacred 80 char limit.
-	GetUser(w http.ResponseWriter, r *http.Request, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, error)
+	GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, error)
 	// SetUser post /users/{id}
 	// Sets a user
 	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives) (SetUserResponse, error)
@@ -109,8 +109,8 @@ func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
 // TestInlineResponse one-of enforcer
 //
 // Implementors:
-// -
-// -
+// - TestInline200Inline
+// - TestInline201Inline
 type TestInlineResponse interface {
 	TestInlineImpl()
 }
@@ -136,7 +136,7 @@ func (HTTPStatusNotModified) GetUserImpl() {}
 //
 // Implementors:
 // - SetUser200HeadersResponse
-// - #/components/schemas/Primitives
+// - Primitives - #/components/schemas/Primitives
 type SetUserResponse interface {
 	SetUserImpl()
 }
@@ -188,7 +188,7 @@ func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.Test
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (a API) GetUser(w http.ResponseWriter, r *http.Request, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (oa3gen.GetUserResponse, error) {
+func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (oa3gen.GetUserResponse, error) {
     panic("not implemented")
 }
 // SetUser post /users/{id}

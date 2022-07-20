@@ -26,6 +26,7 @@ func (o MapRecursive) VVValidateSchema() support.Errors {
 		ers = append(ers, err)
 	}
 	for k, o := range o {
+		_ = o
 		var ers []error
 		ctx = append(ctx, k)
 
@@ -36,6 +37,7 @@ func (o MapRecursive) VVValidateSchema() support.Errors {
 			ers = append(ers, err)
 		}
 		for k, o := range o {
+			_ = o
 			var ers []error
 			ctx = append(ctx, k)
 

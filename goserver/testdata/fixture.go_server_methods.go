@@ -12,6 +12,7 @@ import (
 	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
+	"github.com/go-chi/chi/v5"
 )
 
 // AlreadyHandled is an interface which an error return type can optionally
@@ -174,52 +175,33 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
 
-	const n0 = `valid_str`
-	s0, s0Exists := r.URL.Query().Get(n0), r.URL.Query().Has(n0)
-	var p0 omitnull.Val[string]
-	if s0Exists {
-		p0.Set(s0)
-		err = nil
-		if err != nil {
-			errs = support.AddErrs(errs, n0, errors.New(`was not in a valid format`))
-		}
-		ers = nil
-		if err := support.ValidateMaxLength(omitnull.Val[string](p0).GetOrZero(), 5); err != nil {
-			ers = append(ers, err)
-		}
-
-		if err := support.ValidateMinLength(omitnull.Val[string](p0).GetOrZero(), 2); err != nil {
-			ers = append(ers, err)
-		}
-		if err := support.ValidateEnum(omitnull.Val[string](p0).GetOrZero(), []string{"he\"llo"}); err != nil {
-			ers = append(ers, err)
-		}
-
-		if len(ers) != 0 {
-			errs = support.AddErrs(errs, n0, ers...)
-		}
+	const n0 = `id`
+	s0, s0Exists := chi.URLParam(r, n0), true
+	var p0 string
+	if !s0Exists || len(s0) == 0 {
+		errs = support.AddErrs(errs, n0, errors.New(`must be provided and not be empty`))
+	} else {
+		p0 = s0
 	}
 
-	const n1 = `req_valid_str`
-	s1, s1Exists := r.URL.Query().Get(n1), r.URL.Query().Has(n1)
-	var p1 null.Val[string]
-	if !s1Exists || len(s1) == 0 {
-		errs = support.AddErrs(errs, n1, errors.New(`must be provided and not be empty`))
-	} else {
+	const n1 = `valid_str`
+	s1, s1Exists := r.Header.Get(n1), len(r.Header.Values(n1)) != 0
+	var p1 omitnull.Val[string]
+	if s1Exists {
 		p1.Set(s0)
 		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxLength(null.Val[string](p1).GetOrZero(), 5); err != nil {
+		if err := support.ValidateMaxLength(omitnull.Val[string](p1).GetOrZero(), 5); err != nil {
 			ers = append(ers, err)
 		}
 
-		if err := support.ValidateMinLength(null.Val[string](p1).GetOrZero(), 2); err != nil {
+		if err := support.ValidateMinLength(omitnull.Val[string](p1).GetOrZero(), 2); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateEnum(null.Val[string](p1).GetOrZero(), []string{"he\"llo"}); err != nil {
+		if err := support.ValidateEnum(omitnull.Val[string](p1).GetOrZero(), []string{"he\"llo"}); err != nil {
 			ers = append(ers, err)
 		}
 
@@ -228,48 +210,51 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	const n2 = `valid_int`
+	const n2 = `req_valid_str`
 	s2, s2Exists := r.URL.Query().Get(n2), r.URL.Query().Has(n2)
-	var p2 omit.Val[int]
-	if s2Exists {
-		p2c, err := support.StringToInt[int](s2, 64)
-		p2.Set(p2c)
+	var p2 null.Val[string]
+	if !s2Exists || len(s2) == 0 {
+		errs = support.AddErrs(errs, n2, errors.New(`must be provided and not be empty`))
+	} else {
+		p2.Set(s0)
+		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n2, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxNumber(p2.GetOrZero(), 5, true); err != nil {
+		if err := support.ValidateMaxLength(null.Val[string](p2).GetOrZero(), 5); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinNumber(p2.GetOrZero(), 2, false); err != nil {
+
+		if err := support.ValidateMinLength(null.Val[string](p2).GetOrZero(), 2); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfInt(p2.GetOrZero(), 2); err != nil {
+		if err := support.ValidateEnum(null.Val[string](p2).GetOrZero(), []string{"he\"llo"}); err != nil {
 			ers = append(ers, err)
 		}
+
 		if len(ers) != 0 {
 			errs = support.AddErrs(errs, n2, ers...)
 		}
 	}
 
-	const n3 = `req_valid_int`
+	const n3 = `valid_int`
 	s3, s3Exists := r.URL.Query().Get(n3), r.URL.Query().Has(n3)
-	var p3 int
-	if !s3Exists || len(s3) == 0 {
-		errs = support.AddErrs(errs, n3, errors.New(`must be provided and not be empty`))
-	} else {
-		p3, err = support.StringToInt[int](s3, 64)
+	var p3 omit.Val[int]
+	if s3Exists {
+		p3c, err := support.StringToInt[int](s3, 64)
+		p3.Set(p3c)
 		if err != nil {
 			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxNumber(p3, 5, true); err != nil {
+		if err := support.ValidateMaxNumber(p3.GetOrZero(), 5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinNumber(p3, 2, false); err != nil {
+		if err := support.ValidateMinNumber(p3.GetOrZero(), 2, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfInt(p3, 2); err != nil {
+		if err := support.ValidateMultipleOfInt(p3.GetOrZero(), 2); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -277,23 +262,24 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	const n4 = `valid_num`
+	const n4 = `req_valid_int`
 	s4, s4Exists := r.URL.Query().Get(n4), r.URL.Query().Has(n4)
-	var p4 omit.Val[float64]
-	if s4Exists {
-		p4c, err := support.StringToFloat[float64](s4, 64)
-		p4.Set(p4c)
+	var p4 int
+	if !s4Exists || len(s4) == 0 {
+		errs = support.AddErrs(errs, n4, errors.New(`must be provided and not be empty`))
+	} else {
+		p4, err = support.StringToInt[int](s4, 64)
 		if err != nil {
 			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxNumber(p4.GetOrZero(), 10.5, false); err != nil {
+		if err := support.ValidateMaxNumber(p4, 5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinNumber(p4.GetOrZero(), 5.5, true); err != nil {
+		if err := support.ValidateMinNumber(p4, 2, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfFloat(p4.GetOrZero(), 2.5); err != nil {
+		if err := support.ValidateMultipleOfInt(p4, 2); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -301,24 +287,23 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	const n5 = `req_valid_num`
+	const n5 = `valid_num`
 	s5, s5Exists := r.URL.Query().Get(n5), r.URL.Query().Has(n5)
-	var p5 float64
-	if !s5Exists || len(s5) == 0 {
-		errs = support.AddErrs(errs, n5, errors.New(`must be provided and not be empty`))
-	} else {
-		p5, err = support.StringToFloat[float64](s5, 64)
+	var p5 omit.Val[float64]
+	if s5Exists {
+		p5c, err := support.StringToFloat[float64](s5, 64)
+		p5.Set(p5c)
 		if err != nil {
 			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
 		}
 		ers = nil
-		if err := support.ValidateMaxNumber(p5, 10.5, false); err != nil {
+		if err := support.ValidateMaxNumber(p5.GetOrZero(), 10.5, false); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMinNumber(p5, 5.5, true); err != nil {
+		if err := support.ValidateMinNumber(p5.GetOrZero(), 5.5, true); err != nil {
 			ers = append(ers, err)
 		}
-		if err := support.ValidateMultipleOfFloat(p5, 2.5); err != nil {
+		if err := support.ValidateMultipleOfFloat(p5.GetOrZero(), 2.5); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
@@ -326,91 +311,116 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	const n6 = `valid_bool`
+	const n6 = `req_valid_num`
 	s6, s6Exists := r.URL.Query().Get(n6), r.URL.Query().Has(n6)
-	var p6 omit.Val[bool]
-	if s6Exists {
-		p6c, err := support.StringToBool(s6)
-		p6.Set(p6c)
+	var p6 float64
+	if !s6Exists || len(s6) == 0 {
+		errs = support.AddErrs(errs, n6, errors.New(`must be provided and not be empty`))
+	} else {
+		p6, err = support.StringToFloat[float64](s6, 64)
 		if err != nil {
 			errs = support.AddErrs(errs, n6, errors.New(`was not in a valid format`))
 		}
+		ers = nil
+		if err := support.ValidateMaxNumber(p6, 10.5, false); err != nil {
+			ers = append(ers, err)
+		}
+		if err := support.ValidateMinNumber(p6, 5.5, true); err != nil {
+			ers = append(ers, err)
+		}
+		if err := support.ValidateMultipleOfFloat(p6, 2.5); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			errs = support.AddErrs(errs, n6, ers...)
+		}
 	}
 
-	const n7 = `req_valid_bool`
+	const n7 = `valid_bool`
 	s7, s7Exists := r.URL.Query().Get(n7), r.URL.Query().Has(n7)
-	var p7 bool
-	if !s7Exists || len(s7) == 0 {
-		errs = support.AddErrs(errs, n7, errors.New(`must be provided and not be empty`))
-	} else {
-		p7, err = support.StringToBool(s7)
+	var p7 omit.Val[bool]
+	if s7Exists {
+		p7c, err := support.StringToBool(s7)
+		p7.Set(p7c)
 		if err != nil {
 			errs = support.AddErrs(errs, n7, errors.New(`was not in a valid format`))
 		}
 	}
 
-	const n8 = `req_str_format`
+	const n8 = `req_valid_bool`
 	s8, s8Exists := r.URL.Query().Get(n8), r.URL.Query().Has(n8)
-	var p8 string
+	var p8 bool
 	if !s8Exists || len(s8) == 0 {
 		errs = support.AddErrs(errs, n8, errors.New(`must be provided and not be empty`))
 	} else {
-		p8 = s8
+		p8, err = support.StringToBool(s8)
+		if err != nil {
+			errs = support.AddErrs(errs, n8, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n9 = `req_str_format`
+	s9, s9Exists := r.URL.Query().Get(n9), r.URL.Query().Has(n9)
+	var p9 string
+	if !s9Exists || len(s9) == 0 {
+		errs = support.AddErrs(errs, n9, errors.New(`must be provided and not be empty`))
+	} else {
+		p9 = s9
 		ers = nil
-		if err := support.ValidateFormatUUIDv4(p8); err != nil {
+		if err := support.ValidateFormatUUIDv4(p9); err != nil {
 			ers = append(ers, err)
 		}
 
 		if len(ers) != 0 {
-			errs = support.AddErrs(errs, n8, ers...)
+			errs = support.AddErrs(errs, n9, ers...)
 		}
 	}
 
-	const n9 = `date_time`
-	s9, s9Exists := r.URL.Query().Get(n9), r.URL.Query().Has(n9)
-	var p9 chrono.DateTime
-	if !s9Exists || len(s9) == 0 {
-		errs = support.AddErrs(errs, n9, errors.New(`must be provided and not be empty`))
-	} else {
-		p9, err = support.StringToChronoDateTime(s9)
-		if err != nil {
-			errs = support.AddErrs(errs, n9, errors.New(`was not in a valid format`))
-		}
-	}
-
-	const n10 = `date`
+	const n10 = `date_time`
 	s10, s10Exists := r.URL.Query().Get(n10), r.URL.Query().Has(n10)
-	var p10 chrono.Date
+	var p10 chrono.DateTime
 	if !s10Exists || len(s10) == 0 {
 		errs = support.AddErrs(errs, n10, errors.New(`must be provided and not be empty`))
 	} else {
-		p10, err = support.StringToChronoDate(s10)
+		p10, err = support.StringToChronoDateTime(s10)
 		if err != nil {
 			errs = support.AddErrs(errs, n10, errors.New(`was not in a valid format`))
 		}
 	}
 
-	const n11 = `time_val`
+	const n11 = `date`
 	s11, s11Exists := r.URL.Query().Get(n11), r.URL.Query().Has(n11)
-	var p11 chrono.Time
+	var p11 chrono.Date
 	if !s11Exists || len(s11) == 0 {
 		errs = support.AddErrs(errs, n11, errors.New(`must be provided and not be empty`))
 	} else {
-		p11, err = support.StringToChronoTime(s11)
+		p11, err = support.StringToChronoDate(s11)
 		if err != nil {
 			errs = support.AddErrs(errs, n11, errors.New(`was not in a valid format`))
 		}
 	}
 
-	const n12 = `duration_val`
+	const n12 = `time_val`
 	s12, s12Exists := r.URL.Query().Get(n12), r.URL.Query().Has(n12)
-	var p12 time.Duration
+	var p12 chrono.Time
 	if !s12Exists || len(s12) == 0 {
 		errs = support.AddErrs(errs, n12, errors.New(`must be provided and not be empty`))
 	} else {
-		p12, err = support.StringToDuration(s12)
+		p12, err = support.StringToChronoTime(s12)
 		if err != nil {
 			errs = support.AddErrs(errs, n12, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n13 = `duration_val`
+	s13, s13Exists := r.URL.Query().Get(n13), r.URL.Query().Has(n13)
+	var p13 time.Duration
+	if !s13Exists || len(s13) == 0 {
+		errs = support.AddErrs(errs, n13, errors.New(`must be provided and not be empty`))
+	} else {
+		p13, err = support.StringToDuration(s13)
+		if err != nil {
+			errs = support.AddErrs(errs, n13, errors.New(`was not in a valid format`))
 		}
 	}
 
@@ -418,7 +428,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12)
+	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13)
 	if err != nil {
 		if alreadyHandled, ok := err.(AlreadyHandled); ok {
 			if alreadyHandled.AlreadyHandled() {

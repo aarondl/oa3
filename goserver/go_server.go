@@ -33,6 +33,7 @@ const (
 var TemplateList = []string{
 	"api_interface.tpl",
 	"api_methods.tpl",
+	"responses.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
 

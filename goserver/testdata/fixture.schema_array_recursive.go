@@ -28,6 +28,7 @@ func (o ArrayRecursive) VVValidateSchema() support.Errors {
 	}
 
 	for i, o := range o {
+		_ = o
 		var ers []error
 		ctx = append(ctx, fmt.Sprintf("[%d]", i))
 		if err := support.ValidateMaxItems(o, 8); err != nil {
@@ -38,6 +39,7 @@ func (o ArrayRecursive) VVValidateSchema() support.Errors {
 		}
 
 		for i, o := range o {
+			_ = o
 			var ers []error
 			ctx = append(ctx, fmt.Sprintf("[%d]", i))
 			if err := support.ValidateMaxItems(o, 15); err != nil {

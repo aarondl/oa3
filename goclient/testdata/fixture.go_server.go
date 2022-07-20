@@ -139,7 +139,7 @@ func (HTTPStatusNotModified) GetUserImpl() {}
 //
 // Implementors:
 // - SetUser200HeadersResponse
-// - Primitives
+// - Primitives - #/components/schemas/Primitives
 type SetUserResponse interface {
 	SetUserImpl()
 }
