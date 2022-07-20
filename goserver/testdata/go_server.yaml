@@ -310,6 +310,15 @@ components:
       properties:
         prop: { type: string }
 
+    RefTargetOmittableNullable:
+      description: Referred to object
+      type: object
+      required: [one, two]
+      properties:
+        one:   { $ref: '#/components/schemas/RefTarget' }
+        two:   { $ref: '#/components/schemas/RefTargetNullable' }
+        three: { $ref: '#/components/schemas/RefTargetNullable' }
+
     Enum:
       description: Enum type
       type: string

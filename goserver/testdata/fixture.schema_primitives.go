@@ -45,13 +45,13 @@ type Primitives struct {
 type PrimitivesStr string
 
 const (
-	PrimitivesStrHello PrimitivesStr = "hello"
+	PrimitivesStrHello = PrimitivesStr("hello")
 )
 
 type PrimitivesStrNull null.Val[string]
 
 var (
-	PrimitivesStrNullHello PrimitivesStrNull = PrimitivesStrNull(null.From("hello"))
+	PrimitivesStrNullHello = PrimitivesStrNull(null.From("hello"))
 )
 
 // validateSchema validates the object and returns

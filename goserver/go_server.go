@@ -43,13 +43,15 @@ var TemplateList = []string{
 
 // TemplateFunctions to use for generation
 var TemplateFunctions = map[string]interface{}{
-	"camelSnake":        CamelSnake,
-	"primitive":         primitive,
-	"primitiveRaw":      primitiveRaw,
-	"primitiveBits":     primitiveBits,
-	"isInlinePrimitive": isInlinePrimitive,
-	"taggedPaths":       tagPaths,
-	"responseKind":      responseKind,
+	"camelSnake":              CamelSnake,
+	"primitive":               primitive,
+	"primitiveRaw":            primitiveRaw,
+	"primitiveBits":           primitiveBits,
+	"isInlinePrimitive":       isInlinePrimitive,
+	"taggedPaths":             tagPaths,
+	"responseKind":            responseKind,
+	"omitnullWrap":            omitnullWrap,
+	"omitnullConstructorWrap": omitnullConstructorWrap,
 
 	// overrides of the defaults
 	"mustValidate": mustValidate,
@@ -357,12 +359,7 @@ func isInlinePrimitive(schema *openapi3spec.Schema) bool {
 }
 
 func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema, required bool) (string, error) {
-	if schema.Nullable || !required {
-		return primitiveWrapped(tdata, schema, schema.Nullable, required)
-	}
-
-	// When it's required && !nullable
-	return primitiveRaw(tdata, schema)
+	return primitiveWrapped(tdata, schema, schema.Nullable, required)
 }
 
 func primitiveRaw(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
@@ -455,20 +452,41 @@ func primitiveWrapped(tdata templates.TemplateData, schema *openapi3spec.Schema,
 		return "", err
 	}
 
+	return omitnullWrap(tdata, schema, prim, nullable, required), nil
+}
+
+func omitnullWrap(tdata templates.TemplateData, schema *openapi3spec.Schema, typ string, nullable bool, required bool) string {
 	var kind string
 	switch {
+	case !nullable && required:
+		return typ
 	case nullable && required:
 		kind = "null"
 	case nullable && !required:
 		kind = "omitnull"
 	case !nullable && !required:
 		kind = "omit"
-	default:
-		panic("invalid combination: !nullable && required")
 	}
 
 	tdata.Import("github.com/aarondl/opt/" + kind)
-	return kind + `.Val[` + prim + `]`, nil
+	return kind + `.Val[` + typ + `]`
+}
+
+func omitnullConstructorWrap(tdata templates.TemplateData, schema *openapi3spec.Schema, value string, nullable bool, required bool) string {
+	var kind string
+	switch {
+	case !nullable && required:
+		return value
+	case nullable && required:
+		kind = "null"
+	case nullable && !required:
+		kind = "omitnull"
+	case !nullable && !required:
+		kind = "omit"
+	}
+
+	tdata.Import("github.com/aarondl/opt/" + kind)
+	return kind + `.From(` + value + `)`
 }
 
 // mustValidate checks to see if the schema requires any kind of validation

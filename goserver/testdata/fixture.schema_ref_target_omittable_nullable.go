@@ -6,18 +6,16 @@ import (
 	"github.com/aarondl/oa3/support"
 )
 
-// Enum type
-type Enum string
-
-const (
-	EnumOne   = Enum("one")
-	EnumTwo   = Enum("two")
-	EnumThree = Enum("three")
-)
+// Referred to object
+type RefTargetOmittableNullable struct {
+	One   RefTarget         `json:"one"`
+	Three RefTargetNullable `json:"three,omitempty"`
+	Two   RefTargetNullable `json:"two"`
+}
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o Enum) validateSchema() support.Errors {
+func (o RefTargetOmittableNullable) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

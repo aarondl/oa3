@@ -19,19 +19,7 @@
 {{- define "type_enum" -}}
 {{if or ($.Object.Nullable) (not $.Required)}}var{{else}}const{{end}} (
     {{- range $value := $.Object.Enum}}
-    {{$.Name}}{{camelcase $value}} {{$.Name}} =
-        {{- if and ($.Object.Nullable) ($.Required) -}}
-            {{- $.Import "github.com/aarondl/opt/null" -}}
-            {{$.Name}}(null.From({{printf "%q" $value}}))
-        {{- else if and ($.Object.Nullable) (not $.Required) -}}
-            {{- $.Import "github.com/aarondl/opt/omitnull" -}}
-            {{$.Name}}(omitnull.From({{printf "%q" $value}}))
-        {{- else if and (not $.Object.Nullable) (not $.Required) -}}
-            {{- $.Import "github.com/aarondl/opt/omit" -}}
-            {{$.Name}}(omit.From({{printf "%q" $value}}))
-        {{- else -}}
-            {{printf "%q" $value}}
-        {{- end -}}
+    {{$.Name}}{{camelcase $value}} = {{$.Name}}({{omitnullConstructorWrap $ $.Object (printf "%q" $value) $.Object.Nullable $.Required }})
     {{- end}}
 )
 {{- end -}}
@@ -40,19 +28,8 @@
 to a schema ref */ -}}
 {{- define "type_embedded" -}}
     {{- if and (not $.Object.Ref) $.Object.Enum}}
-type {{$.Name}} {{if and ($.Object.Nullable) ($.Required) -}}
-                    {{- $.Import "github.com/aarondl/opt/null" -}}
-                        null.Val[string]
-                    {{- else if and ($.Object.Nullable) (not $.Required) -}}
-                    {{- $.Import "github.com/aarondl/opt/omitnull" -}}
-                        omitnull.Val[string]
-                    {{- else if and (not $.Object.Nullable) (not $.Required) -}}
-                    {{- $.Import "github.com/aarondl/opt/omit" -}}
-                        omit.Val[string]
-                    {{- else -}}
-                        string
-                    {{- end}}
-        {{template "type_enum" $}}
+type {{$.Name}} {{omitnullWrap $ $.Object.Schema "string" $.Object.Nullable $.Required}}
+        {{template "type_enum" (newDataRequired $ $.Name $.Object.Schema true)}}
     {{- else if and (not .Object.Ref) (not (isInlinePrimitive .Object.Schema))}}
 
 {{template "schema_top" $ -}}
