@@ -66,6 +66,52 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// testarrayrequest get /test/array/request
+func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	var reqBody TestArrayRequestInline
+
+	if r.Body == nil {
+		return support.ErrNoBody
+	} else {
+		if err = support.ReadJSON(r, &reqBody); err != nil {
+			return err
+		}
+
+		if newErrs := Validate(reqBody); newErrs != nil {
+			errs = support.MergeErrs(errs, newErrs)
+		}
+	}
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestArrayRequest(w, r, reqBody)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
 // testinlineprimitivebody get /test/inline
 func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Request) error {
 	var err error

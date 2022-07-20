@@ -133,6 +133,18 @@ paths:
             application/json:
               schema: { type: object, required: [id], properties: { id: { type: string } } }
 
+  /test/array/request:
+    get:
+      operationId: testArrayRequest
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          application/json:
+            schema: { type: array, items: { type: string } }
+      responses:
+        '200': { description: OK }
+
 components:
   schemas:
     Primitives:

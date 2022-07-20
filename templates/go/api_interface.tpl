@@ -20,7 +20,7 @@ type Interface interface {
             {{- if $media.Schema.Ref -}}
                 {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
                 {{- refName $media.Schema.Ref -}}
-            {{- else if isInlinePrimitive $media.Schema.Schema -}}
+            {{- else if not (or (eq $media.Schema.Schema.Type "object") (eq $media.Schema.Schema.Type "array")) -}}
                 {{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
             {{- else -}}
                 {{title $op.OperationID}}Inline
@@ -107,7 +107,7 @@ func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
             {{- if $media.Schema.Ref -}}
                 {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
                 {{$.Params.package}}.{{- refName $media.Schema.Ref -}}
-            {{- else if isInlinePrimitive $media.Schema.Schema -}}
+            {{- else if not (or (eq $media.Schema.Schema.Type "object") (eq $media.Schema.Schema.Type "array")) -}}
                 {{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
             {{- else -}}
                 {{$.Params.package}}.{{title $op.OperationID}}Inline

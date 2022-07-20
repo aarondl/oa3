@@ -21,6 +21,8 @@ import (
 type Interface interface {
 	// Authenticate post /auth
 	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
+	// TestArrayRequest get /test/array/request
+	TestArrayRequest(w http.ResponseWriter, r *http.Request, body TestArrayRequestInline) (TestArrayRequestResponse, error)
 	// TestInlinePrimitiveBody get /test/inline
 	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
 	// TestInline post /test/inline
@@ -64,6 +66,7 @@ func NewGoServer(
 			r.Use(m...)
 		}
 		r.Method(http.MethodPost, `/auth`, eh.Wrap(o.authenticateOp))
+		r.Method(http.MethodGet, `/test/array/request`, eh.Wrap(o.testarrayrequestOp))
 		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
 	})
@@ -103,6 +106,17 @@ type AuthenticateResponse interface {
 
 // AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) AuthenticateImpl() {}
+
+// TestArrayRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestArrayRequestResponse interface {
+	TestArrayRequestImpl()
+}
+
+// TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestArrayRequestImpl() {}
 
 // TestInlinePrimitiveBodyResponse one-of enforcer
 //
@@ -183,6 +197,10 @@ for implementing the main interface
 
 // Authenticate post /auth
 func (a API) Authenticate(w http.ResponseWriter, r *http.Request) (oa3gen.AuthenticateResponse, error) {
+    panic("not implemented")
+}
+// TestArrayRequest get /test/array/request
+func (a API) TestArrayRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestArrayRequestInline) (oa3gen.TestArrayRequestResponse, error) {
     panic("not implemented")
 }
 // TestInlinePrimitiveBody get /test/inline
