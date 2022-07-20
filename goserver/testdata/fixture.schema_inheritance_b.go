@@ -11,9 +11,9 @@ type InheritanceB struct {
 	B string `json:"b"`
 }
 
-// VVValidateSchemaInheritanceB validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o InheritanceB) VVValidateSchema() support.Errors {
+func (o InheritanceB) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

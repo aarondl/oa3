@@ -82,7 +82,7 @@ func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
+		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
@@ -128,7 +128,7 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
+		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
@@ -188,7 +188,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	s1, s1Exists := r.Header.Get(n1), len(r.Header.Values(n1)) != 0
 	var p1 omitnull.Val[string]
 	if s1Exists {
-		p1.Set(s0)
+		p1.Set(s1)
 		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
@@ -216,7 +216,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	if !s2Exists || len(s2) == 0 {
 		errs = support.AddErrs(errs, n2, errors.New(`must be provided and not be empty`))
 	} else {
-		p2.Set(s0)
+		p2.Set(s2)
 		err = nil
 		if err != nil {
 			errs = support.AddErrs(errs, n2, errors.New(`was not in a valid format`))
@@ -465,7 +465,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
+		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}

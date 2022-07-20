@@ -84,6 +84,15 @@ func (o GoServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	o.router.ServeHTTP(w, r)
 }
 
+type validatable interface {
+	validateSchema() support.Errors
+}
+
+// Validate a schema
+func Validate[T validatable](toValidate T) support.Errors {
+	return toValidate.validateSchema()
+}
+
 // AuthenticateResponse one-of enforcer
 //
 // Implementors:

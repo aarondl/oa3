@@ -8,9 +8,9 @@ import (
 
 type TestInlinePrimitiveBodyInline string
 
-// VVValidateSchemaTestInlinePrimitiveBodyInline validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o TestInlinePrimitiveBodyInline) VVValidateSchema() support.Errors {
+func (o TestInlinePrimitiveBodyInline) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

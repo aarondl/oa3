@@ -61,6 +61,8 @@ type ErrorHandler interface {
 }
 
 // AddErrs adds errors to an error map and returns the map
+//
+//    eg. {"a": ["1"]}, "a", "2" = {"a": ["1", "2"]}
 func AddErrs(errs Errors, key string, toAdd ...error) Errors {
 	if len(toAdd) == 0 {
 		return errs
@@ -75,6 +77,26 @@ func AddErrs(errs Errors, key string, toAdd ...error) Errors {
 		fieldErrs = append(fieldErrs, e.Error())
 	}
 	errs[key] = fieldErrs
+
+	return errs
+}
+
+// AddErrsFlatten flattens toAdd by adding key on to the errors inside toAdd
+//
+//     eg. {"a": ["1"]}, "key", {"b": ["2"]} = {"a": ["1"], "key.b": ["2"]}
+func AddErrsFlatten(errs Errors, key string, toAdd Errors) Errors {
+	if len(toAdd) == 0 {
+		return errs
+	}
+
+	if errs == nil {
+		errs = make(map[string][]string)
+	}
+
+	for field, fieldErrs := range toAdd {
+		newKey := key + "." + field
+		errs[newKey] = fieldErrs
+	}
 
 	return errs
 }

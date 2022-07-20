@@ -3,20 +3,31 @@
 package oa3gen
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/aarondl/oa3/support"
 )
 
-type TestInline201Inline struct {
-	Id string `json:"id"`
-}
+// Check for arrays that can call validate function
+type ArraysWithRefValidation []RefValidation
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o TestInline201Inline) validateSchema() support.Errors {
+func (o ArraysWithRefValidation) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
+
+	for i, o := range o {
+		_ = o
+		ctx = append(ctx, fmt.Sprintf("[%d]", i))
+		if newErrs := Validate(o); newErrs != nil {
+			errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+		}
+		ctx = ctx[:len(ctx)-1]
+	}
 
 	return errs
 }

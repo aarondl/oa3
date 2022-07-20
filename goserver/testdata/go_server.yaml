@@ -205,6 +205,18 @@ components:
       properties:
         array: { type: array, items: { type: string } }
 
+    ArraysWithRefValidation:
+      description: Check for arrays that can call validate function
+      type: array
+      items: { $ref: '#/components/schemas/RefValidation' }
+
+    RefValidation:
+      description: Check for arrays that can call validate function
+      required: [mustValidateItem]
+      type: object
+      properties:
+        mustValidateItem: { type: string, maxLength: 5 }
+
     ArrayRecursive:
       description: Recursive definition of an array
       type: array

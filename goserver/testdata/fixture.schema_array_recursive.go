@@ -12,9 +12,9 @@ import (
 // Recursive definition of an array
 type ArrayRecursive [][][]string
 
-// VVValidateSchemaArrayRecursive validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o ArrayRecursive) VVValidateSchema() support.Errors {
+func (o ArrayRecursive) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
@@ -29,8 +29,8 @@ func (o ArrayRecursive) VVValidateSchema() support.Errors {
 
 	for i, o := range o {
 		_ = o
-		var ers []error
 		ctx = append(ctx, fmt.Sprintf("[%d]", i))
+		var ers []error
 		if err := support.ValidateMaxItems(o, 8); err != nil {
 			ers = append(ers, err)
 		}
@@ -40,8 +40,8 @@ func (o ArrayRecursive) VVValidateSchema() support.Errors {
 
 		for i, o := range o {
 			_ = o
-			var ers []error
 			ctx = append(ctx, fmt.Sprintf("[%d]", i))
+			var ers []error
 			if err := support.ValidateMaxItems(o, 15); err != nil {
 				ers = append(ers, err)
 			}

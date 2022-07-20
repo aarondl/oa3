@@ -9,9 +9,9 @@ import (
 // Map types
 type Map map[string][]string
 
-// VVValidateSchemaMap validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o Map) VVValidateSchema() support.Errors {
+func (o Map) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

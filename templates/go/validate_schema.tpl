@@ -18,12 +18,18 @@
         {{- if mustValidateRecurse $s.Items.Schema}}
     for i, {{$.Name}} := range {{$.Name}} {
         _ = {{$.Name}}
-        var ers []error
         {{- $.Import "fmt"}}
         ctx = append(ctx, fmt.Sprintf("[%d]", i))
+            {{- if $s.Items.Ref}}
+        if newErrs := Validate({{$.Name}}); newErrs != nil {
+            errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+        }
+            {{- else }}
+        var ers []error
         {{template "validate_schema_helper" (newDataRequired $ $.Name $s.Items true)}}
-        {{- $.Import "strings"}}
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+            {{- end -}}
+        {{- $.Import "strings"}}
         ctx = ctx[:len(ctx)-1]
     }
         {{- end -}}
@@ -68,8 +74,11 @@
             {{- /* Process embedded structs */ -}}
             {{- range $name, $element := $s.Properties -}}
                 {{- if and ($element.Ref) (mustValidate $element.Schema)}}
-    if newErrs := o.{{camelcase $name}}.VVValidateSchema(); newErrs != nil {
-        errs = support.MergeErrs(errs, newErrs)
+    if newErrs := Validate(o.{{camelcase $name}}); newErrs != nil {
+        ctx = append(ctx, {{printf "%q" $name}})
+                {{- $.Import "strings"}}
+        errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+        ctx = ctx[:len(ctx)-1]
     }
                 {{- end -}}
             {{- end -}}
@@ -82,9 +91,9 @@
 
 {{- end}}
 
-// VVValidateSchema{{$.Name}} validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o {{$.Name}}) VVValidateSchema() support.Errors {
+func (o {{$.Name}}) validateSchema() support.Errors {
     {{- $s := $.Object.Schema}}
     var ctx []string
     var ers []error

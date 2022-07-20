@@ -10,9 +10,9 @@ type TestInlineInline struct {
 	Id string `json:"id"`
 }
 
-// VVValidateSchemaTestInlineInline validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o TestInlineInline) VVValidateSchema() support.Errors {
+func (o TestInlineInline) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

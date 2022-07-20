@@ -14,9 +14,9 @@ type AllOf struct {
 	Someprop string `json:"someprop"`
 }
 
-// VVValidateSchemaAllOf validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o AllOf) VVValidateSchema() support.Errors {
+func (o AllOf) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

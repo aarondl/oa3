@@ -14,9 +14,9 @@ type ArrayEmbeddedItem struct {
 	Prop string `json:"prop"`
 }
 
-// VVValidateSchemaArrayEmbeddedItem validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o ArrayEmbeddedItem) VVValidateSchema() support.Errors {
+func (o ArrayEmbeddedItem) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
@@ -25,9 +25,9 @@ func (o ArrayEmbeddedItem) VVValidateSchema() support.Errors {
 	return errs
 }
 
-// VVValidateSchemaArrayEmbedded validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o ArrayEmbedded) VVValidateSchema() support.Errors {
+func (o ArrayEmbedded) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

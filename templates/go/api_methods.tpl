@@ -74,7 +74,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                 {{- $.Import "github.com/aarondl/oa3/support" -}}
                 {{- $primRaw := primitiveRaw $ $param.Schema.Schema -}}
                 {{- if eq $primRaw "string"}}
-        p{{$i}}.Set(s0)
+        p{{$i}}.Set(s{{$i}})
         err = nil
                 {{- else -}}
                     {{- $convFn := printf "support.StringToBool(s%d)" $i -}}
@@ -149,7 +149,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             return err
         }
 
-        if newErrs := reqBody.VVValidateSchema(); newErrs != nil {
+        if newErrs := Validate(reqBody); newErrs != nil {
             errs = support.MergeErrs(errs, newErrs)
         }
     }

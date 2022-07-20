@@ -13,9 +13,9 @@ type MapEmbeddedItem struct {
 	Prop string `json:"prop"`
 }
 
-// VVValidateSchemaMapEmbeddedItem validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o MapEmbeddedItem) VVValidateSchema() support.Errors {
+func (o MapEmbeddedItem) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
@@ -24,9 +24,9 @@ func (o MapEmbeddedItem) VVValidateSchema() support.Errors {
 	return errs
 }
 
-// VVValidateSchemaMapEmbedded validates the object and returns
+// validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o MapEmbedded) VVValidateSchema() support.Errors {
+func (o MapEmbedded) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
