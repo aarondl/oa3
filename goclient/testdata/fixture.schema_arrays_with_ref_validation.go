@@ -2,11 +2,5 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
-// Enum type
-type Enum string
-
-const (
-	EnumOne   = Enum("one")
-	EnumTwo   = Enum("two")
-	EnumThree = Enum("three")
-)
+// Check for arrays that can call validate function
+type ArraysWithRefValidation []RefValidation

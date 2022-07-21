@@ -15,7 +15,7 @@ func (_c Client) {{$opname}}(_ctx context.Context
 				{{- if $media.Schema.Ref -}}
 					{{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
 					{{- refName $media.Schema.Ref -}}
-				{{- else if isInlinePrimitive $media.Schema.Schema -}}
+                {{- else if not (or (eq $media.Schema.Schema.Type "object") (eq $media.Schema.Schema.Type "array")) -}}
 					{{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
 				{{- else -}}
 					{{title $op.OperationID}}Inline

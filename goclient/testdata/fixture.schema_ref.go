@@ -2,8 +2,12 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
+import (
+	"github.com/aarondl/opt/null"
+)
+
 // References to other objects
 type Ref struct {
-	RefNormal RefTarget         `json:"ref_normal"`
-	RefNull   RefTargetNullable `json:"ref_null,omitempty"`
+	RefNormal RefTarget                   `json:"ref_normal"`
+	RefNull   null.Val[RefTargetNullable] `json:"ref_null"`
 }

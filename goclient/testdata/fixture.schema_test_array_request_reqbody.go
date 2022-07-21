@@ -2,11 +2,4 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
-// Enum type
-type Enum string
-
-const (
-	EnumOne   = Enum("one")
-	EnumTwo   = Enum("two")
-	EnumThree = Enum("three")
-)
+type TestArrayRequestInline []string

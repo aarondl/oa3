@@ -47,6 +47,39 @@ func (_c Client) Authenticate(_ctx context.Context) (AuthenticateResponse, *http
 	return _resp, _httpResp, nil
 }
 
+// TestArrayRequest get /test/array/request
+func (_c Client) TestArrayRequest(_ctx context.Context, body TestArrayRequestInline) (TestArrayRequestResponse, *http.Response, error) {
+	_urlStr := `/test/array/request`
+	_req, _err := http.NewRequestWithContext(_ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_bodyBytes, _err := json.Marshal(body)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err := _c.doRequest(_ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
+
+	var _resp TestArrayRequestResponse
+	switch _httpResp.Status {
+	case `200`:
+		_resp = HTTPStatusOk{}
+	default:
+		return nil, nil, fmt.Errorf("unknown response code")
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // TestInlinePrimitiveBody get /test/inline
 func (_c Client) TestInlinePrimitiveBody(_ctx context.Context, body string) (TestInlinePrimitiveBodyResponse, *http.Response, error) {
 	_urlStr := `/test/inline`

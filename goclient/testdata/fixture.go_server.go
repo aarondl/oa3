@@ -98,6 +98,17 @@ type AuthenticateResponse interface {
 // AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) AuthenticateImpl() {}
 
+// TestArrayRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestArrayRequestResponse interface {
+	TestArrayRequestImpl()
+}
+
+// TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestArrayRequestImpl() {}
+
 // TestInlinePrimitiveBodyResponse one-of enforcer
 //
 // Implementors:
