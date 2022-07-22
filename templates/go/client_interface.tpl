@@ -21,6 +21,7 @@ var (
 {{end -}}
 type Client struct {
 	httpClient *http.Client
+	httpHandler http.Handler
 	{{- $.Import "golang.org/x/time/rate"}}
 	limiter *rate.Limiter
 }
@@ -50,7 +51,21 @@ func NewClient(httpClient *http.Client, limiter *rate.Limiter) Client {
 	return Client{httpClient: apiHTTPClient}
 }
 
+// NewLocalClient constructs an api client, but takes in a handler to call
+// with the prepared requests instead of an http client that will touch the
+// network. Useful for testing.
+func NewLocalClient(httpHandler http.Handler) Client {
+	return Client{httpHandler: httpHandler}
+}
+
 func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
+	if c.httpHandler != nil {
+		{{- $.Import "net/http/httptest"}}
+		w := httptest.NewRecorder()
+		c.httpHandler.ServeHTTP(w, req)
+		return w.Result(), nil
+	}
+
 	if c.limiter != nil {
 		if err := c.limiter.Wait(ctx); err != nil {
 			return nil, err

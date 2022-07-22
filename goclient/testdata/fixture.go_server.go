@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
 	"time"
 
@@ -27,8 +28,9 @@ var (
 //
 // A great api
 type Client struct {
-	httpClient *http.Client
-	limiter    *rate.Limiter
+	httpClient  *http.Client
+	httpHandler http.Handler
+	limiter     *rate.Limiter
 }
 
 // WithDebug creates a context that will emit debugging information to stdout
@@ -56,7 +58,20 @@ func NewClient(httpClient *http.Client, limiter *rate.Limiter) Client {
 	return Client{httpClient: apiHTTPClient}
 }
 
+// NewLocalClient constructs an api client, but takes in a handler to call
+// with the prepared requests instead of an http client that will touch the
+// network. Useful for testing.
+func NewLocalClient(httpHandler http.Handler) Client {
+	return Client{httpHandler: httpHandler}
+}
+
 func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
+	if c.httpHandler != nil {
+		w := httptest.NewRecorder()
+		c.httpHandler.ServeHTTP(w, req)
+		return w.Result(), nil
+	}
+
 	if c.limiter != nil {
 		if err := c.limiter.Wait(ctx); err != nil {
 			return nil, err
