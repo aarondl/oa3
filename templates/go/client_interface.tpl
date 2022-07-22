@@ -59,13 +59,6 @@ func NewLocalClient(httpHandler http.Handler) Client {
 }
 
 func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
-	if c.httpHandler != nil {
-		{{- $.Import "net/http/httptest"}}
-		w := httptest.NewRecorder()
-		c.httpHandler.ServeHTTP(w, req)
-		return w.Result(), nil
-	}
-
 	if c.limiter != nil {
 		if err := c.limiter.Wait(ctx); err != nil {
 			return nil, err
@@ -80,9 +73,18 @@ func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Respons
 		fmt.Printf("%s\n", reqDump)
 	}
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
+	var resp *http.Response
+	if c.httpHandler != nil {
+		{{- $.Import "net/http/httptest"}}
+		w := httptest.NewRecorder()
+		c.httpHandler.ServeHTTP(w, req)
+		resp = w.Result()
+	} else {
+		var err error
+		resp, err = c.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if hasDebug(ctx) {
