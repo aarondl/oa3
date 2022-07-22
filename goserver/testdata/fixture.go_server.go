@@ -23,6 +23,8 @@ type Interface interface {
 	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
 	// TestArrayRequest get /test/array/request
 	TestArrayRequest(w http.ResponseWriter, r *http.Request, body TestArrayRequestInline) (TestArrayRequestResponse, error)
+	// TestEnumQueryRequest get /test/enum/query/request
+	TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body TestEnumQueryRequestInline, sort string) (TestEnumQueryRequestResponse, error)
 	// TestInlinePrimitiveBody get /test/inline
 	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
 	// TestInline post /test/inline
@@ -67,6 +69,7 @@ func NewGoServer(
 		}
 		r.Method(http.MethodPost, `/auth`, eh.Wrap(o.authenticateOp))
 		r.Method(http.MethodGet, `/test/array/request`, eh.Wrap(o.testarrayrequestOp))
+		r.Method(http.MethodGet, `/test/enum/query/request`, eh.Wrap(o.testenumqueryrequestOp))
 		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
 	})
@@ -117,6 +120,17 @@ type TestArrayRequestResponse interface {
 
 // TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) TestArrayRequestImpl() {}
+
+// TestEnumQueryRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestEnumQueryRequestResponse interface {
+	TestEnumQueryRequestImpl()
+}
+
+// TestEnumQueryRequestImpl implements TestEnumQueryRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestEnumQueryRequestImpl() {}
 
 // TestInlinePrimitiveBodyResponse one-of enforcer
 //
@@ -201,6 +215,10 @@ func (a API) Authenticate(w http.ResponseWriter, r *http.Request) (oa3gen.Authen
 }
 // TestArrayRequest get /test/array/request
 func (a API) TestArrayRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestArrayRequestInline) (oa3gen.TestArrayRequestResponse, error) {
+    panic("not implemented")
+}
+// TestEnumQueryRequest get /test/enum/query/request
+func (a API) TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestEnumQueryRequestInline, sort string) (oa3gen.TestEnumQueryRequestResponse, error) {
     panic("not implemented")
 }
 // TestInlinePrimitiveBody get /test/inline

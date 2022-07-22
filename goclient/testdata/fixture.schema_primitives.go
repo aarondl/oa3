@@ -40,14 +40,15 @@ type Primitives struct {
 	TimeNull  null.Val[chrono.Time] `json:"time_null"`
 	TimeVal   chrono.Time           `json:"time_val"`
 }
+
 type PrimitivesStr string
 
 const (
 	PrimitivesStrHello = PrimitivesStr("hello")
 )
 
-type PrimitivesStrNull null.Val[string]
+type PrimitivesStrNull string
 
 var (
-	PrimitivesStrNullHello = PrimitivesStrNull(null.From("hello"))
+	PrimitivesStrNullHello = PrimitivesStrNull("hello")
 )

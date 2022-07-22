@@ -62,6 +62,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
 		s.MinProperties != nil ||
+		len(s.Enum) > 0 ||
 		s.Format != nil
 }
 

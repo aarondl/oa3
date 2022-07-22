@@ -6,25 +6,23 @@ import (
 	"github.com/aarondl/oa3/support"
 )
 
-// Enum type
-type Enum string
+type TestEnumQueryRequestSortParam string
 
 const (
-	EnumOne   = Enum("one")
-	EnumTwo   = Enum("two")
-	EnumThree = Enum("three")
+	TestEnumQueryRequestSortParamASC  = TestEnumQueryRequestSortParam("ASC")
+	TestEnumQueryRequestSortParamDESC = TestEnumQueryRequestSortParam("DESC")
 )
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o Enum) validateSchema() support.Errors {
+func (o TestEnumQueryRequestSortParam) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
 
 	ers = nil
-	if err := support.ValidateEnum(o, []string{"one", "two", "three"}); err != nil {
+	if err := support.ValidateEnum(o, []string{"ASC", "DESC"}); err != nil {
 		ers = append(ers, err)
 	}
 

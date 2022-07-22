@@ -20,9 +20,9 @@ import (
 )
 
 // Authenticate post /auth
-func (_c Client) Authenticate(_ctx context.Context) (AuthenticateResponse, *http.Response, error) {
+func (_c Client) Authenticate(ctx context.Context) (AuthenticateResponse, *http.Response, error) {
 	_urlStr := `/auth`
-	_req, _err := http.NewRequestWithContext(_ctx, http.MethodPost, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -31,7 +31,7 @@ func (_c Client) Authenticate(_ctx context.Context) (AuthenticateResponse, *http
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(_ctx, _req)
+	_httpResp, _err := _c.doRequest(ctx, _req)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -48,9 +48,9 @@ func (_c Client) Authenticate(_ctx context.Context) (AuthenticateResponse, *http
 }
 
 // TestArrayRequest get /test/array/request
-func (_c Client) TestArrayRequest(_ctx context.Context, body TestArrayRequestInline) (TestArrayRequestResponse, *http.Response, error) {
+func (_c Client) TestArrayRequest(ctx context.Context, body TestArrayRequestInline) (TestArrayRequestResponse, *http.Response, error) {
 	_urlStr := `/test/array/request`
-	_req, _err := http.NewRequestWithContext(_ctx, http.MethodGet, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -64,7 +64,7 @@ func (_c Client) TestArrayRequest(_ctx context.Context, body TestArrayRequestInl
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(_ctx, _req)
+	_httpResp, _err := _c.doRequest(ctx, _req)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -80,10 +80,47 @@ func (_c Client) TestArrayRequest(_ctx context.Context, body TestArrayRequestInl
 	return _resp, _httpResp, nil
 }
 
+// TestEnumQueryRequest get /test/enum/query/request
+func (_c Client) TestEnumQueryRequest(ctx context.Context, body TestEnumQueryRequestInline, sort TestEnumQueryRequestSortParam) (TestEnumQueryRequestResponse, *http.Response, error) {
+	_urlStr := `/test/enum/query/request`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_bodyBytes, _err := json.Marshal(body)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+	var _query url.Values
+	if _query == nil {
+		_query = make(url.Values)
+	}
+	_query.Set(`sort`, fmt.Sprintf("%v", sort))
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err := _c.doRequest(ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
+
+	var _resp TestEnumQueryRequestResponse
+	switch _httpResp.Status {
+	case `200`:
+		_resp = HTTPStatusOk{}
+	default:
+		return nil, nil, fmt.Errorf("unknown response code")
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // TestInlinePrimitiveBody get /test/inline
-func (_c Client) TestInlinePrimitiveBody(_ctx context.Context, body string) (TestInlinePrimitiveBodyResponse, *http.Response, error) {
+func (_c Client) TestInlinePrimitiveBody(ctx context.Context, body string) (TestInlinePrimitiveBodyResponse, *http.Response, error) {
 	_urlStr := `/test/inline`
-	_req, _err := http.NewRequestWithContext(_ctx, http.MethodGet, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -97,7 +134,7 @@ func (_c Client) TestInlinePrimitiveBody(_ctx context.Context, body string) (Tes
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(_ctx, _req)
+	_httpResp, _err := _c.doRequest(ctx, _req)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -114,9 +151,9 @@ func (_c Client) TestInlinePrimitiveBody(_ctx context.Context, body string) (Tes
 }
 
 // TestInline post /test/inline
-func (_c Client) TestInline(_ctx context.Context, body TestInlineInline) (TestInlineResponse, *http.Response, error) {
+func (_c Client) TestInline(ctx context.Context, body TestInlineInline) (TestInlineResponse, *http.Response, error) {
 	_urlStr := `/test/inline`
-	_req, _err := http.NewRequestWithContext(_ctx, http.MethodPost, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -130,7 +167,7 @@ func (_c Client) TestInline(_ctx context.Context, body TestInlineInline) (TestIn
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(_ctx, _req)
+	_httpResp, _err := _c.doRequest(ctx, _req)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -169,10 +206,10 @@ func (_c Client) TestInline(_ctx context.Context, body TestInlineInline) (TestIn
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (_c Client) GetUser(_ctx context.Context, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
+func (_c Client) GetUser(ctx context.Context, id string, validStr omitnull.Val[GetUserValidStrParam], reqValidStr null.Val[GetUserReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
 	_urlStr := `/users/{id}`
 	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
-	_req, _err := http.NewRequestWithContext(_ctx, http.MethodGet, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -207,7 +244,7 @@ func (_c Client) GetUser(_ctx context.Context, id string, validStr omitnull.Val[
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(_ctx, _req)
+	_httpResp, _err := _c.doRequest(ctx, _req)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -226,9 +263,9 @@ func (_c Client) GetUser(_ctx context.Context, id string, validStr omitnull.Val[
 // SetUser post /users/{id}
 //
 // Sets a user
-func (_c Client) SetUser(_ctx context.Context, body *Primitives) (SetUserResponse, *http.Response, error) {
+func (_c Client) SetUser(ctx context.Context, body *Primitives) (SetUserResponse, *http.Response, error) {
 	_urlStr := `/users/{id}`
-	_req, _err := http.NewRequestWithContext(_ctx, http.MethodPost, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
@@ -242,7 +279,7 @@ func (_c Client) SetUser(_ctx context.Context, body *Primitives) (SetUserRespons
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(_ctx, _req)
+	_httpResp, _err := _c.doRequest(ctx, _req)
 	if _err != nil {
 		return nil, nil, _err
 	}

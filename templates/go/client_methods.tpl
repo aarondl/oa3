@@ -8,7 +8,7 @@
 // {{wrapWith 70 "\n// " (trimSuffix "\n" $op.Description)}}
 {{- end -}}
 {{- $.Import "context"}}
-func (_c Client) {{$opname}}(_ctx context.Context
+func (_c Client) {{$opname}}(ctx context.Context
 		{{- if $op.RequestBody -}}
 			, {{$media := index $op.RequestBody.Content "application/json" -}}
 			body{{" " -}}
@@ -22,7 +22,12 @@ func (_c Client) {{$opname}}(_ctx context.Context
 				{{- end -}}
 		{{- end -}}
 		{{- range $param := $op.Parameters -}}
-		, {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema $param.Required -}}
+		, {{untitle (camelcase $param.Name)}}{{" "}}
+            {{- if and $param.Schema.Schema.Enum (gt (len $param.Schema.Schema.Enum) 0) -}}
+                {{omitnullWrap $ $param.Schema.Schema (printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)) $param.Schema.Schema.Nullable $param.Required}}
+            {{- else -}}
+                {{- primitive $ $param.Schema.Schema $param.Required -}}
+            {{- end -}}
 		{{- end -}}
 	) ({{title $op.OperationID}}Response, *http.Response, error) {
     _urlStr := `{{$url}}`
@@ -33,7 +38,7 @@ func (_c Client) {{$opname}}(_ctx context.Context
             _urlStr = strings.Replace(_urlStr, `{{"{"}}{{$param.Name}}{{"}"}}`, fmt.Sprintf("%v", {{$pname}}), 1) 
         {{- end -}}
 	{{- end}}
-	_req, _err := http.NewRequestWithContext(_ctx, http.Method{{camelcase $method}}, _urlStr, nil)
+	_req, _err := http.NewRequestWithContext(ctx, http.Method{{camelcase $method}}, _urlStr, nil)
     if _err != nil {
         return nil, nil, _err
     }
@@ -90,7 +95,7 @@ func (_c Client) {{$opname}}(_ctx context.Context
         {{- end -}}
 	{{- end -}}
 
-    _httpResp, _err := _c.doRequest(_ctx, _req)
+    _httpResp, _err := _c.doRequest(ctx, _req)
     if _err != nil {
         return nil, nil, _err
     }

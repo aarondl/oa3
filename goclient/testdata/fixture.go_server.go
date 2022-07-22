@@ -109,6 +109,17 @@ type TestArrayRequestResponse interface {
 // TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) TestArrayRequestImpl() {}
 
+// TestEnumQueryRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestEnumQueryRequestResponse interface {
+	TestEnumQueryRequestImpl()
+}
+
+// TestEnumQueryRequestImpl implements TestEnumQueryRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestEnumQueryRequestImpl() {}
+
 // TestInlinePrimitiveBodyResponse one-of enforcer
 //
 // Implementors:

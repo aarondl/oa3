@@ -5,7 +5,7 @@
             {{- if $.Object.Ref -}}
                 {{- refName $.Object.Ref -}}
             {{- else -}}
-                {{.Name}}
+                {{title .Name}}
             {{- end -}}
         {{- else -}}
             {{- template "schema" (recurseData $ $.Name $.Object) -}}
@@ -19,7 +19,7 @@
 {{- define "type_enum" -}}
 {{if or ($.Object.Nullable) (not $.Required)}}var{{else}}const{{end}} (
     {{- range $value := $.Object.Enum}}
-    {{$.Name}}{{camelcase $value}} = {{$.Name}}({{omitnullConstructorWrap $ $.Object (printf "%q" $value) $.Object.Nullable $.Required }})
+    {{title $.Name}}{{filterNonIdentChars $value | snakeToCamel | title }} = {{title $.Name}}({{printf "%q" $value}})
     {{- end}}
 )
 {{- end -}}
@@ -28,8 +28,8 @@
 to a schema ref */ -}}
 {{- define "type_embedded" -}}
     {{- if and (not $.Object.Ref) $.Object.Enum}}
-type {{$.Name}} {{omitnullWrap $ $.Object.Schema "string" $.Object.Nullable $.Required}}
-        {{template "type_enum" (newDataRequired $ $.Name $.Object.Schema true)}}
+
+{{template "schema_top" (newDataRequired $ $.Name $.Object true)}}
     {{- else if and (not .Object.Ref) (not (isInlinePrimitive .Object.Schema))}}
 
 {{template "schema_top" $ -}}

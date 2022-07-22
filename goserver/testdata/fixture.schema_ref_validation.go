@@ -25,7 +25,6 @@ func (o RefValidation) validateSchema() support.Errors {
 	if err := support.ValidateMaxLength(o.Mustvalidateitem, 5); err != nil {
 		ers = append(ers, err)
 	}
-
 	if len(ers) != 0 {
 		ctx = append(ctx, "mustValidateItem")
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)

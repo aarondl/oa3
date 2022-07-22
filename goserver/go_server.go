@@ -43,15 +43,18 @@ var TemplateList = []string{
 
 // TemplateFunctions to use for generation
 var TemplateFunctions = map[string]interface{}{
-	"camelSnake":              CamelSnake,
-	"primitive":               primitive,
-	"primitiveRaw":            primitiveRaw,
-	"primitiveBits":           primitiveBits,
+	"camelSnake":              camelSnake,
+	"filterNonIdentChars":     filterNonIdentChars,
 	"isInlinePrimitive":       isInlinePrimitive,
-	"taggedPaths":             tagPaths,
-	"responseKind":            responseKind,
-	"omitnullWrap":            omitnullWrap,
 	"omitnullConstructorWrap": omitnullConstructorWrap,
+	"omitnullWrap":            omitnullWrap,
+	"omitnullUnwrap":          omitnullUnwrap,
+	"primitive":               primitive,
+	"primitiveBits":           primitiveBits,
+	"primitiveRaw":            primitiveRaw,
+	"responseKind":            responseKind,
+	"snakeToCamel":            snakeToCamel,
+	"taggedPaths":             tagPaths,
 
 	// overrides of the defaults
 	"mustValidate": mustValidate,
@@ -201,7 +204,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 	for _, k := range keys {
 		v := spec.Components.Schemas[k]
-		filename := "schema_" + CamelSnake(k) + ".go"
+		filename := "schema_" + camelSnake(k) + ".go"
 
 		generated, err := makePseudoFile(spec, params, tpl, filename, k, v, false)
 		if err != nil {
@@ -226,6 +229,28 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				continue
 			}
 
+			for _, p := range o.Op.Parameters {
+				// Because parameters for operations must be simple types due
+				// to an inability to serialize, but enum types still must be
+				// defined to get the constants.
+				if len(p.Schema.Enum) == 0 {
+					continue
+				}
+
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_param_" + camelSnake(p.Name) + ".go"
+
+				generated, err := makePseudoFile(spec, params, tpl, filename, snakeToCamel(o.Op.OperationID)+strings.Title(snakeToCamel(p.Name))+"Param", &p.Schema, p.Required)
+				if err != nil {
+					return nil, err
+				}
+				topLevelStructs = append(topLevelStructs, generated)
+			}
+		}
+		for _, o := range opMaps {
+			if o.Op == nil {
+				continue
+			}
+
 			// If we have no request body ignore this op
 			if o.Op.RequestBody != nil {
 				if len(o.Op.RequestBody.Ref) != 0 {
@@ -238,7 +263,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 					continue
 				}
 
-				filename := "schema_" + CamelSnake(o.Op.OperationID) + "_reqbody.go"
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
 				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema, o.Op.RequestBody.Required)
 				if err != nil {
 					return nil, err
@@ -267,7 +292,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 					continue
 				}
 
-				filename := "schema_" + CamelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
+				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
 				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema, true)
 				if err != nil {
 					return nil, err
@@ -284,7 +309,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 			continue
 		}
 
-		filename := "schema_" + CamelSnake(name) + "_reqbody.go"
+		filename := "schema_" + camelSnake(name) + "_reqbody.go"
 		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, req.Required)
 		if err != nil {
 			return nil, err
@@ -302,7 +327,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 			continue
 		}
 
-		filename := "schema_" + CamelSnake(name) + "_respbody.go"
+		filename := "schema_" + camelSnake(name) + "_respbody.go"
 		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, true)
 		if err != nil {
 			return nil, err
@@ -489,6 +514,15 @@ func omitnullConstructorWrap(tdata templates.TemplateData, schema *openapi3spec.
 	return kind + `.From(` + value + `)`
 }
 
+func omitnullUnwrap(tdata templates.TemplateData, schema *openapi3spec.Schema, name string, nullable bool, required bool) string {
+	switch {
+	case !nullable && required:
+		return name
+	default:
+		return name + ".GetOrZero()"
+	}
+}
+
 // mustValidate checks to see if the schema requires any kind of validation
 // overrides the generic definition
 //
@@ -508,6 +542,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
 		s.MinProperties != nil ||
+		len(s.Enum) > 0 ||
 		(s.Format != nil && *s.Format != "date" && *s.Format != "date-time" && *s.Format != "time" && *s.Format != "duration")
 }
 
@@ -548,7 +583,7 @@ func Imports(imps map[string]struct{}) string {
 
 // schema_UserIDProfile -> schema_user_id_profile
 // ID -> id
-func CamelSnake(filename string) string {
+func camelSnake(filename string) string {
 	build := new(strings.Builder)
 
 	var upper bool
@@ -584,6 +619,37 @@ func CamelSnake(filename string) string {
 
 		upper = true
 		build.WriteRune(unicode.ToLower(r))
+	}
+
+	return build.String()
+}
+
+func snakeToCamel(in string) string {
+	build := new(strings.Builder)
+	sawUnderscore := false
+	for _, r := range in {
+		if r == '_' {
+			sawUnderscore = true
+			continue
+		}
+
+		if sawUnderscore {
+			sawUnderscore = false
+			build.WriteRune(unicode.ToUpper(r))
+		} else {
+			build.WriteRune(r)
+		}
+	}
+
+	return build.String()
+}
+
+func filterNonIdentChars(in string) string {
+	build := new(strings.Builder)
+	for _, c := range in {
+		if unicode.IsLetter(c) || c == '_' {
+			build.WriteRune(c)
+		}
 	}
 
 	return build.String()

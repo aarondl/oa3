@@ -6,27 +6,15 @@ import (
 	"github.com/aarondl/oa3/support"
 )
 
-// Enum type
-type Enum string
-
-const (
-	EnumOne   = Enum("one")
-	EnumTwo   = Enum("two")
-	EnumThree = Enum("three")
-)
+type TestEnumQueryRequestInline []string
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o Enum) validateSchema() support.Errors {
+func (o TestEnumQueryRequestInline) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
-
-	ers = nil
-	if err := support.ValidateEnum(o, []string{"one", "two", "three"}); err != nil {
-		ers = append(ers, err)
-	}
 
 	return errs
 }

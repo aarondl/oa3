@@ -112,6 +112,64 @@ func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
+// testenumqueryrequest get /test/enum/query/request
+func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	const n0 = `sort`
+	s0, s0Exists := r.URL.Query().Get(n0), r.URL.Query().Has(n0)
+	var p0 string
+	if !s0Exists || len(s0) == 0 {
+		errs = support.AddErrs(errs, n0, errors.New(`must be provided and not be empty`))
+	} else {
+		p0 = s0
+		if newErrs := Validate(TestEnumQueryRequestSortParam(p0)); newErrs != nil {
+			errs = support.AddErrsFlatten(errs, n0, newErrs)
+		}
+	}
+
+	var reqBody TestEnumQueryRequestInline
+
+	if r.Body == nil {
+		return support.ErrNoBody
+	} else {
+		if err = support.ReadJSON(r, &reqBody); err != nil {
+			return err
+		}
+
+		if newErrs := Validate(reqBody); newErrs != nil {
+			errs = support.MergeErrs(errs, newErrs)
+		}
+	}
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestEnumQueryRequest(w, r, reqBody, p0)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
 // testinlineprimitivebody get /test/inline
 func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Request) error {
 	var err error
@@ -236,23 +294,8 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	if s1Exists {
 		p1.Set(s1)
 		err = nil
-		if err != nil {
-			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
-		}
-		ers = nil
-		if err := support.ValidateMaxLength(omitnull.Val[string](p1).GetOrZero(), 5); err != nil {
-			ers = append(ers, err)
-		}
-
-		if err := support.ValidateMinLength(omitnull.Val[string](p1).GetOrZero(), 2); err != nil {
-			ers = append(ers, err)
-		}
-		if err := support.ValidateEnum(omitnull.Val[string](p1).GetOrZero(), []string{"he\"llo"}); err != nil {
-			ers = append(ers, err)
-		}
-
-		if len(ers) != 0 {
-			errs = support.AddErrs(errs, n1, ers...)
+		if newErrs := Validate(GetUserValidStrParam(p1.GetOrZero())); newErrs != nil {
+			errs = support.AddErrsFlatten(errs, n1, newErrs)
 		}
 	}
 
@@ -264,23 +307,8 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		p2.Set(s2)
 		err = nil
-		if err != nil {
-			errs = support.AddErrs(errs, n2, errors.New(`was not in a valid format`))
-		}
-		ers = nil
-		if err := support.ValidateMaxLength(null.Val[string](p2).GetOrZero(), 5); err != nil {
-			ers = append(ers, err)
-		}
-
-		if err := support.ValidateMinLength(null.Val[string](p2).GetOrZero(), 2); err != nil {
-			ers = append(ers, err)
-		}
-		if err := support.ValidateEnum(null.Val[string](p2).GetOrZero(), []string{"he\"llo"}); err != nil {
-			ers = append(ers, err)
-		}
-
-		if len(ers) != 0 {
-			errs = support.AddErrs(errs, n2, ers...)
+		if newErrs := Validate(GetUserReqValidStrParam(p2.GetOrZero())); newErrs != nil {
+			errs = support.AddErrsFlatten(errs, n2, newErrs)
 		}
 	}
 
@@ -289,10 +317,11 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	var p3 omit.Val[int]
 	if s3Exists {
 		p3c, err := support.StringToInt[int](s3, 64)
-		p3.Set(p3c)
 		if err != nil {
 			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
 		}
+		p3.Set(p3c)
+
 		ers = nil
 		if err := support.ValidateMaxNumber(p3.GetOrZero(), 5, true); err != nil {
 			ers = append(ers, err)
@@ -318,6 +347,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
 		}
+
 		ers = nil
 		if err := support.ValidateMaxNumber(p4, 5, true); err != nil {
 			ers = append(ers, err)
@@ -338,10 +368,11 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	var p5 omit.Val[float64]
 	if s5Exists {
 		p5c, err := support.StringToFloat[float64](s5, 64)
-		p5.Set(p5c)
 		if err != nil {
 			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
 		}
+		p5.Set(p5c)
+
 		ers = nil
 		if err := support.ValidateMaxNumber(p5.GetOrZero(), 10.5, false); err != nil {
 			ers = append(ers, err)
@@ -367,6 +398,7 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			errs = support.AddErrs(errs, n6, errors.New(`was not in a valid format`))
 		}
+
 		ers = nil
 		if err := support.ValidateMaxNumber(p6, 10.5, false); err != nil {
 			ers = append(ers, err)
@@ -387,10 +419,10 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	var p7 omit.Val[bool]
 	if s7Exists {
 		p7c, err := support.StringToBool(s7)
-		p7.Set(p7c)
 		if err != nil {
 			errs = support.AddErrs(errs, n7, errors.New(`was not in a valid format`))
 		}
+		p7.Set(p7c)
 	}
 
 	const n8 = `req_valid_bool`
@@ -412,11 +444,11 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		errs = support.AddErrs(errs, n9, errors.New(`must be provided and not be empty`))
 	} else {
 		p9 = s9
+
 		ers = nil
 		if err := support.ValidateFormatUUIDv4(p9); err != nil {
 			ers = append(ers, err)
 		}
-
 		if len(ers) != 0 {
 			errs = support.AddErrs(errs, n9, ers...)
 		}

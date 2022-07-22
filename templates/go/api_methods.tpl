@@ -104,24 +104,35 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                     {{- end -}}
                     {{- if or (hasPrefix "null." $prim) (hasPrefix "omit." $prim) (hasPrefix "omitnull." $prim)}}
         p{{$i}}c, err := {{$convFn}}
-        p{{$i}}.Set(p{{$i}}c)
-                    {{- else}}
-        p{{$i}}, err = {{$convFn}}
-                    {{- end -}}
-                {{- end}}
         if err != nil {
                 {{- $.Import "errors"}}
             errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
         }
+        p{{$i}}.Set(p{{$i}}c)
+                    {{- else}}
+        p{{$i}}, err = {{$convFn}}
+        if err != nil {
+                {{- $.Import "errors"}}
+            errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
+        }
+                    {{- end -}}
+                {{- end}}
             {{- else}}
         p{{$i}} = s{{$i}}
             {{- end -}}
             {{- if mustValidate $param.Schema.Schema -}}
+                {{- if and ($param.Schema.Enum) (gt (len $param.Schema.Enum) 0) -}}
+                    {{- /* In enum case we should not call validate_field since there will already be a type for it */}}
+        if newErrs := Validate({{printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)}}({{omitnullUnwrap $ $param.Schema.Schema (printf "p%d" $i) $param.Schema.Nullable $param.Required}})); newErrs != nil {
+            errs = support.AddErrsFlatten(errs, n{{$i}}, newErrs)
+        }
+                {{- else -}}
                 {{- $.Import "github.com/aarondl/oa3/support"}}
-        {{template "validate_field" (newDataRequired $ (printf "p%d" $i) $param.Schema.Schema $param.Required)}}
+        {{template "validate_field" (newDataRequired $ (omitnullUnwrap $ $param.Schema.Schema (printf "p%d" $i) $param.Schema.Nullable $param.Required) $param.Schema.Schema $param.Required)}}
         if len(ers) != 0 {
             errs = support.AddErrs(errs, n{{$i}}, ers...)
         }
+                {{- end -}}
             {{end -}}
     }{{- /* This bracket closes the validation if above */ -}}
         {{- end}}

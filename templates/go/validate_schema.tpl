@@ -60,14 +60,21 @@
         {{- else if $s.Properties -}}
             {{- /* Process regular struct fields */ -}}
             {{- range $name, $element := $s.Properties -}}
-                {{- if and (not $element.Ref) (mustValidate $element.Schema)}}
-    {{template "validate_field" (recurseDataSetRequired $ (printf ".%s" (camelcase $name)) $element.Schema ($s.IsRequired $name))}}
+                {{- if and (not $element.Ref) (mustValidate $element.Schema) -}}
+                    {{- $isRequired := $s.IsRequired $name -}}
+                    {{- if and $element.Enum (gt (len $element.Enum) 0) }}
+        if newErrs := Validate({{$.Name}}.{{camelcase $name}}); newErrs != nil {
+            errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+        }
+                    {{- else}}
+    {{template "validate_field" (recurseDataSetRequired $ (printf ".%s" (omitnullUnwrap $ $s (camelcase $name) $element.Nullable $isRequired)) $element.Schema $isRequired)}}
     if len(ers) != 0 {
         ctx = append(ctx, {{printf "%q" $name}})
                 {{- $.Import "strings"}}
         errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
         ctx = ctx[:len(ctx)-1]
     }
+                    {{- end -}}
                 {{- end -}}
             {{- end -}}
 
@@ -93,7 +100,7 @@
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o {{$.Name}}) validateSchema() support.Errors {
+func (o {{title $.Name}}) validateSchema() support.Errors {
     {{- $s := $.Object.Schema}}
     var ctx []string
     var ers []error
