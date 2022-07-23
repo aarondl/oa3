@@ -6,11 +6,10 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7
 	github.com/aarondl/fixtures v0.0.1
-	github.com/davecgh/go-spew v1.1.1
 	github.com/peterhellberg/duration v0.0.0-20191119133758-ec6baeebcd10
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/exp v0.0.0-20220609121020-a51bd0440498
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -24,5 +23,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
+	github.com/stretchr/testify v1.8.0 // indirect
+	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 )
