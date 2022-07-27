@@ -9,6 +9,13 @@
 {{- end -}}
 {{- $.Import "context"}}
 func (_c Client) {{$opname}}(ctx context.Context
+        {{- if $op.Servers -}}
+        , baseURL BaseURLBuilder{{$url | filterNonIdentChars | title}}{{$method | filterNonIdentChars | title}}
+        {{- else if $path.Servers -}}
+        , baseURL BaseURLBuilder{{$url | filterNonIdentChars | title}}
+        {{- else -}}
+        , baseURL BaseURLBuilder
+        {{- end -}}
 		{{- if $op.RequestBody -}}
             {{- $json := index $op.RequestBody.Content "application/json" -}}
             {{- if $json -}}
@@ -35,7 +42,8 @@ func (_c Client) {{$opname}}(ctx context.Context
             {{- end -}}
 		{{- end -}}
 	) ({{title $op.OperationID}}Response, *http.Response, error) {
-    _urlStr := `{{$url}}`
+    {{- $.Import "strings"}}
+    _urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `{{$url}}`
 	{{- range $param := $op.Parameters -}}
         {{- if and (eq $param.In "path") -}}
             {{- $pname := untitle (camelcase $param.Name) -}}

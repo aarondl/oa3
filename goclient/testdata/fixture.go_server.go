@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/aarondl/opt/omit"
@@ -19,6 +20,195 @@ type ctxKey string
 const (
 	ctxKeyDebug ctxKey = "debug"
 )
+
+// BaseURLBuilder builds a base url. Implementations are likely simple fixed
+// strings or slightly more complicated variable replacement strings with
+// defaults.
+//
+// Implementors:
+// - Httpdevlocal
+// - Httpprodlocalonetwo
+// - Httpvariableslocalvariable
+type BaseURLBuilder interface {
+	ToURL() string
+}
+
+// BaseURLSimple is a simple base url builder that's just a static string
+type BaseURLSimple string
+
+func (b BaseURLSimple) ToURL() string { return string(b) }
+
+// Local development
+var Httpdevlocal = BaseURLSimple(`http://dev.local:3030`)
+
+// Production
+type Httpprodlocalonetwo struct {
+	One string
+	Two string
+}
+
+func (s Httpprodlocalonetwo) ToURL() string {
+	uri := `http://prod.local:3030/{one}/{two}`
+	if len(s.One) != 0 {
+		uri = strings.ReplaceAll(uri, `{one}`, s.One)
+	} else {
+		uri = strings.ReplaceAll(uri, `{one}`, `one`)
+	}
+	if len(s.Two) != 0 {
+		uri = strings.ReplaceAll(uri, `{two}`, s.Two)
+	} else {
+		uri = strings.ReplaceAll(uri, `{two}`, `two`)
+	}
+	return uri
+}
+
+// Variable path
+type Httpvariableslocalvariable struct {
+	Variable string
+}
+
+func (s Httpvariableslocalvariable) ToURL() string {
+	uri := `http://variables.local:3030/{variable}`
+	if len(s.Variable) != 0 {
+		switch s.Variable {
+		case `v1`, `v2`, `v3`:
+		default:
+			panic("unknown server variable enum value: " + s.Variable)
+		}
+		uri = strings.ReplaceAll(uri, `{variable}`, s.Variable)
+	} else {
+		uri = strings.ReplaceAll(uri, `{variable}`, `v1`)
+	}
+	return uri
+}
+
+// BaseURLSimpleTestservers is a simple string url like BaseURLSimple
+type BaseURLSimpleTestservers string
+
+func (b BaseURLSimpleTestservers) ToURL() string       { return string(b) }
+func (b BaseURLSimpleTestservers) TestserversSatisfy() {}
+
+// BaseURLBuilderTestservers builds a base url like BaseURLBuilder but
+// restricts the implementing types to a smaller subset.
+//
+// Implementors:
+// - Httppathdevlocal
+// - Httppathprodlocalonetwo
+// - Httppathvariableslocalvariable
+type BaseURLBuilderTestservers interface {
+	BaseURLBuilder
+	TestserversSatisfy()
+}
+
+// Local development
+var Httppathdevlocal = BaseURLSimpleTestservers(`http://path.dev.local:3030`)
+
+// Production
+type Httppathprodlocalonetwo struct {
+	One string
+	Two string
+}
+
+func (Httppathprodlocalonetwo) TestserversToURL() {}
+func (s Httppathprodlocalonetwo) ToURL() string {
+	uri := `http://path.prod.local:3030/{one}/{two}`
+	if len(s.One) != 0 {
+		uri = strings.ReplaceAll(uri, `{one}`, s.One)
+	} else {
+		uri = strings.ReplaceAll(uri, `{one}`, `one`)
+	}
+	if len(s.Two) != 0 {
+		uri = strings.ReplaceAll(uri, `{two}`, s.Two)
+	} else {
+		uri = strings.ReplaceAll(uri, `{two}`, `two`)
+	}
+	return uri
+}
+
+// Variable path
+type Httppathvariableslocalvariable struct {
+	Variable string
+}
+
+func (Httppathvariableslocalvariable) TestserversToURL() {}
+func (s Httppathvariableslocalvariable) ToURL() string {
+	uri := `http://path.variables.local:3030/{variable}`
+	if len(s.Variable) != 0 {
+		switch s.Variable {
+		case `v1`, `v2`, `v3`:
+		default:
+			panic("unknown server variable enum value: " + s.Variable)
+		}
+		uri = strings.ReplaceAll(uri, `{variable}`, s.Variable)
+	} else {
+		uri = strings.ReplaceAll(uri, `{variable}`, `v1`)
+	}
+	return uri
+}
+
+// BaseURLSimpleTestserversPost is a simple string url like BaseURLSimple
+type BaseURLSimpleTestserversPost string
+
+func (b BaseURLSimpleTestserversPost) ToURL() string           { return string(b) }
+func (b BaseURLSimpleTestserversPost) TestserversPostSatisfy() {}
+
+// BaseURLBuilderTestserversPost builds a base url like BaseURLBuilder but
+// restricts the implementing types to a smaller subset.
+//
+// Implementors:
+// - Httpopdevlocal
+// - Httpopprodlocalonetwo
+// - Httpopvariableslocalvariable
+type BaseURLBuilderTestserversPost interface {
+	BaseURLBuilder
+	TestserversPostSatisfy()
+}
+
+// Local development
+var Httpopdevlocal = BaseURLSimpleTestserversPost(`http://op.dev.local:3030`)
+
+// Production
+type Httpopprodlocalonetwo struct {
+	One string
+	Two string
+}
+
+func (Httpopprodlocalonetwo) TestserversPostToURL() {}
+func (s Httpopprodlocalonetwo) ToURL() string {
+	uri := `http://op.prod.local:3030/{one}/{two}`
+	if len(s.One) != 0 {
+		uri = strings.ReplaceAll(uri, `{one}`, s.One)
+	} else {
+		uri = strings.ReplaceAll(uri, `{one}`, `one`)
+	}
+	if len(s.Two) != 0 {
+		uri = strings.ReplaceAll(uri, `{two}`, s.Two)
+	} else {
+		uri = strings.ReplaceAll(uri, `{two}`, `two`)
+	}
+	return uri
+}
+
+// Variable path
+type Httpopvariableslocalvariable struct {
+	Variable string
+}
+
+func (Httpopvariableslocalvariable) TestserversPostToURL() {}
+func (s Httpopvariableslocalvariable) ToURL() string {
+	uri := `http://op.variables.local:3030/{variable}`
+	if len(s.Variable) != 0 {
+		switch s.Variable {
+		case `v1`, `v2`, `v3`:
+		default:
+			panic("unknown server variable enum value: " + s.Variable)
+		}
+		uri = strings.ReplaceAll(uri, `{variable}`, s.Variable)
+	} else {
+		uri = strings.ReplaceAll(uri, `{variable}`, `v1`)
+	}
+	return uri
+}
 
 var (
 	apiHTTPClient = &http.Client{Timeout: time.Second * 5}
@@ -162,6 +352,28 @@ func (TestInline200Inline) TestInlineImpl() {}
 
 // TestInlineImpl implements TestInlineHeadersResponse(201) for
 func (TestInline201Inline) TestInlineImpl() {}
+
+// TestServerPathOverrideRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestServerPathOverrideRequestResponse interface {
+	TestServerPathOverrideRequestImpl()
+}
+
+// TestServerPathOverrideRequestImpl implements TestServerPathOverrideRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestServerPathOverrideRequestImpl() {}
+
+// TestServerOpOverrideRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestServerOpOverrideRequestResponse interface {
+	TestServerOpOverrideRequestImpl()
+}
+
+// TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
 
 // TestUnknownBodyTypeResponse one-of enforcer
 //
