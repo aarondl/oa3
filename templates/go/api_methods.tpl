@@ -138,23 +138,24 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{- end}}
         {{$json := ""}}
         {{- if $op.RequestBody -}}
-            {{- $json = index $op.RequestBody.Content "application/json"}}
+            {{- $json = index $op.RequestBody.Content "application/json" -}}
+            {{- if $json}}
 
     var reqBody{{" " -}}
-            {{- if $json.Schema.Ref -}}
-                {{- if $json.Schema.Nullable}}*{{end -}}
-                {{- refName $json.Schema.Ref -}}
-            {{- else -}}
-                {{title $op.OperationID}}Inline
-            {{- end}}
+                {{- if $json.Schema.Ref -}}
+                    {{- if $json.Schema.Nullable}}*{{end -}}
+                    {{- refName $json.Schema.Ref -}}
+                {{- else -}}
+                    {{title $op.OperationID}}Inline
+                {{- end}}
 
-            {{if $op.RequestBody.Required -}}
+                {{if $op.RequestBody.Required -}}
     if r.Body == nil {
         return support.ErrNoBody
     } else {
-            {{- else -}}
+                {{- else -}}
     if r.Body != nil {
-            {{- end -}}
+                {{- end -}}
             {{- $.Import "github.com/aarondl/oa3/support"}}
         if err = support.ReadJSON(r, {{if not $json.Schema.Nullable}}&{{end}}reqBody); err != nil {
             return err
@@ -164,14 +165,14 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             errs = support.MergeErrs(errs, newErrs)
         }
     }
-
-        {{end}}
+            {{- end -}}
+        {{- end}}
     if errs != nil {
         return o.converter(errs)
     }
 
     ret, err := o.impl.{{title $op.OperationID}}(w, r
-        {{- if $op.RequestBody -}},{{" " -}}
+        {{- if and $op.RequestBody $json -}},{{" " -}}
             {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
             {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
                 {{- $p := primitive $ $json.Schema.Schema $op.RequestBody.Required}}{{$p}}(reqBody)

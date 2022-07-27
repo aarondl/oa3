@@ -15,15 +15,17 @@ type Interface interface {
         {{end -}}
     {{$opname}}(w http.ResponseWriter, r *http.Request
         {{- if $op.RequestBody -}}
-        , {{$media := index $op.RequestBody.Content "application/json" -}}
-        body{{" " -}}
-            {{- if $media.Schema.Ref -}}
-                {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
-                {{- refName $media.Schema.Ref -}}
-            {{- else if not (or (eq $media.Schema.Schema.Type "object") (eq $media.Schema.Schema.Type "array")) -}}
-                {{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
-            {{- else -}}
-                {{title $op.OperationID}}Inline
+            {{- $json := index $op.RequestBody.Content "application/json" -}}
+            {{- if $json -}}
+            , body{{" " -}}
+                {{- if $json.Schema.Ref -}}
+                    {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
+                    {{- refName $json.Schema.Ref -}}
+                {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
+                    {{- primitive $ $json.Schema.Schema $op.RequestBody.Required -}}
+                {{- else -}}
+                    {{title $op.OperationID}}Inline
+                {{- end -}}
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
@@ -102,15 +104,17 @@ for implementing the main interface
 {{end -}}
 func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
         {{- if $op.RequestBody -}}
-        , {{$media := index $op.RequestBody.Content "application/json" -}}
-        body{{" " -}}
-            {{- if $media.Schema.Ref -}}
-                {{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
-                {{$.Params.package}}.{{- refName $media.Schema.Ref -}}
-            {{- else if not (or (eq $media.Schema.Schema.Type "object") (eq $media.Schema.Schema.Type "array")) -}}
-                {{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
-            {{- else -}}
-                {{$.Params.package}}.{{title $op.OperationID}}Inline
+            {{- $json := index $op.RequestBody.Content "application/json" -}}
+            {{- if $json -}}
+            , body{{" " -}}
+                {{- if $json.Schema.Ref -}}
+                    {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
+                    {{$.Params.package}}.{{- refName $json.Schema.Ref -}}
+                {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
+                    {{- primitive $ $json.Schema.Schema $op.RequestBody.Required -}}
+                {{- else -}}
+                    {{$.Params.package}}.{{title $op.OperationID}}Inline
+                {{- end -}}
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}

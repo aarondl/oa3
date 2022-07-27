@@ -86,7 +86,6 @@ func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) err
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
-
 	if errs != nil {
 		return o.converter(errs)
 	}
@@ -144,7 +143,6 @@ func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request)
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
-
 	if errs != nil {
 		return o.converter(errs)
 	}
@@ -190,7 +188,6 @@ func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Reque
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
-
 	if errs != nil {
 		return o.converter(errs)
 	}
@@ -236,7 +233,6 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
-
 	if errs != nil {
 		return o.converter(errs)
 	}
@@ -264,6 +260,38 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
+// testunknownbodytype post /test/unknown/body/type
+func (o GoServer) testunknownbodytypeOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestUnknownBodyType(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
 	default:
 		_ = respBody
 		panic("impossible case")
@@ -547,7 +575,6 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 			errs = support.MergeErrs(errs, newErrs)
 		}
 	}
-
 	if errs != nil {
 		return o.converter(errs)
 	}

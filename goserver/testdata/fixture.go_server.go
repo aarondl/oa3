@@ -29,6 +29,8 @@ type Interface interface {
 	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
 	// TestInline post /test/inline
 	TestInline(w http.ResponseWriter, r *http.Request, body TestInlineInline) (TestInlineResponse, error)
+	// TestUnknownBodyType post /test/unknown/body/type
+	TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (TestUnknownBodyTypeResponse, error)
 	// GetUser get /users/{id}
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
@@ -72,6 +74,7 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/enum/query/request`, eh.Wrap(o.testenumqueryrequestOp))
 		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
+		r.Method(http.MethodPost, `/test/unknown/body/type`, eh.Wrap(o.testunknownbodytypeOp))
 	})
 	// users tagged operations
 	o.router.Group(func(r chi.Router) {
@@ -158,6 +161,17 @@ func (TestInline200Inline) TestInlineImpl() {}
 // TestInlineImpl implements TestInlineHeadersResponse(201) for
 func (TestInline201Inline) TestInlineImpl() {}
 
+// TestUnknownBodyTypeResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestUnknownBodyTypeResponse interface {
+	TestUnknownBodyTypeImpl()
+}
+
+// TestUnknownBodyTypeImpl implements TestUnknownBodyTypeResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestUnknownBodyTypeImpl() {}
+
 // GetUserResponse one-of enforcer
 //
 // Implementors:
@@ -227,6 +241,10 @@ func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, bod
 }
 // TestInline post /test/inline
 func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.TestInlineInline) (oa3gen.TestInlineResponse, error) {
+    panic("not implemented")
+}
+// TestUnknownBodyType post /test/unknown/body/type
+func (a API) TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (oa3gen.TestUnknownBodyTypeResponse, error) {
     panic("not implemented")
 }
 // GetUser get /users/{id}

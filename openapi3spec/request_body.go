@@ -28,8 +28,8 @@ func (r *RequestBody) Validate() error {
 		}
 	}
 
-	if _, ok := r.Content["application/json"]; !ok {
-		return errors.New("content: currently only valid media type is application/json")
+	if len(r.Content) > 1 {
+		return errors.New("content: currently only one body type is supported")
 	}
 
 	return nil

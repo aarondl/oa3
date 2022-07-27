@@ -10,17 +10,22 @@
 {{- $.Import "context"}}
 func (_c Client) {{$opname}}(ctx context.Context
 		{{- if $op.RequestBody -}}
-			, {{$media := index $op.RequestBody.Content "application/json" -}}
-			body{{" " -}}
-				{{- if $media.Schema.Ref -}}
-					{{- if not (isInlinePrimitive $media.Schema.Schema) -}}*{{- end -}}
-					{{- refName $media.Schema.Ref -}}
-                {{- else if not (or (eq $media.Schema.Schema.Type "object") (eq $media.Schema.Schema.Type "array")) -}}
-					{{- primitive $ $media.Schema.Schema $op.RequestBody.Required -}}
-				{{- else -}}
-					{{title $op.OperationID}}Inline
-				{{- end -}}
-		{{- end -}}
+            {{- $json := index $op.RequestBody.Content "application/json" -}}
+            {{- if $json -}}
+                , body{{" " -}}
+                    {{- if $json.Schema.Ref -}}
+                        {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
+                        {{- refName $json.Schema.Ref -}}
+                    {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
+                        {{- primitive $ $json.Schema.Schema $op.RequestBody.Required -}}
+                    {{- else -}}
+                        {{title $op.OperationID}}Inline
+                    {{- end -}}
+            {{- else -}}
+                {{- $.Import "io" -}}
+                , body io.ReadCloser
+            {{- end -}}
+        {{- end -}}
 		{{- range $param := $op.Parameters -}}
 		, {{untitle (camelcase $param.Name)}}{{" "}}
             {{- if and $param.Schema.Schema.Enum (gt (len $param.Schema.Schema.Enum) 0) -}}
@@ -43,15 +48,20 @@ func (_c Client) {{$opname}}(ctx context.Context
         return nil, nil, _err
     }
 	{{- if $op.RequestBody -}}
-    {{- $.Import "encoding/json" }}
-    {{- $.Import "bytes" }}
-    {{- $.Import "io" }}
-	_bodyBytes, _err := json.Marshal(body)
-	if _err != nil {
-		return nil, nil, _err
-	}
-	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
-	{{- end -}}
+        {{- $json := index $op.RequestBody.Content "application/json" -}}
+        {{- if $json -}}
+            {{- $.Import "encoding/json" -}}
+            {{- $.Import "bytes" -}}
+            {{- $.Import "io"}}
+            _bodyBytes, _err := json.Marshal(body)
+            if _err != nil {
+                return nil, nil, _err
+            }
+            _req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+        {{- else}}
+            _req.Body = body
+        {{- end -}}
+    {{- end -}}
 	{{- range $param := $op.Parameters -}}
         {{- if and (eq $param.In "header") (not (has (lower $param.Name) (list "accept" "content-type" "authorization"))) -}}
             {{- $pname := untitle (camelcase $param.Name) -}}
@@ -108,7 +118,7 @@ func (_c Client) {{$opname}}(ctx context.Context
         {{- $rkind := responseKind $op $code -}}
         {{- if eq $rkind "wrapped"}}
             var _respObject {{$opname}}{{$code}}WrappedResponse
-            {{- $.Import "io"}}
+            {{- $.Import "io" -}}
             {{- $.Import "encoding/json" }}
             _b, _err := io.ReadAll(_httpResp.Body)
             if _err != nil {
@@ -129,7 +139,7 @@ func (_c Client) {{$opname}}(ctx context.Context
         {{- else }}
             {{- $schema := index $resp.Content "application/json"}}
             var _respObject {{if $schema.Schema.Ref}}{{refName $schema.Schema.Ref}}{{else}}{{title $opname}}{{title $code}}Inline{{end}}
-            {{- $.Import "io"}}
+            {{- $.Import "io" -}}
             {{- $.Import "encoding/json" }}
             _b, _err := io.ReadAll(_httpResp.Body)
             if _err != nil {
