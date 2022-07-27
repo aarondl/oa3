@@ -163,6 +163,17 @@ func (TestInline200Inline) TestInlineImpl() {}
 // TestInlineImpl implements TestInlineHeadersResponse(201) for
 func (TestInline201Inline) TestInlineImpl() {}
 
+// TestUnknownBodyTypeResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestUnknownBodyTypeResponse interface {
+	TestUnknownBodyTypeImpl()
+}
+
+// TestUnknownBodyTypeImpl implements TestUnknownBodyTypeResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestUnknownBodyTypeImpl() {}
+
 // GetUserResponse one-of enforcer
 //
 // Implementors:

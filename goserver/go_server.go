@@ -257,7 +257,12 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 					continue
 				}
 
-				schema := o.Op.RequestBody.Content["application/json"].Schema
+				json := o.Op.RequestBody.Content["application/json"]
+				if json == nil {
+					continue
+				}
+
+				schema := json.Schema
 				// Refs are taken care of already
 				if len(schema.Ref) != 0 {
 					continue

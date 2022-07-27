@@ -201,6 +201,35 @@ func (_c Client) TestInline(ctx context.Context, body TestInlineInline) (TestInl
 	return _resp, _httpResp, nil
 }
 
+// TestUnknownBodyType post /test/unknown/body/type
+func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (TestUnknownBodyTypeResponse, *http.Response, error) {
+	_urlStr := `/test/unknown/body/type`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_req.Body = body
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err := _c.doRequest(ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
+
+	var _resp TestUnknownBodyTypeResponse
+	switch _httpResp.Status {
+	case `200`:
+		_resp = HTTPStatusOk{}
+	default:
+		return nil, nil, fmt.Errorf("unknown response code")
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // GetUser get /users/{id}
 //
 // Retrieves a user with a long description that spans multiple lines so

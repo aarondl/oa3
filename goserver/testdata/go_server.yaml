@@ -102,6 +102,18 @@ paths:
       responses:
         '200': { description: Ok }
 
+  /test/unknown/body/type:
+    post:
+      operationId: testUnknownBodyType
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          multipart/form-data:
+            schema: { type: string }
+      responses:
+        '200': { description: OK }
+
   /test/inline:
     get:
       operationId: testInlinePrimitiveBody
