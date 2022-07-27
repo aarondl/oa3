@@ -155,20 +155,11 @@ func (o *OpenAPI3) PostProcess(filename string) error {
 //
 // This should be called after Validate & ResolveRefs
 //
-//   The server array in a child completely overrides any inherited value.
-//   - OpenAPI3.Servers -> OpenAPI3.Paths.Servers
-//   - OpenAPI3.Paths.Servers -> OpenAPI3.Paths.Operations.(GET|POST..).Servers
-//
 //    Each element is considered, a duplicating element in the child overrides
 //   the parent.
 //   - OpenAPI3.Paths.Parameters -> OpenAPI3.Paths.Operations.(GET|POST).Parameters
 func (o *OpenAPI3) CopyInheritedItems() {
 	for _, path := range o.Paths {
-		if len(o.Servers) > 0 && len(path.Servers) == 0 {
-			path.Servers = make([]Server, len(o.Servers))
-			copy(path.Servers, o.Servers)
-		}
-
 		ops := []*Operation{
 			path.Get, path.Put, path.Post, path.Delete, path.Options, path.Head,
 			path.Patch, path.Trace,
@@ -177,11 +168,6 @@ func (o *OpenAPI3) CopyInheritedItems() {
 		for _, op := range ops {
 			if op == nil {
 				continue
-			}
-
-			if len(op.Servers) == 0 {
-				op.Servers = make([]Server, len(path.Servers))
-				copy(op.Servers, path.Servers)
 			}
 
 			for _, pathParam := range path.Parameters {

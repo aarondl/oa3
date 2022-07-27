@@ -3,6 +3,25 @@ info:
   title: Go Server
   version: 0.0.0
   description: A great api
+servers:
+  - url: http://dev.local:3030
+    description: Local development
+  - url: http://prod.local:3030/{one}/{two}
+    description: Production
+    variables:
+      one:
+        description: Variable
+        default: one
+      two:
+        description: Variable
+        default: two
+  - url: http://variables.local:3030/{variable}
+    description: Variable path
+    variables:
+      variable:
+        description: Variable
+        enum: [v1, v2, v3]
+        default: v1
 
 paths:
   /users/{id}:
@@ -173,6 +192,54 @@ paths:
             schema: { type: array, items: { type: string } }
       responses:
         '200': { description: OK }
+
+  /test/servers:
+    get:
+      operationId: testServerPathOverrideRequest
+      responses:
+        '200': { description: OK }
+    post:
+      operationId: testServerOpOverrideRequest
+      responses:
+        '200': { description: OK }
+      servers:
+      - url: http://op.dev.local:3030
+        description: Local development
+      - url: http://op.prod.local:3030/{one}/{two}
+        description: Production
+        variables:
+          one:
+            description: Variable
+            default: one
+          two:
+            description: Variable
+            default: two
+      - url: http://op.variables.local:3030/{variable}
+        description: Variable path
+        variables:
+          variable:
+            description: Variable
+            enum: [v1, v2, v3]
+            default: v1
+    servers:
+    - url: http://path.dev.local:3030
+      description: Local development
+    - url: http://path.prod.local:3030/{one}/{two}
+      description: Production
+      variables:
+        one:
+          description: Variable
+          default: one
+        two:
+          description: Variable
+          default: two
+    - url: http://path.variables.local:3030/{variable}
+      description: Variable path
+      variables:
+        variable:
+          description: Variable
+          enum: [v1, v2, v3]
+          default: v1
 
 components:
   schemas:
