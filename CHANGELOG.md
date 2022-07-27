@@ -4,6 +4,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.29] - 2022-07-27
+
+### Changed
+
+- Upgraded yaml to v3, this change came with a restriction that all keys for
+  yaml objects must be keys as in: `map[string]any`, because the spec is also
+  able to be JSON, this property must hold anyway.
+
 ## [v0.0.28] - 2022-07-27
 
 ### Added

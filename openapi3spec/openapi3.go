@@ -387,7 +387,7 @@ func (o *OpenAPI3) lookupFileRef(refStructType reflect.Type, uri *url.URL, refUR
 			return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not read file: %w", refURI, err)
 		}
 
-		var untyped map[any]any
+		var untyped map[string]any
 		if err := yaml.Unmarshal(b, &untyped); err != nil {
 			return reflect.Value{}, "", fmt.Errorf("error resolving ref(%s): failed to resolve yaml file ref, could not unmarshal yaml: %w", refURI, err)
 		}

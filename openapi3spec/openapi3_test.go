@@ -139,21 +139,16 @@ func TestCopyInherited(t *testing.T) {
 			"/path/overrider": &PathRef{
 				Path: &Path{
 					Parameters: []*ParameterRef{
-						&ParameterRef{Parameter: &Parameter{
+						{Parameter: &Parameter{
 							Name:            "X_Parent",
 							In:              "header",
 							AllowEmptyValue: false,
 						}},
 					},
-					// Should override parent
-					Servers: []Server{{URL: "c"}},
 					Get: &Operation{
-						// Should override parent
-						Servers: []Server{{URL: "d"}},
-
 						Parameters: []*ParameterRef{
 							// Should override parent
-							&ParameterRef{Parameter: &Parameter{
+							{Parameter: &Parameter{
 								Name:          "X_Parent",
 								In:            "header",
 								AllowReserved: true,
@@ -166,14 +161,14 @@ func TestCopyInherited(t *testing.T) {
 				Path: &Path{
 					// Servers should be inherited
 					Parameters: []*ParameterRef{
-						&ParameterRef{Parameter: &Parameter{
+						{Parameter: &Parameter{
 							Name: "X_Parent",
 							In:   "header",
 						}},
 					},
 					Get: &Operation{
 						Parameters: []*ParameterRef{
-							&ParameterRef{Parameter: &Parameter{
+							{Parameter: &Parameter{
 								Name: "X_Child",
 								In:   "header",
 							}},
@@ -188,18 +183,7 @@ func TestCopyInherited(t *testing.T) {
 	testGraph.CopyInheritedItems()
 
 	overrider := testGraph.Paths["/path/overrider"]
-	if overrider.Get.Servers[0].URL != "d" {
-		t.Error("overrider server was wrong:", overrider.Get.Servers[0].URL)
-	}
 	if !overrider.Get.Parameters[0].AllowReserved {
 		t.Error("overrider parameter was not marked 'allowReserved', override failed")
-	}
-
-	inheritor := testGraph.Paths["/path/inheritor"]
-	if inheritor.Servers[0].URL != "a" {
-		t.Error("servers should be inherited by the path item:", inheritor.Servers[0].URL)
-	}
-	if inheritor.Get.Servers[0].URL != "a" {
-		t.Error("servers should be inherited by the operation:", inheritor.Get.Servers[0].URL)
 	}
 }

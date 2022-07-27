@@ -85,7 +85,6 @@ paths:
           deprecated: true
           allowEmptyValue: true
           style: header
-          deprecated: true
           explode: true
           allowReserved: true
           schema: { $ref: '#/components/schemas/Ref' }
@@ -222,7 +221,6 @@ components:
       oneOf:
         - { $ref: '#/components/schemas/Ref' }
       not: { $ref: '#/components/schemas/Ref' }
-      nullable: true
       discriminator:
         propertyName: discriminator
         mapping:

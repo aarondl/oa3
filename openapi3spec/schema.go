@@ -394,7 +394,7 @@ func (a *AdditionalProperties) UnmarshalYAMLObject(intf interface{}) error {
 		return nil
 	}
 
-	if m, ok := intf.(map[interface{}]interface{}); ok {
+	if m, ok := intf.(map[string]interface{}); ok {
 		a.SchemaRef = new(SchemaRef)
 		return allocAndSet(reflect.ValueOf(a.SchemaRef).Elem(), m)
 	}
