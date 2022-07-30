@@ -106,6 +106,19 @@ func (s *Schema) Validate() error {
 			if found {
 				return fmt.Errorf("required has duplicate item: %q", i)
 			}
+
+			if s.AdditionalProperties == nil && s.Properties != nil {
+				found := false
+				for prop := range s.Properties {
+					if prop == search {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return fmt.Errorf("required has item not listed in properties (and additionalProperties not supplied): %q", i)
+				}
+			}
 		}
 	}
 
@@ -388,13 +401,13 @@ type AdditionalProperties struct {
 
 // UnmarshalYAMLObject is called by the unmarshaller to deal with this horrible
 // struct.
-func (a *AdditionalProperties) UnmarshalYAMLObject(intf interface{}) error {
+func (a *AdditionalProperties) UnmarshalYAMLObject(intf any) error {
 	if b, ok := intf.(bool); ok {
 		a.Bool = b
 		return nil
 	}
 
-	if m, ok := intf.(map[string]interface{}); ok {
+	if m, ok := intf.(map[string]any); ok {
 		a.SchemaRef = new(SchemaRef)
 		return allocAndSet(reflect.ValueOf(a.SchemaRef).Elem(), m)
 	}
