@@ -511,7 +511,7 @@ func (o *OpenAPI3) ResolveAllOfs() error {
 			return nil
 		}
 
-		schema.Required = make([]string, 0, 0)
+		schema.Required = make([]string, 0)
 		schema.Properties = make(map[string]*SchemaRef)
 		for _, s := range schema.AllOf {
 			schema.Required = append(schema.Required, s.Schema.Required...)

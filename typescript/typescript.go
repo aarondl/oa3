@@ -66,7 +66,7 @@ func generateClient(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 
 	files := make([]generator.File, 0)
 
-	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
+	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", "")) //nolint:staticcheck
 	data := templates.NewTemplateDataWithObject(spec, params, apiName, nil, false)
 	filename := generator.FilenameFromTitle(spec.Info.Title) + ".ts"
 

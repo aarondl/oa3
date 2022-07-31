@@ -120,7 +120,7 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 
 	files := make([]generator.File, 0)
 
-	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", ""))
+	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", "")) //nolint:staticcheck
 
 	data := templates.NewTemplateDataWithObject(spec, params, apiName, nil, false)
 
@@ -239,7 +239,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_param_" + camelSnake(p.Name) + ".go"
 
-				generated, err := makePseudoFile(spec, params, tpl, filename, snakeToCamel(o.Op.OperationID)+strings.Title(snakeToCamel(p.Name))+"Param", &p.Schema, p.Required)
+				generated, err := makePseudoFile(spec, params, tpl, filename, snakeToCamel(o.Op.OperationID)+strings.Title(snakeToCamel(p.Name))+"Param", &p.Schema, p.Required) //nolint:staticcheck
 				if err != nil {
 					return nil, err
 				}
@@ -269,7 +269,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema, o.Op.RequestBody.Required)
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema, o.Op.RequestBody.Required) //nolint:staticcheck
 				if err != nil {
 					return nil, err
 				}
@@ -298,7 +298,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema, true)
+				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema, true) //nolint:staticcheck
 				if err != nil {
 					return nil, err
 				}
