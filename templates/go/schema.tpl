@@ -80,13 +80,13 @@ to a schema ref */ -}}
                 {{- end -}}
                 {{- $elementRequired := $s.IsRequired $name -}}
                 {{- $isPrimitive := isInlinePrimitive $element.Schema}}
-    {{camelcase $name}} {{if and (not $isPrimitive) ($element.Schema.Nullable) (not $elementRequired) -}}
+    {{camelcase $name}} {{if and ($element.Schema.Nullable) (not $elementRequired) -}}
                     {{- $.Import "github.com/aarondl/opt/omitnull" -}}
                     omitnull.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
-                {{- else if and (not $isPrimitive) ($element.Schema.Nullable) $elementRequired -}}
+                {{- else if and ($element.Schema.Nullable) $elementRequired -}}
                     {{- $.Import "github.com/aarondl/opt/null" -}}
                     null.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
-                {{- else if and (not $isPrimitive) (not $element.Schema.Nullable) (not $elementRequired) -}}
+                {{- else if and (not $element.Schema.Nullable) (not $elementRequired) -}}
                     {{- $.Import "github.com/aarondl/opt/omit" -}}
                     omit.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
                 {{- else -}}
@@ -101,7 +101,7 @@ to a schema ref */ -}}
             {{- end -}}
         {{- end}}
     {{- else}}
-        {{- primitive $ $s $.Required -}}
+        {{- primitive $ $s -}}
     {{- end -}}
 {{- end -}}
 

@@ -4,6 +4,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.31] - 2022-07-30
+
+### Fixed
+
+- Fix enum values null/omit/omitnullability
+- Fix error message for required field missing in props error
+
+## [v0.0.30] - 2022-07-30
+
+### Added
+
+- Add validation for required fields who do not appear in an object type's
+  property list.
+
 ## [v0.0.29] - 2022-07-27
 
 ### Changed

@@ -51,7 +51,7 @@ var TemplateFunctions = map[string]interface{}{
 	"omitnullUnwrap":          omitnullUnwrap,
 	"primitive":               primitive,
 	"primitiveBits":           primitiveBits,
-	"primitiveRaw":            primitiveRaw,
+	"primitiveWrapped":        primitiveWrapped,
 	"responseKind":            responseKind,
 	"snakeToCamel":            snakeToCamel,
 	"taggedPaths":             tagPaths,
@@ -388,11 +388,7 @@ func isInlinePrimitive(schema *openapi3spec.Schema) bool {
 	return true
 }
 
-func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema, required bool) (string, error) {
-	return primitiveWrapped(tdata, schema, schema.Nullable, required)
-}
-
-func primitiveRaw(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
+func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
 	switch schema.Type {
 	case "integer":
 		if schema.Format != nil {
@@ -457,7 +453,7 @@ func primitiveRaw(tdata templates.TemplateData, schema *openapi3spec.Schema) (st
 }
 
 func primitiveBits(tdata templates.TemplateData, schema *openapi3spec.Schema) (string, error) {
-	s, err := primitiveRaw(tdata, schema)
+	s, err := primitive(tdata, schema)
 	if err != nil {
 		return "", nil
 	}
@@ -477,7 +473,7 @@ func primitiveBits(tdata templates.TemplateData, schema *openapi3spec.Schema) (s
 }
 
 func primitiveWrapped(tdata templates.TemplateData, schema *openapi3spec.Schema, nullable bool, required bool) (string, error) {
-	prim, err := primitiveRaw(tdata, schema)
+	prim, err := primitive(tdata, schema)
 	if err != nil {
 		return "", err
 	}

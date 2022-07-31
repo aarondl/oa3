@@ -28,7 +28,8 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
 
         {{- /* Process parameters */ -}}
         {{- range $i, $param := $op.Parameters -}}
-            {{- $prim := (primitive $ $param.Schema.Schema $param.Required)}}
+            {{- $prim := (primitive $ $param.Schema.Schema)}}
+            {{- $primWrapped := (primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required)}}
 
     const n{{$i}} = `{{$param.Name}}`
             {{- if eq "query" $param.In}}
@@ -53,7 +54,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         s{{$i}} = c{{$i}}.Value
     }
             {{- end}}
-    var p{{$i}} {{$prim}}
+    var p{{$i}} {{$primWrapped}}
             {{- if $param.Required -}}
     {{- /* Warning: This starts an else { block that covers a great deal of code */}}
     if !s{{$i}}Exists || len(s{{$i}}) == 0 {
@@ -70,21 +71,20 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                 * (omit|null|omitnull).Val[string] - Set string without conversion
                 * (omit|null|omitnull).Val[int/uint/float/bool] - Convert then set
             */}}
-            {{- if ne $prim "string" -}}
+            {{- if ne $primWrapped "string" -}}
                 {{- $.Import "github.com/aarondl/oa3/support" -}}
-                {{- $primRaw := primitiveRaw $ $param.Schema.Schema -}}
-                {{- if eq $primRaw "string"}}
+                {{- if eq $prim "string"}}
         p{{$i}}.Set(s{{$i}})
         err = nil
                 {{- else -}}
                     {{- $convFn := printf "support.StringToBool(s%d)" $i -}}
-                    {{- if eq $primRaw "chrono.DateTime" -}}
+                    {{- if eq $prim "chrono.DateTime" -}}
                         {{- $convFn = printf "support.StringToChronoDateTime(s%d)" $i -}}
-                    {{- else if eq $primRaw "chrono.Date" -}}
+                    {{- else if eq $prim "chrono.Date" -}}
                         {{- $convFn = printf "support.StringToChronoDate(s%d)" $i -}}
-                    {{- else if eq $primRaw "chrono.Time" -}}
+                    {{- else if eq $prim "chrono.Time" -}}
                         {{- $convFn = printf "support.StringToChronoTime(s%d)" $i -}}
-                    {{- else if eq $primRaw "time.Time" -}}
+                    {{- else if eq $prim "time.Time" -}}
                         {{- $primFmt := printf "%s" $param.Schema.Schema.Format -}}
                         {{- if eq $primFmt "date-time" -}}
                             {{- $convFn = printf "support.StringToDateTime(s%d)" $i -}}
@@ -93,16 +93,16 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                         {{- else if eq $primFmt "time" -}}
                             {{- $convFn = printf "support.StringToTime(s%d)" $i -}}
                         {{- end -}}
-                    {{- else if eq $primRaw "time.Duration" -}}
+                    {{- else if eq $prim "time.Duration" -}}
                         {{- $convFn = printf "support.StringToDuration(s%d)" $i -}}
-                    {{- else if hasPrefix "int" $primRaw -}}
-                        {{- $convFn = printf "support.StringToInt[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
-                    {{- else if hasPrefix "uint" $primRaw -}}
-                        {{- $convFn = printf "support.StringToUint[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
-                    {{- else if hasPrefix "float" $primRaw -}}
-                        {{- $convFn = printf "support.StringToFloat[%s](s%d, %s)" $primRaw $i (primitiveBits $ $param.Schema.Schema) -}}
+                    {{- else if hasPrefix "int" $prim -}}
+                        {{- $convFn = printf "support.StringToInt[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
+                    {{- else if hasPrefix "uint" $prim -}}
+                        {{- $convFn = printf "support.StringToUint[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
+                    {{- else if hasPrefix "float" $prim -}}
+                        {{- $convFn = printf "support.StringToFloat[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
                     {{- end -}}
-                    {{- if or (hasPrefix "null." $prim) (hasPrefix "omit." $prim) (hasPrefix "omitnull." $prim)}}
+                    {{- if or (hasPrefix "null." $primWrapped) (hasPrefix "omit." $primWrapped) (hasPrefix "omitnull." $primWrapped)}}
         p{{$i}}c, err := {{$convFn}}
         if err != nil {
                 {{- $.Import "errors"}}
@@ -175,7 +175,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{- if and $op.RequestBody $json -}},{{" " -}}
             {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
             {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
-                {{- $p := primitive $ $json.Schema.Schema $op.RequestBody.Required}}{{$p}}(reqBody)
+                {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
             {{- else -}}reqBody{{- end -}}
         {{- end -}}
         {{- range $i, $param := $op.Parameters -}}

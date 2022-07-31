@@ -116,7 +116,7 @@ func (s *Schema) Validate() error {
 					}
 				}
 				if !found {
-					return fmt.Errorf("required has item not listed in properties (and additionalProperties not supplied): %q", i)
+					return fmt.Errorf("required[%d] item was not found in properties (and additionalProperties not supplied): %q", i, search)
 				}
 			}
 		}

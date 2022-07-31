@@ -268,6 +268,70 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// testserverpathoverriderequest get /test/servers
+func (o GoServer) testserverpathoverriderequestOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestServerPathOverrideRequest(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
+// testserveropoverriderequest post /test/servers
+func (o GoServer) testserveropoverriderequestOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestServerOpOverrideRequest(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
 // testunknownbodytype post /test/unknown/body/type
 func (o GoServer) testunknownbodytypeOp(w http.ResponseWriter, r *http.Request) error {
 	var err error

@@ -22,14 +22,14 @@ type Interface interface {
                     {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
                     {{- refName $json.Schema.Ref -}}
                 {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
-                    {{- primitive $ $json.Schema.Schema $op.RequestBody.Required -}}
+                    {{- primitiveWrapped $ $json.Schema.Schema $json.Schema.Nullable $op.RequestBody.Required -}}
                 {{- else -}}
                     {{title $op.OperationID}}Inline
                 {{- end -}}
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
-        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema $param.Required -}}
+        , {{untitle (camelcase $param.Name)}} {{primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required -}}
         {{- end -}}
     ) ({{title $op.OperationID}}Response, error)
     {{end -}}
@@ -111,14 +111,14 @@ func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
                     {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
                     {{$.Params.package}}.{{- refName $json.Schema.Ref -}}
                 {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
-                    {{- primitive $ $json.Schema.Schema $op.RequestBody.Required -}}
+                    {{- primitiveWrapped $ $json.Schema.Schema $json.Schema.Nullable $op.RequestBody.Required -}}
                 {{- else -}}
                     {{$.Params.package}}.{{title $op.OperationID}}Inline
                 {{- end -}}
             {{- end -}}
         {{- end -}}
         {{- range $param := $op.Parameters -}}
-        , {{untitle (camelcase $param.Name)}} {{primitive $ $param.Schema.Schema $param.Required -}}
+        , {{untitle (camelcase $param.Name)}} {{primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required -}}
         {{- end -}}
     ) ({{$.Params.package}}.{{title $op.OperationID}}Response, error) {
     panic("not implemented")

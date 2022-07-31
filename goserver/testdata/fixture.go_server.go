@@ -29,6 +29,10 @@ type Interface interface {
 	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
 	// TestInline post /test/inline
 	TestInline(w http.ResponseWriter, r *http.Request, body TestInlineInline) (TestInlineResponse, error)
+	// TestServerPathOverrideRequest get /test/servers
+	TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerPathOverrideRequestResponse, error)
+	// TestServerOpOverrideRequest post /test/servers
+	TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerOpOverrideRequestResponse, error)
 	// TestUnknownBodyType post /test/unknown/body/type
 	TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (TestUnknownBodyTypeResponse, error)
 	// GetUser get /users/{id}
@@ -74,6 +78,8 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/enum/query/request`, eh.Wrap(o.testenumqueryrequestOp))
 		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
+		r.Method(http.MethodPost, `/test/servers`, eh.Wrap(o.testserveropoverriderequestOp))
+		r.Method(http.MethodGet, `/test/servers`, eh.Wrap(o.testserverpathoverriderequestOp))
 		r.Method(http.MethodPost, `/test/unknown/body/type`, eh.Wrap(o.testunknownbodytypeOp))
 	})
 	// users tagged operations
@@ -161,6 +167,28 @@ func (TestInline200Inline) TestInlineImpl() {}
 // TestInlineImpl implements TestInlineHeadersResponse(201) for
 func (TestInline201Inline) TestInlineImpl() {}
 
+// TestServerPathOverrideRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestServerPathOverrideRequestResponse interface {
+	TestServerPathOverrideRequestImpl()
+}
+
+// TestServerPathOverrideRequestImpl implements TestServerPathOverrideRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestServerPathOverrideRequestImpl() {}
+
+// TestServerOpOverrideRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestServerOpOverrideRequestResponse interface {
+	TestServerOpOverrideRequestImpl()
+}
+
+// TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
+
 // TestUnknownBodyTypeResponse one-of enforcer
 //
 // Implementors:
@@ -241,6 +269,14 @@ func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, bod
 }
 // TestInline post /test/inline
 func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.TestInlineInline) (oa3gen.TestInlineResponse, error) {
+    panic("not implemented")
+}
+// TestServerPathOverrideRequest get /test/servers
+func (a API) TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.TestServerPathOverrideRequestResponse, error) {
+    panic("not implemented")
+}
+// TestServerOpOverrideRequest post /test/servers
+func (a API) TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.TestServerOpOverrideRequestResponse, error) {
     panic("not implemented")
 }
 // TestUnknownBodyType post /test/unknown/body/type
