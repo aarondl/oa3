@@ -143,7 +143,7 @@ func generate(generatorID string, openapiFile string, params map[string]string) 
 		return nil, err
 	}
 
-	var templateFS fs.FS = templates
+	var templateFS fs.FS
 	if len(flagTemplateDir) != 0 {
 		templateFS = os.DirFS(flagTemplateDir)
 	} else {

@@ -10,10 +10,6 @@ func init() {
 	flag.BoolVar(&DebugOutput, "debug", false, "Debug output")
 }
 
-var (
-	flagUpdateGolden = flag.Bool("golden", false, "Update golden files")
-)
-
 func TestResolveRefs(t *testing.T) {
 	t.Parallel()
 
