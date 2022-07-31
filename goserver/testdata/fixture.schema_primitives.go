@@ -239,7 +239,7 @@ func (o Primitives) validateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	if newErrs := Validate(o.StrNull); newErrs != nil {
+	if newErrs := Validate(o.StrNull.GetOrZero()); newErrs != nil {
 		errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
 	}
 

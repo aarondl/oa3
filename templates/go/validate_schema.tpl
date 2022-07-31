@@ -63,7 +63,7 @@
                 {{- if and (not $element.Ref) (mustValidate $element.Schema) -}}
                     {{- $isRequired := $s.IsRequired $name -}}
                     {{- if and $element.Enum (gt (len $element.Enum) 0) }}
-        if newErrs := Validate({{$.Name}}.{{camelcase $name}}); newErrs != nil {
+        if newErrs := Validate({{$.Name}}.{{omitnullUnwrap $ $s (camelcase $name) $element.Nullable $isRequired}}); newErrs != nil {
             errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
         }
                     {{- else}}

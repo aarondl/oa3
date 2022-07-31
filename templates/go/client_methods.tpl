@@ -24,7 +24,7 @@ func (_c Client) {{$opname}}(ctx context.Context
                         {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
                         {{- refName $json.Schema.Ref -}}
                     {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
-                        {{- primitive $ $json.Schema.Schema $op.RequestBody.Required -}}
+                        {{- primitiveWrapped $ $json.Schema.Schema $json.Schema.Nullable $op.RequestBody.Required -}}
                     {{- else -}}
                         {{title $op.OperationID}}Inline
                     {{- end -}}
@@ -38,7 +38,7 @@ func (_c Client) {{$opname}}(ctx context.Context
             {{- if and $param.Schema.Schema.Enum (gt (len $param.Schema.Schema.Enum) 0) -}}
                 {{omitnullWrap $ $param.Schema.Schema (printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)) $param.Schema.Schema.Nullable $param.Required}}
             {{- else -}}
-                {{- primitive $ $param.Schema.Schema $param.Required -}}
+                {{- primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required -}}
             {{- end -}}
 		{{- end -}}
 	) ({{title $op.OperationID}}Response, *http.Response, error) {

@@ -28,17 +28,17 @@ type Primitives struct {
 	Float64Null  null.Val[float64]           `json:"float64_null"`
 	FloatNull    null.Val[float64]           `json:"float_null"`
 	// Normal int
-	Int       int                   `json:"int"`
-	Int32     int32                 `json:"int32"`
-	Int32Null null.Val[int32]       `json:"int32_null"`
-	Int64     int64                 `json:"int64"`
-	Int64Null null.Val[int64]       `json:"int64_null"`
-	IntNull   null.Val[int]         `json:"int_null"`
-	Str       PrimitivesStr         `json:"str"`
-	StrFormat string                `json:"str_format"`
-	StrNull   PrimitivesStrNull     `json:"str_null"`
-	TimeNull  null.Val[chrono.Time] `json:"time_null"`
-	TimeVal   chrono.Time           `json:"time_val"`
+	Int       int                         `json:"int"`
+	Int32     int32                       `json:"int32"`
+	Int32Null null.Val[int32]             `json:"int32_null"`
+	Int64     int64                       `json:"int64"`
+	Int64Null null.Val[int64]             `json:"int64_null"`
+	IntNull   null.Val[int]               `json:"int_null"`
+	Str       PrimitivesStr               `json:"str"`
+	StrFormat string                      `json:"str_format"`
+	StrNull   null.Val[PrimitivesStrNull] `json:"str_null"`
+	TimeNull  null.Val[chrono.Time]       `json:"time_null"`
+	TimeVal   chrono.Time                 `json:"time_val"`
 }
 
 type PrimitivesStr string
