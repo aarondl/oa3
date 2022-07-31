@@ -1,0 +1,13 @@
+name: Release Notification
+on:
+  push:
+    tags: v*
+    runs-on: ubuntu-latest
+jobs:
+  build:
+    steps:
+      - name: Discord Notification
+        if: ${{ success() }}
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_EVENTS_WEBHOOK }}
