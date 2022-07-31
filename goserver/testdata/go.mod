@@ -12,6 +12,7 @@ require (
 
 require (
 	github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7 // indirect
+	github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430 // indirect
 	github.com/peterhellberg/duration v0.0.0-20191119133758-ec6baeebcd10 // indirect
 	golang.org/x/exp v0.0.0-20220609121020-a51bd0440498 // indirect
 )

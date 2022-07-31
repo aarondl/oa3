@@ -1,5 +1,7 @@
 github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7 h1:SnCBUBfsyckg4ysZ+TlSoyVJvRAcRqf5TcHFkSNlgME=
 github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7/go.mod h1:VmrhCQy/ZWiHiVGLtY7WcMVQbIF+AqpD+Hn6HjWhME8=
+github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430 h1:JwYT8qI5VZhk19g6IwSZisNyqbtOHzIKMsJ3dyD2j40=
+github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430/go.mod h1:FZqLhJSj2tg0ZN48GB1zvj00+ZYcHPqgsC7yzcgCq6k=
 github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c h1:2Gqf5w8k30czPgvm78I6ifVBDxqlwmwbc9hjzbWWKA8=
 github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c/go.mod h1:SVWo7tdg6gXZt1ylP4RgzL78B+Jp5bZlhpu40Kp8YXk=
 github.com/go-chi/chi/v5 v5.0.7 h1:rDTPXLDHGATaeHvVlLcR4Qe0zftYethFucbjVQ1PxU8=

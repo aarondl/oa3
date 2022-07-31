@@ -4,12 +4,13 @@ package support
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
+
+	"github.com/aarondl/json"
 )
 
 var (
@@ -133,6 +134,8 @@ func WriteJSON(w http.ResponseWriter, object interface{}) error {
 	if err := marshaller.Encode(object); err != nil {
 		return err
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 
 	// Ignore errors that fail to write out to clients because these will
 	// generally not be solvable (disconnections etc)

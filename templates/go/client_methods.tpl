@@ -58,7 +58,7 @@ func (_c Client) {{$opname}}(ctx context.Context
 	{{- if $op.RequestBody -}}
         {{- $json := index $op.RequestBody.Content "application/json" -}}
         {{- if $json -}}
-            {{- $.Import "encoding/json" -}}
+            {{- $.Import "github.com/aarondl/json" -}}
             {{- $.Import "bytes" -}}
             {{- $.Import "io"}}
             _bodyBytes, _err := json.Marshal(body)
@@ -127,7 +127,7 @@ func (_c Client) {{$opname}}(ctx context.Context
         {{- if eq $rkind "wrapped"}}
             var _respObject {{$opname}}{{$code}}WrappedResponse
             {{- $.Import "io" -}}
-            {{- $.Import "encoding/json" }}
+            {{- $.Import "github.com/aarondl/json" }}
             _b, _err := io.ReadAll(_httpResp.Body)
             if _err != nil {
                 return nil, nil, _err
@@ -148,7 +148,7 @@ func (_c Client) {{$opname}}(ctx context.Context
             {{- $schema := index $resp.Content "application/json"}}
             var _respObject {{if $schema.Schema.Ref}}{{refName $schema.Schema.Ref}}{{else}}{{title $opname}}{{title $code}}Inline{{end}}
             {{- $.Import "io" -}}
-            {{- $.Import "encoding/json" }}
+            {{- $.Import "github.com/aarondl/json" }}
             _b, _err := io.ReadAll(_httpResp.Body)
             if _err != nil {
                 return nil, nil, _err
