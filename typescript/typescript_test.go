@@ -18,7 +18,7 @@ func TestGenerator(t *testing.T) {
 
 	gen := New()
 
-	err = gen.Load(os.DirFS("../templates/tsclient"))
+	err = gen.Load(os.DirFS("../templates/typescript"))
 	if err != nil {
 		t.Fatal(err)
 	}
