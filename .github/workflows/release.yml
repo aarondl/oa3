@@ -2,9 +2,9 @@ name: Release Notification
 on:
   push:
     tags: v*
-    runs-on: ubuntu-latest
 jobs:
   build:
+    runs-on: ubuntu-latest
     steps:
       - name: Discord Notification
         if: ${{ success() }}
