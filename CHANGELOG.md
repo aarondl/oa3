@@ -6,11 +6,16 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [v0.0.32] - 2022-07-31
 
+### Added
+
+- Added CI
+
 ### Fixed
 
 - Use github.com/aarondl/json fork to avoid asymmetric payload issues
 - Set application/json content type headers for json payloads
 - Fix client generation error
+- Fix lint errors
 
 ## [v0.0.31] - 2022-07-30
 
