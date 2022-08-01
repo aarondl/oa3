@@ -470,3 +470,15 @@ components:
       required: [b]
       properties:
         b: { type: string }
+
+    OmittableEnum:
+      type: object
+      properties:
+        network_type:
+          $ref: '#/components/schemas/EnumRef'
+        wallet_address:
+          type: string
+
+    EnumRef:
+      type: string
+      enum: ['fun', 'happy']

@@ -80,8 +80,9 @@
 
             {{- /* Process embedded structs */ -}}
             {{- range $name, $element := $s.Properties -}}
-                {{- if and ($element.Ref) (mustValidate $element.Schema)}}
-    if newErrs := Validate(o.{{camelcase $name}}); newErrs != nil {
+                {{- if and ($element.Ref) (mustValidate $element.Schema) -}}
+                    {{- $isRequired := $s.IsRequired $name}}
+    if newErrs := Validate(o.{{omitnullUnwrap $ $s (camelcase $name) $element.Nullable $isRequired}}); newErrs != nil {
         ctx = append(ctx, {{printf "%q" $name}})
                 {{- $.Import "strings"}}
         errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)

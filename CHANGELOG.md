@@ -4,6 +4,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.33] - 2022-08-01
+
+### Fixed
+
+- Fix bug where validation of non-required refs did not deref omit
+  properly.
+
 ## [v0.0.32] - 2022-07-31
 
 ### Added
