@@ -36,7 +36,7 @@ func (_c Client) {{$opname}}(ctx context.Context
 		{{- range $param := $op.Parameters -}}
 		, {{untitle (camelcase $param.Name)}}{{" "}}
             {{- if and $param.Schema.Schema.Enum (gt (len $param.Schema.Schema.Enum) 0) -}}
-                {{omitnullWrap $ $param.Schema.Schema (printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)) $param.Schema.Schema.Nullable $param.Required}}
+                {{omitnullWrap $ (printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)) $param.Schema.Schema.Nullable $param.Required}}
             {{- else -}}
                 {{- primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required -}}
             {{- end -}}

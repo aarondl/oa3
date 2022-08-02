@@ -104,7 +104,7 @@ type validatable interface {
 }
 
 // Validate a schema
-func Validate[T validatable](toValidate T) support.Errors {
+func Validate(toValidate validatable) support.Errors {
 	return toValidate.validateSchema()
 }
 

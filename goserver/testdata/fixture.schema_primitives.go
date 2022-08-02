@@ -116,7 +116,6 @@ func (o Primitives) validateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-
 	ers = nil
 	if err := support.ValidateMaxNumber(o.Float32, 5.5, false); err != nil {
 		ers = append(ers, err)
@@ -127,16 +126,18 @@ func (o Primitives) validateSchema() support.Errors {
 		ctx = ctx[:len(ctx)-1]
 	}
 
-	ers = nil
-	if err := support.ValidateMaxNumber(o.Float32Null.GetOrZero(), 5, false); err != nil {
-		ers = append(ers, err)
-	}
-	if len(ers) != 0 {
-		ctx = append(ctx, "float32_null")
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
-	}
+	if val, ok := o.Float32Null.Get(); ok {
 
+		ers = nil
+		if err := support.ValidateMaxNumber(val, 5, false); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "float32_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
+	}
 	ers = nil
 	if err := support.ValidateMinNumber(o.Float64, 5.5, false); err != nil {
 		ers = append(ers, err)
@@ -147,26 +148,31 @@ func (o Primitives) validateSchema() support.Errors {
 		ctx = ctx[:len(ctx)-1]
 	}
 
-	ers = nil
-	if err := support.ValidateMinNumber(o.Float64Null.GetOrZero(), 5, false); err != nil {
-		ers = append(ers, err)
-	}
-	if len(ers) != 0 {
-		ctx = append(ctx, "float64_null")
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
+	if val, ok := o.Float64Null.Get(); ok {
+
+		ers = nil
+		if err := support.ValidateMinNumber(val, 5, false); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "float64_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
 	}
 
-	ers = nil
-	if err := support.ValidateMultipleOfFloat(o.FloatNull.GetOrZero(), 5.5); err != nil {
-		ers = append(ers, err)
-	}
-	if len(ers) != 0 {
-		ctx = append(ctx, "float_null")
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
-	}
+	if val, ok := o.FloatNull.Get(); ok {
 
+		ers = nil
+		if err := support.ValidateMultipleOfFloat(val, 5.5); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "float_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
+	}
 	ers = nil
 	if err := support.ValidateMultipleOfInt(o.Int, 5); err != nil {
 		ers = append(ers, err)
@@ -176,7 +182,6 @@ func (o Primitives) validateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-
 	ers = nil
 	if err := support.ValidateMaxNumber(o.Int32, 5, false); err != nil {
 		ers = append(ers, err)
@@ -187,16 +192,18 @@ func (o Primitives) validateSchema() support.Errors {
 		ctx = ctx[:len(ctx)-1]
 	}
 
-	ers = nil
-	if err := support.ValidateMaxNumber(o.Int32Null.GetOrZero(), 5, false); err != nil {
-		ers = append(ers, err)
-	}
-	if len(ers) != 0 {
-		ctx = append(ctx, "int32_null")
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
-	}
+	if val, ok := o.Int32Null.Get(); ok {
 
+		ers = nil
+		if err := support.ValidateMaxNumber(val, 5, false); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "int32_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
+	}
 	ers = nil
 	if err := support.ValidateMinNumber(o.Int64, 5, false); err != nil {
 		ers = append(ers, err)
@@ -207,29 +214,31 @@ func (o Primitives) validateSchema() support.Errors {
 		ctx = ctx[:len(ctx)-1]
 	}
 
-	ers = nil
-	if err := support.ValidateMinNumber(o.Int64Null.GetOrZero(), 5, false); err != nil {
-		ers = append(ers, err)
-	}
-	if len(ers) != 0 {
-		ctx = append(ctx, "int64_null")
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
+	if val, ok := o.Int64Null.Get(); ok {
+
+		ers = nil
+		if err := support.ValidateMinNumber(val, 5, false); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "int64_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
 	}
 
-	ers = nil
-	if err := support.ValidateMultipleOfInt(o.IntNull.GetOrZero(), 5); err != nil {
-		ers = append(ers, err)
-	}
-	if len(ers) != 0 {
-		ctx = append(ctx, "int_null")
-		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
-		ctx = ctx[:len(ctx)-1]
-	}
-	if newErrs := Validate(o.Str); newErrs != nil {
-		errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
-	}
+	if val, ok := o.IntNull.Get(); ok {
 
+		ers = nil
+		if err := support.ValidateMultipleOfInt(val, 5); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "int_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
+	}
 	ers = nil
 	if err := support.ValidateFormatUUIDv4(o.StrFormat); err != nil {
 		ers = append(ers, err)
@@ -239,8 +248,17 @@ func (o Primitives) validateSchema() support.Errors {
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}
-	if newErrs := Validate(o.StrNull.GetOrZero()); newErrs != nil {
+	if newErrs := Validate(o.Str); newErrs != nil {
+		ctx = append(ctx, "str")
 		errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+		ctx = ctx[:len(ctx)-1]
+	}
+	if val, ok := o.StrNull.Get(); ok {
+		if newErrs := Validate(val); newErrs != nil {
+			ctx = append(ctx, "str_null")
+			errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+			ctx = ctx[:len(ctx)-1]
+		}
 	}
 
 	return errs

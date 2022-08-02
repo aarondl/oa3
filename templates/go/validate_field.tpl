@@ -1,6 +1,5 @@
 {{- /* Top level object is a Schema, Name is the name of the local var */ -}}
-{{- $name := $.Name }}
-
+{{- $name := $.Name}}
 ers = nil
 {{- if $.Object.MaxLength}}
 if err := support.ValidateMaxLength({{$name}}, {{$.Object.MaxLength}}); err != nil {

@@ -474,10 +474,11 @@ components:
     OmittableEnum:
       type: object
       properties:
-        network_type:
+        enum_ref:
           $ref: '#/components/schemas/EnumRef'
-        wallet_address:
-          type: string
+        enum_ref_array:
+          type: array
+          items: { $ref: '#/components/schemas/EnumRef' }
 
     EnumRef:
       type: string

@@ -43,21 +43,22 @@ var TemplateList = []string{
 
 // TemplateFunctions to use for generation
 var TemplateFunctions = map[string]interface{}{
-	"camelSnake":              camelSnake,
-	"filterNonIdentChars":     filterNonIdentChars,
-	"isInlinePrimitive":       isInlinePrimitive,
-	"omitnullConstructorWrap": omitnullConstructorWrap,
-	"omitnullWrap":            omitnullWrap,
-	"omitnullUnwrap":          omitnullUnwrap,
-	"primitive":               primitive,
-	"primitiveBits":           primitiveBits,
-	"primitiveWrapped":        primitiveWrapped,
-	"responseKind":            responseKind,
-	"snakeToCamel":            snakeToCamel,
-	"taggedPaths":             tagPaths,
+	"camelSnake":          camelSnake,
+	"filterNonIdentChars": filterNonIdentChars,
+	"isInlinePrimitive":   isInlinePrimitive,
+	"omitnullWrap":        omitnullWrap,
+	"omitnullUnwrap":      omitnullUnwrap,
+	"omitnullIsWrapped":   omitnullIsWrapped,
+	"primitive":           primitive,
+	"primitiveBits":       primitiveBits,
+	"primitiveWrapped":    primitiveWrapped,
+	"responseKind":        responseKind,
+	"snakeToCamel":        snakeToCamel,
+	"taggedPaths":         tagPaths,
 
 	// overrides of the defaults
-	"mustValidate": mustValidate,
+	"mustValidate":        mustValidate,
+	"mustValidateRecurse": mustValidateRecurse,
 }
 
 // generator generates templates for Go
@@ -478,10 +479,10 @@ func primitiveWrapped(tdata templates.TemplateData, schema *openapi3spec.Schema,
 		return "", err
 	}
 
-	return omitnullWrap(tdata, schema, prim, nullable, required), nil
+	return omitnullWrap(tdata, prim, nullable, required), nil
 }
 
-func omitnullWrap(tdata templates.TemplateData, schema *openapi3spec.Schema, typ string, nullable bool, required bool) string {
+func omitnullWrap(tdata templates.TemplateData, typ string, nullable bool, required bool) string {
 	var kind string
 	switch {
 	case !nullable && required:
@@ -498,30 +499,68 @@ func omitnullWrap(tdata templates.TemplateData, schema *openapi3spec.Schema, typ
 	return kind + `.Val[` + typ + `]`
 }
 
-func omitnullConstructorWrap(tdata templates.TemplateData, schema *openapi3spec.Schema, value string, nullable bool, required bool) string {
-	var kind string
-	switch {
-	case !nullable && required:
-		return value
-	case nullable && required:
-		kind = "null"
-	case nullable && !required:
-		kind = "omitnull"
-	case !nullable && !required:
-		kind = "omit"
-	}
-
-	tdata.Import("github.com/aarondl/opt/" + kind)
-	return kind + `.From(` + value + `)`
-}
-
-func omitnullUnwrap(tdata templates.TemplateData, schema *openapi3spec.Schema, name string, nullable bool, required bool) string {
+func omitnullUnwrap(name string, nullable bool, required bool) string {
 	switch {
 	case !nullable && required:
 		return name
 	default:
 		return name + ".GetOrZero()"
 	}
+}
+
+func omitnullIsWrapped(nullable bool, required bool) bool {
+	return nullable || !required
+}
+
+// mustValidateRecurse checks to see if the current schema, or any sub-schema
+// requires validation
+func mustValidateRecurse(s *openapi3spec.Schema) bool {
+	cycleMarkers := make(map[string]struct{})
+	return mustValidateRecurseHelper(s, cycleMarkers)
+}
+
+func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct{}) bool {
+	if mustValidate(s) {
+		return true
+	}
+
+	if s.Type == "array" {
+		if len(s.Items.Ref) != 0 {
+			if _, ok := visited[s.Items.Ref]; ok {
+				return false
+			}
+			visited[s.Items.Ref] = struct{}{}
+		}
+
+		return mustValidateRecurseHelper(s.Items.Schema, visited)
+	} else if s.Type == "object" {
+		mustV := false
+		if s.AdditionalProperties != nil {
+			if len(s.AdditionalProperties.Ref) != 0 {
+				if _, ok := visited[s.AdditionalProperties.Ref]; !ok {
+					visited[s.AdditionalProperties.Ref] = struct{}{}
+					mustV = mustV || mustValidateRecurseHelper(s.AdditionalProperties.Schema, visited)
+				}
+			} else {
+				mustV = mustV || mustValidateRecurseHelper(s.AdditionalProperties.Schema, visited)
+			}
+		}
+
+		for _, v := range s.Properties {
+			if len(v.Ref) != 0 {
+				if _, ok := visited[v.Ref]; ok {
+					continue
+				}
+				visited[v.Ref] = struct{}{}
+			}
+
+			mustV = mustV || mustValidateRecurseHelper(v.Schema, visited)
+		}
+
+		return mustV
+	}
+
+	return false
 }
 
 // mustValidate checks to see if the schema requires any kind of validation

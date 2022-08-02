@@ -79,14 +79,14 @@ to a schema ref */ -}}
                     {{- end -}}
                 {{- end -}}
                 {{- $elementRequired := $s.IsRequired $name -}}
-                {{- $isPrimitive := isInlinePrimitive $element.Schema}}
-    {{camelcase $name}} {{if and ($element.Schema.Nullable) (not $elementRequired) -}}
+                {{- $shouldWrap := or $element.Ref $element.Schema.Enum (and (ne $element.Type "array") (ne $element.Type "object"))}}
+    {{camelcase $name}} {{if and $shouldWrap ($element.Schema.Nullable) (not $elementRequired) -}}
                     {{- $.Import "github.com/aarondl/opt/omitnull" -}}
                     omitnull.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
-                {{- else if and ($element.Schema.Nullable) $elementRequired -}}
+                {{- else if and $shouldWrap ($element.Schema.Nullable) $elementRequired -}}
                     {{- $.Import "github.com/aarondl/opt/null" -}}
                     null.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
-                {{- else if and (not $element.Schema.Nullable) (not $elementRequired) -}}
+                {{- else if and $shouldWrap (not $element.Schema.Nullable) (not $elementRequired) -}}
                     {{- $.Import "github.com/aarondl/opt/omit" -}}
                     omit.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
                 {{- else -}}

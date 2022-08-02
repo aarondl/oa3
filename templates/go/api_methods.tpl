@@ -55,8 +55,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     }
             {{- end}}
     var p{{$i}} {{$primWrapped}}
-            {{- if $param.Required -}}
-    {{- /* Warning: This starts an else { block that covers a great deal of code */}}
+            {{- if $param.Required}}
     if !s{{$i}}Exists || len(s{{$i}}) == 0 {
             {{- $.Import "errors"}}
         errs = support.AddErrs(errs, n{{$i}}, errors.New(`must be provided and not be empty`))
@@ -123,12 +122,12 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- if mustValidate $param.Schema.Schema -}}
                 {{- if and ($param.Schema.Enum) (gt (len $param.Schema.Enum) 0) -}}
                     {{- /* In enum case we should not call validate_field since there will already be a type for it */}}
-        if newErrs := Validate({{printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)}}({{omitnullUnwrap $ $param.Schema.Schema (printf "p%d" $i) $param.Schema.Nullable $param.Required}})); newErrs != nil {
+        if newErrs := Validate({{printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)}}({{omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required}})); newErrs != nil {
             errs = support.AddErrsFlatten(errs, n{{$i}}, newErrs)
         }
                 {{- else -}}
                 {{- $.Import "github.com/aarondl/oa3/support"}}
-        {{template "validate_field" (newDataRequired $ (omitnullUnwrap $ $param.Schema.Schema (printf "p%d" $i) $param.Schema.Nullable $param.Required) $param.Schema.Schema $param.Required)}}
+        {{template "validate_field" (newDataRequired $ (omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required) $param.Schema.Schema $param.Required)}}
         if len(ers) != 0 {
             errs = support.AddErrs(errs, n{{$i}}, ers...)
         }

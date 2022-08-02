@@ -3,6 +3,7 @@
 package oa3gen
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/aarondl/oa3/support"
@@ -10,8 +11,8 @@ import (
 )
 
 type OmittableEnum struct {
-	NetworkType   omit.Val[EnumRef] `json:"network_type,omitempty"`
-	WalletAddress omit.Val[string]  `json:"wallet_address,omitempty"`
+	EnumRef      omit.Val[EnumRef] `json:"enum_ref,omitempty"`
+	EnumRefArray []EnumRef         `json:"enum_ref_array,omitempty"`
 }
 
 // validateSchema validates the object and returns
@@ -22,10 +23,25 @@ func (o OmittableEnum) validateSchema() support.Errors {
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
 
-	if newErrs := Validate(o.NetworkType.GetOrZero()); newErrs != nil {
-		ctx = append(ctx, "network_type")
-		errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+	for i, o := range o.EnumRefArray {
+		_ = o
+		ctx = append(ctx, fmt.Sprintf("[%d]", i))
+		if newErrs := Validate(o); newErrs != nil {
+			errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+		}
 		ctx = ctx[:len(ctx)-1]
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "enum_ref_array")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+	if val, ok := o.EnumRef.Get(); ok {
+		if newErrs := Validate(val); newErrs != nil {
+			ctx = append(ctx, "enum_ref")
+			errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
+			ctx = ctx[:len(ctx)-1]
+		}
 	}
 
 	return errs
