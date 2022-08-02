@@ -62,8 +62,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
 		s.MinProperties != nil ||
-		len(s.Enum) > 0 ||
-		s.Format != nil
+		len(s.Enum) > 0
 }
 
 // mustValidateRecurse checks to see if the current schema, or any sub-schema

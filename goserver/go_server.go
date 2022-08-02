@@ -583,7 +583,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.MaxProperties != nil ||
 		s.MinProperties != nil ||
 		len(s.Enum) > 0 ||
-		(s.Format != nil && *s.Format != "date" && *s.Format != "date-time" && *s.Format != "time" && *s.Format != "duration")
+		(s.Format != nil && *s.Format == "uuid")
 }
 
 func Imports(imps map[string]struct{}) string {
