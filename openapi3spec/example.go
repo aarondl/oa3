@@ -6,8 +6,8 @@ type Example struct {
 	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
 
 	// Value and ExternalValue are mutually exclusive
-	Value         interface{} `json:"value,omitempty" yaml:"value,omitempty"`
-	ExternalValue string      `json:"externalValue,omitempty" yaml:"externalValue,omitempty"`
+	Value         any    `json:"value,omitempty" yaml:"value,omitempty"`
+	ExternalValue string `json:"externalValue,omitempty" yaml:"externalValue,omitempty"`
 
 	Extensions `json:"extensions,omitempty" yaml:"extensions,omitempty"`
 }

@@ -19,7 +19,7 @@ var tpls = []string{
 }
 
 // funcs to use for generation
-var funcs = map[string]interface{}{
+var funcs = map[string]any{
 	"lowerFirst": func(s string) string {
 		if len(s) == 0 {
 			return ""

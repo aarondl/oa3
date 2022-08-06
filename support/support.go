@@ -22,7 +22,7 @@ var (
 	buffers = sync.Pool{New: newBuffer}
 )
 
-func newBuffer() interface{} {
+func newBuffer() any {
 	return new(bytes.Buffer)
 }
 
@@ -126,7 +126,7 @@ func MergeErrs(dst Errors, src Errors) Errors {
 // allocation from using json.Marshal (json.Marshal uses its own internal
 // pooled buffer and then copies that to a newly allocated []byte, this way
 // we should have pools for both json's internal buffer and our own).
-func WriteJSON(w http.ResponseWriter, object interface{}) error {
+func WriteJSON(w http.ResponseWriter, object any) error {
 	buf := getBuffer()
 	defer putBuffer(buf)
 
@@ -149,7 +149,7 @@ func WriteJSON(w http.ResponseWriter, object interface{}) error {
 // object should be a pointer in order to deserialize properly.
 // We copy into a pooled buffer to avoid the allocation from ioutil.ReadAll
 // or something similar.
-func ReadJSON(r *http.Request, object interface{}) error {
+func ReadJSON(r *http.Request, object any) error {
 	buf := getBuffer()
 	defer putBuffer(buf)
 

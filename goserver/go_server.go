@@ -42,7 +42,7 @@ var TemplateList = []string{
 }
 
 // TemplateFunctions to use for generation
-var TemplateFunctions = map[string]interface{}{
+var TemplateFunctions = map[string]any{
 	"camelSnake":          camelSnake,
 	"filterNonIdentChars": filterNonIdentChars,
 	"isInlinePrimitive":   isInlinePrimitive,

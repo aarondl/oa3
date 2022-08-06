@@ -15,7 +15,7 @@ import (
 )
 
 // GlobalFunctions for templates
-var GlobalFunctions = map[string]interface{}{
+var GlobalFunctions = map[string]any{
 	"refName":                refName,
 	"mustValidate":           mustValidate,
 	"mustValidateRecurse":    mustValidateRecurse,
@@ -32,7 +32,7 @@ func refName(ref string) string {
 	return splits[len(splits)-1]
 }
 
-func keysReflect(mp interface{}) ([]string, error) {
+func keysReflect(mp any) ([]string, error) {
 	mapType := reflect.TypeOf(mp)
 	if mapType.Kind() != reflect.Map || mapType.Key().Kind() != reflect.String {
 		return nil, fmt.Errorf("want map[string]X, got: %s", mapType.Name())
@@ -118,7 +118,7 @@ func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct
 
 // Load takes in funcs to apply to each template, a directory that
 // contains the files, and the file paths relative that directory
-func Load(generatorFuncs map[string]interface{}, dir fs.FS, files ...string) (*template.Template, error) {
+func Load(generatorFuncs map[string]any, dir fs.FS, files ...string) (*template.Template, error) {
 	tpl := template.New("").Funcs(sprig.TxtFuncMap()).Funcs(GlobalFunctions)
 	if generatorFuncs != nil {
 		tpl = tpl.Funcs(generatorFuncs)

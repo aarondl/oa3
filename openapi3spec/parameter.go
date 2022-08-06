@@ -20,7 +20,7 @@ type Parameter struct {
 	AllowReserved bool      `json:"allowReserved,omitempty" yaml:"allowReserved,omitempty"`
 	Schema        SchemaRef `json:"schema,omitempty" yaml:"schema,omitempty"`
 
-	Example  interface{}         `json:"example,omitempty" yaml:"example,omitempty"`
+	Example  any                 `json:"example,omitempty" yaml:"example,omitempty"`
 	Examples map[string]*Example `json:"examples,omitempty" yaml:"examples,omitempty"`
 
 	Content map[string]*MediaType `json:"content,omitempty" yaml:"content,omitempty"`

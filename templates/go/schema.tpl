@@ -67,7 +67,7 @@ to a schema ref */ -}}
                 {{- /* Map properties embedded */ -}}
                 {{- template "type_embedded" (recurseDataSetRequired $ "Item" $s.AdditionalProperties.SchemaRef true) -}}
             {{- else -}}
-            interface{}
+            any
             {{- end -}}
 
         {{- else if $s.Properties}}struct {

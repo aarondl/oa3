@@ -15,9 +15,9 @@ import (
 // Validation. Unless stated otherwise, the property definitions follow the JSON
 // Schema.
 type Schema struct {
-	Title       *string     `json:"title,omitempty" yaml:"title,omitempty"`
-	Description *string     `json:"description,omitempty" yaml:"description,omitempty"`
-	Default     interface{} `json:"default,omitempty" yaml:"default,omitempty"`
+	Title       *string `json:"title,omitempty" yaml:"title,omitempty"`
+	Description *string `json:"description,omitempty" yaml:"description,omitempty"`
+	Default     any     `json:"default,omitempty" yaml:"default,omitempty"`
 
 	Type string `json:"type,omitempty" yaml:"type,omitempty"`
 
@@ -26,7 +26,7 @@ type Schema struct {
 	WriteOnly  bool `json:"writeOnly,omitempty" yaml:"writeOnly,omitempty"`
 	Deprecated bool `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 
-	Example      interface{}   `json:"example,omitempty" yaml:"example,omitempty"`
+	Example      any           `json:"example,omitempty" yaml:"example,omitempty"`
 	ExternalDocs *ExternalDocs `json:"externalDocs,omitempty" yaml:"externalDocs,omitempty"`
 
 	MultipleOf       *float64 `json:"multipleOf,omitempty" yaml:"multipleOf,omitempty"`
@@ -46,10 +46,10 @@ type Schema struct {
 	MinItems    *int       `json:"minItems,omitempty" yaml:"minItems,omitempty"`
 	UniqueItems *bool      `json:"uniqueItems,omitempty" yaml:"uniqueItems,omitempty"`
 
-	Required      []string      `json:"required,omitempty" yaml:"required,omitempty"`
-	Enum          []interface{} `json:"enum,omitempty" yaml:"enum,omitempty"`
-	MaxProperties *int          `json:"maxProperties,omitempty" yaml:"maxProperties,omitempty"`
-	MinProperties *int          `json:"minProperties,omitempty" yaml:"minProperties,omitempty"`
+	Required      []string `json:"required,omitempty" yaml:"required,omitempty"`
+	Enum          []any    `json:"enum,omitempty" yaml:"enum,omitempty"`
+	MaxProperties *int     `json:"maxProperties,omitempty" yaml:"maxProperties,omitempty"`
+	MinProperties *int     `json:"minProperties,omitempty" yaml:"minProperties,omitempty"`
 
 	Properties           map[string]*SchemaRef `json:"properties,omitempty" yaml:"properties,omitempty"`
 	AdditionalProperties *AdditionalProperties `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`

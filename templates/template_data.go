@@ -10,18 +10,18 @@ type TemplateData struct {
 	Imports map[string]struct{}
 
 	Name     string
-	Object   interface{}
+	Object   any
 	Required bool
 }
 
-func newData(old TemplateData, name string, obj interface{}) TemplateData {
+func newData(old TemplateData, name string, obj any) TemplateData {
 	copy := old
 	copy.Name = name
 	copy.Object = obj
 	return copy
 }
 
-func newDataRequired(old TemplateData, name string, obj interface{}, required bool) TemplateData {
+func newDataRequired(old TemplateData, name string, obj any, required bool) TemplateData {
 	copy := old
 	copy.Name = name
 	copy.Object = obj
@@ -29,14 +29,14 @@ func newDataRequired(old TemplateData, name string, obj interface{}, required bo
 	return copy
 }
 
-func recurseData(old TemplateData, nextName string, nextObj interface{}) TemplateData {
+func recurseData(old TemplateData, nextName string, nextObj any) TemplateData {
 	copy := old
 	copy.Name = old.Name + nextName
 	copy.Object = nextObj
 	return copy
 }
 
-func recurseDataSetRequired(old TemplateData, nextName string, nextObj interface{}, required bool) TemplateData {
+func recurseDataSetRequired(old TemplateData, nextName string, nextObj any, required bool) TemplateData {
 	copy := old
 	copy.Name = old.Name + nextName
 	copy.Object = nextObj
@@ -54,7 +54,7 @@ func NewTemplateData(spec *openapi3spec.OpenAPI3, params map[string]string) *Tem
 }
 
 // NewTemplateDataWithObject constructor
-func NewTemplateDataWithObject(spec *openapi3spec.OpenAPI3, params map[string]string, name string, object interface{}, required bool) *TemplateData {
+func NewTemplateDataWithObject(spec *openapi3spec.OpenAPI3, params map[string]string, name string, object any, required bool) *TemplateData {
 	return &TemplateData{
 		Spec:     spec,
 		Params:   params,

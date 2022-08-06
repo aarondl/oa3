@@ -10,13 +10,13 @@ var (
 	DebugOutput = false
 )
 
-func debugln(intf ...interface{}) {
+func debugln(intf ...any) {
 	if DebugOutput {
 		_, _ = fmt.Fprintln(os.Stderr, intf...)
 	}
 }
 
-func debugf(format string, intf ...interface{}) {
+func debugf(format string, intf ...any) {
 	if DebugOutput {
 		_, _ = fmt.Fprintf(os.Stderr, format, intf...)
 	}

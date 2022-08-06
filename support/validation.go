@@ -110,7 +110,7 @@ func ValidateMinItems[T any](a []T, min int) error {
 
 // ValidateUniqueItems ensures an arrays items are unique. Uses
 // reflect.DeepEqual and a very naive algorithm, not very performant.
-func ValidateUniqueItems(a interface{}) error {
+func ValidateUniqueItems(a any) error {
 	val := reflect.ValueOf(a)
 
 	ln := val.Len()
