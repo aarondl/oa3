@@ -17,7 +17,7 @@
     }
         {{end -}}
     {{- /* Process array items kind */ -}}
-        {{- if mustValidateRecurse $s.Items.Schema}}
+        {{- if mustValidateRecurse $ $s.Items.Schema}}
     for i, o := range {{$.Name}} {
         _ = o
         {{- $.Import "fmt"}}
@@ -49,7 +49,7 @@
         ers = append(ers, err)
     }
             {{end -}}
-            {{- if mustValidateRecurse $s.AdditionalProperties.Schema -}}
+            {{- if mustValidateRecurse $ $s.AdditionalProperties.Schema -}}
     for k, {{$.Name}} := range {{$.Name}} {
         _ = {{$.Name}}
         var ers []error
@@ -63,7 +63,7 @@
         {{- else if $s.Properties -}}
             {{- /* Process regular struct fields */ -}}
             {{- range $name, $element := $s.Properties -}}
-                {{- if and (not $element.Ref) (not $element.Enum) (mustValidateRecurse $element.Schema) -}}
+                {{- if and (not $element.Ref) (not $element.Enum) (mustValidateRecurse $ $element.Schema) -}}
                     {{- $isRequired := $s.IsRequired $name -}}
                     {{- if and (omitnullIsWrapped $element.Nullable $isRequired) (ne $element.Type "array") (ne $element.Type "object")}}
 
@@ -95,7 +95,7 @@
 
             {{- /* Process embedded structs */ -}}
             {{- range $name, $element := $s.Properties -}}
-                {{- if and (or $element.Ref $element.Enum) (mustValidate $element.Schema) -}}
+                {{- if and (or $element.Ref $element.Enum) (mustValidate $ $element.Schema) -}}
                     {{- $isRequired := $s.IsRequired $name -}}
                     {{- if omitnullIsWrapped $element.Nullable $isRequired}}
     if val, ok := o.{{camelcase $name}}.Get(); ok {
@@ -118,7 +118,7 @@
             {{- end -}}
         {{- end}}
     {{- else -}}
-        {{- if mustValidate $.Object.Schema -}}
+        {{- if mustValidate $ $.Object.Schema -}}
             {{- template "validate_field" (newDataRequired $ "o" $.Object.Schema true) -}}
         {{- end -}}
     {{- end}}

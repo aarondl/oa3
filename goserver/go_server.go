@@ -526,13 +526,13 @@ func omitnullIsWrapped(nullable bool, required bool) bool {
 
 // mustValidateRecurse checks to see if the current schema, or any sub-schema
 // requires validation
-func mustValidateRecurse(s *openapi3spec.Schema) bool {
+func mustValidateRecurse(tdata templates.TemplateData, s *openapi3spec.Schema) bool {
 	cycleMarkers := make(map[string]struct{})
-	return mustValidateRecurseHelper(s, cycleMarkers)
+	return mustValidateRecurseHelper(tdata, s, cycleMarkers)
 }
 
-func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct{}) bool {
-	if mustValidate(s) {
+func mustValidateRecurseHelper(tdata templates.TemplateData, s *openapi3spec.Schema, visited map[string]struct{}) bool {
+	if mustValidate(tdata, s) {
 		return true
 	}
 
@@ -544,17 +544,17 @@ func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct
 			visited[s.Items.Ref] = struct{}{}
 		}
 
-		return mustValidateRecurseHelper(s.Items.Schema, visited)
+		return mustValidateRecurseHelper(tdata, s.Items.Schema, visited)
 	} else if s.Type == "object" {
 		mustV := false
 		if s.AdditionalProperties != nil {
 			if len(s.AdditionalProperties.Ref) != 0 {
 				if _, ok := visited[s.AdditionalProperties.Ref]; !ok {
 					visited[s.AdditionalProperties.Ref] = struct{}{}
-					mustV = mustV || mustValidateRecurseHelper(s.AdditionalProperties.Schema, visited)
+					mustV = mustV || mustValidateRecurseHelper(tdata, s.AdditionalProperties.Schema, visited)
 				}
 			} else {
-				mustV = mustV || mustValidateRecurseHelper(s.AdditionalProperties.Schema, visited)
+				mustV = mustV || mustValidateRecurseHelper(tdata, s.AdditionalProperties.Schema, visited)
 			}
 		}
 
@@ -566,7 +566,7 @@ func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct
 				visited[v.Ref] = struct{}{}
 			}
 
-			mustV = mustV || mustValidateRecurseHelper(v.Schema, visited)
+			mustV = mustV || mustValidateRecurseHelper(tdata, v.Schema, visited)
 		}
 
 		return mustV
@@ -582,7 +582,7 @@ func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct
 // date/datetime/time/duration types are handled by using a type that validates
 // it on parse/convert so there's no reason to generate validation after
 // the conversion has already been done.
-func mustValidate(s *openapi3spec.Schema) bool {
+func mustValidate(tdata templates.TemplateData, s *openapi3spec.Schema) bool {
 	return s.MultipleOf != nil ||
 		s.Maximum != nil ||
 		s.Minimum != nil ||
@@ -594,7 +594,9 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
 		s.MinProperties != nil ||
-		len(s.Enum) > 0
+		len(s.Enum) > 0 ||
+		(s.Format != nil && *s.Format == "uuid" && !tdata.TemplateParamEquals("uuidtype", "google")) ||
+		(s.Format != nil && *s.Format == "decimal" && !tdata.TemplateParamEquals("decimaltype", "shopspring"))
 }
 
 func Imports(imps map[string]struct{}) string {

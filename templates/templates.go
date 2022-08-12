@@ -25,8 +25,6 @@ var GlobalFunctions = map[string]any{
 	"newDataRequired":        newDataRequired,
 	"recurseData":            recurseData,
 	"recurseDataSetRequired": recurseDataSetRequired,
-	"templateParamEquals":    templateParamEquals,
-	"templateParamExists":    templateParamExists,
 }
 
 func refName(ref string) string {

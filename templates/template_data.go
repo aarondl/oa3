@@ -65,16 +65,16 @@ func NewTemplateDataWithObject(spec *openapi3spec.OpenAPI3, params map[string]st
 	}
 }
 
-func templateParamExists(td TemplateData, param string) bool {
-	_, ok := td.Params[param]
+// TemplateParamExists checks for existence of a parameter
+func (t TemplateData) TemplateParamExists(param string) bool {
+	_, ok := t.Params[param]
 	return ok
 }
 
-func templateParamEquals(td TemplateData, param, want string) bool {
-	if val, ok := td.Params[param]; ok && val == param {
-		return true
-	}
-	return false
+// TemplateParamEquals checks for equality of a parameter
+func (t TemplateData) TemplateParamEquals(param, want string) bool {
+	val, ok := t.Params[param]
+	return ok && val == want
 }
 
 // Import records the importing of a library

@@ -123,7 +123,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- else}}
         p{{$i}} = s{{$i}}
             {{- end -}}
-            {{- if mustValidate $param.Schema.Schema -}}
+            {{- if mustValidate $ $param.Schema.Schema -}}
                 {{- if and ($param.Schema.Enum) (gt (len $param.Schema.Enum) 0) -}}
                     {{- /* In enum case we should not call validate_field since there will already be a type for it */}}
         if newErrs := Validate({{printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)}}({{omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required}})); newErrs != nil {

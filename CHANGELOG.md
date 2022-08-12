@@ -4,6 +4,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.36] - 2022-08-12
+
+### Added
+
+- Add `decimaltype` parameter, behaves exactly like the timetype parameter in that
+  it will replace `string` types in Go with `decimal.Decimal` from the
+  shopspring decimal package, but this disables string validation for it.
+- When decimal format is specified on a string type it will validate the string
+  when `decimaltype!=shopspring`
+
+### Changed
+
+- Change `uuid` format to be controlled by a `uuidtype` parameter to the
+  generator. Behaves exactly the same as `decimaltype` and `timetype` but uses
+  google's uuid.UUID package. String validation is disabled when this param
+  is active.
+
 ## [v0.0.35] - 2022-08-02
 
 - Fix empty validation cases due to `format`
