@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/aarondl/chrono"
+	"github.com/google/uuid"
 	"github.com/peterhellberg/duration"
+	"github.com/shopspring/decimal"
 	"golang.org/x/exp/constraints"
 )
 
@@ -119,4 +121,14 @@ func StringToFloat[T constraints.Float](s string, bits int) (T, error) {
 // StringToBool conversion
 func StringToBool(s string) (bool, error) {
 	return strconv.ParseBool(s)
+}
+
+// StringToDecimal converts a string to a decimal type
+func StringToDecimal(s string) (decimal.Decimal, error) {
+	return decimal.NewFromString(s)
+}
+
+// StringToUUID converts a string to a uuid type
+func StringToUUID(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
 }

@@ -12,13 +12,23 @@ import (
 )
 
 var (
-	rgxUUIDv4 = regexp.MustCompile(`(?i)^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$`)
+	rgxUUIDv4  = regexp.MustCompile(`(?i)^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$`)
+	rgxDecimal = regexp.MustCompile(`[0-9]+(?:\.[0-9]*)?`)
 )
 
-// ValidateFormatUUIDv4 makes it look like it's in a UUID v4 shape
+// ValidateFormatUUIDv4 checks that it look like it's in a UUID v4 shape
 func ValidateFormatUUIDv4(s string) error {
 	if !rgxUUIDv4.MatchString(s) {
 		return errors.New("must be a valid uuid v4")
+	}
+
+	return nil
+}
+
+// ValidateFormatDecimal checks it look like it's in a decimal shape
+func ValidateFormatDecimal(s string) error {
+	if !rgxDecimal.MatchString(s) {
+		return errors.New("must be a valid decimal number")
 	}
 
 	return nil

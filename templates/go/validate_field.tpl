@@ -56,6 +56,11 @@ if err := support.ValidateFormatUUIDv4({{$name}}); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
+{{- if and $.Object.Format (eq (printf $.Object.Format) "decimal") }}
+if err := support.ValidateFormatDecimal({{$name}}); err != nil {
+    ers = append(ers, err)
+}
+{{- end -}}
 {{- if and $.Object.Enum (gt (len $.Object.Enum) 0) }}
 if err := support.ValidateEnum({{$name}}, []string{
     {{- range $i, $v := $.Object.Enum -}}

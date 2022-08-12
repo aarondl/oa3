@@ -4,5 +4,9 @@ github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430 h1:JwYT8qI5VZhk19g6Iw
 github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430/go.mod h1:FZqLhJSj2tg0ZN48GB1zvj00+ZYcHPqgsC7yzcgCq6k=
 github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c h1:2Gqf5w8k30czPgvm78I6ifVBDxqlwmwbc9hjzbWWKA8=
 github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c/go.mod h1:SVWo7tdg6gXZt1ylP4RgzL78B+Jp5bZlhpu40Kp8YXk=
+github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
+github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/shopspring/decimal v1.3.1 h1:2Usl1nmF/WZucqkFZhnfFYxxxu8LG21F6nPQBE5gKV8=
+github.com/shopspring/decimal v1.3.1/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 golang.org/x/time v0.0.0-20220609170525-579cf78fd858 h1:Dpdu/EMxGMFgq0CeYMh4fazTD2vtlZRYE7wyynxJb9U=
 golang.org/x/time v0.0.0-20220609170525-579cf78fd858/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=

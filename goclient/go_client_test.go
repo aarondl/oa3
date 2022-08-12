@@ -23,7 +23,11 @@ func TestGenerator(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	files, err := gen.Do(oa, map[string]string{"timetype": "chrono"})
+	files, err := gen.Do(oa, map[string]string{
+		"timetype":    "chrono",
+		"decimaltype": "shopspring",
+		"uuidtype":    "google",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

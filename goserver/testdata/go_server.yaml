@@ -193,6 +193,43 @@ paths:
       responses:
         '200': { description: OK }
 
+  /test/type_overrides:
+    get:
+      operationId: testTypeOverrides
+      parameters:
+        - name: number
+          in: query
+          schema: { type: string, format: decimal }
+          required: true
+        - name: date
+          in: query
+          schema: { type: string, format: date }
+          required: true
+        - name: number_null
+          in: query
+          schema: { type: string, format: decimal, nullable: true }
+          required: true
+        - name: date_null
+          in: query
+          schema: { type: string, format: date, nullable: true }
+          required: true
+        - name: number_non_req
+          in: query
+          schema: { type: string, format: decimal }
+          required: false
+        - name: date_non_req
+          in: query
+          schema: { type: string, format: date }
+          required: false
+      requestBody:
+        description: Desc
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Primitives' }
+      responses:
+        '200': { description: OK }
+
   /test/servers:
     get:
       operationId: testServerPathOverrideRequest
@@ -265,7 +302,10 @@ components:
         - str_null
         - bool_null
 
-        - str_format
+        - uuid
+        - uuid_null
+        - decimal
+        - decimal_null
         - time_val
         - time_null
         - datetime_val
@@ -291,7 +331,10 @@ components:
         str_null:  { type: string, nullable: true, maxLength: 5, minLength: 5, enum: ["hello"] }
         bool_null: { type: boolean, nullable: true }
 
-        str_format:    { type: string, format: uuid }
+        uuid:          { type: string, format: uuid }
+        uuid_null:     { type: string, format: uuid, nullable: true }
+        decimal:       { type: string, format: decimal }
+        decimal_null:  { type: string, format: decimal, nullable: true }
         time_val:      { type: string, format: time }
         time_null:     { type: string, format: time, nullable: true }
         datetime_val:  { type: string, format: date-time }

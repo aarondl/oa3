@@ -31,19 +31,27 @@ generator.
 
 ### Go Server
 
-| Name     | Values           | Description |
-|----------|------------------|-------------|
-| package  | oa3gen (default) | Override the package name for the generated files
-| timetype | time (default)   | Uses time.Time for date/datetime/time
-|          | chrono           | Uses chrono.X for date/datetime/time
+| Name        | Values           | Description |
+|-------------|------------------|-------------|
+| package     | oa3gen (default) | Override the package name for the generated files
+| timetype    | time   (default) | `{type: string, format: date/datetime/time}` uses time.Time
+|             | chrono           | `{type: string, format: date/datetime/time}` uses chrono.X
+| decimaltype | string (default) | `{type: string, format: decimal}` changes nothing
+| decimaltype | shopspring       | `{type: string, format: decimal}` uses shopspring decimal
+| uuidtype    | string (default) | `{type: string, format: uuid}` uses string
+| uuidtype    | google           | `{type: string, format: uuid}` uses google's uuid library
 
 ### Go Client
 
-| Name     | Values         | Description |
-|----------|----------------|-------------|
-| package  | oa3gen (default) | Override the package name for the generated files
-| timetype | time (default) | Uses time.Time for date/datetime/time
-|          | chrono         | Uses chrono.X for date/datetime/time
+| Name        | Values           | Description |
+|-------------|------------------|-------------|
+| package     | oa3gen (default) | Override the package name for the generated files
+| timetype    | time   (default) | `{type: string, format: date/datetime/time}` uses time.Time
+|             | chrono           | `{type: string, format: date/datetime/time}` uses chrono.X
+| decimaltype | string (default) | `{type: string, format: decimal}` changes nothing
+| decimaltype | shopspring       | `{type: string, format: decimal}` uses shopspring decimal
+| uuidtype    | string (default) | `{type: string, format: uuid}` uses string
+| uuidtype    | google           | `{type: string, format: uuid}` uses google's uuid library
 
 ### Typescript Client
 

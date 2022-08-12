@@ -9,6 +9,8 @@ import (
 	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 // Checks to see that all Go primitives work
@@ -19,6 +21,8 @@ type Primitives struct {
 	DateVal      chrono.Date                 `json:"date_val"`
 	DatetimeNull null.Val[chrono.DateTime]   `json:"datetime_null"`
 	DatetimeVal  chrono.DateTime             `json:"datetime_val"`
+	Decimal      decimal.Decimal             `json:"decimal"`
+	DecimalNull  null.Val[decimal.Decimal]   `json:"decimal_null"`
 	DurationNull omitnull.Val[time.Duration] `json:"duration_null,omitempty"`
 	DurationVal  omit.Val[time.Duration]     `json:"duration_val,omitempty"`
 	Float        float64                     `json:"float"`
@@ -35,10 +39,11 @@ type Primitives struct {
 	Int64Null null.Val[int64]             `json:"int64_null"`
 	IntNull   null.Val[int]               `json:"int_null"`
 	Str       PrimitivesStr               `json:"str"`
-	StrFormat string                      `json:"str_format"`
 	StrNull   null.Val[PrimitivesStrNull] `json:"str_null"`
 	TimeNull  null.Val[chrono.Time]       `json:"time_null"`
 	TimeVal   chrono.Time                 `json:"time_val"`
+	Uuid      uuid.UUID                   `json:"uuid"`
+	UuidNull  null.Val[uuid.UUID]         `json:"uuid_null"`
 }
 
 type PrimitivesStr string

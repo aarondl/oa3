@@ -7,7 +7,9 @@ require (
 	github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7
 	github.com/aarondl/fixtures v0.0.1
 	github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430
+	github.com/google/uuid v1.3.0
 	github.com/peterhellberg/duration v0.0.0-20191119133758-ec6baeebcd10
+	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/exp v0.0.0-20220609121020-a51bd0440498
 	gopkg.in/yaml.v3 v3.0.1
@@ -16,7 +18,6 @@ require (
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

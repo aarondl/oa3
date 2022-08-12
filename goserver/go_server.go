@@ -25,8 +25,10 @@ const (
 
 // Constants for keys recognized in the parameters for the Go server
 const (
-	ParamKeyPackage  = "package"
-	ParamKeyTimeType = "timetype"
+	ParamKeyPackage     = "package"
+	ParamKeyTimeType    = "timetype"
+	ParamKeyUUIDType    = "uuidtype"
+	ParamKeyDecimalType = "decimaltype"
 )
 
 // templates for generation
@@ -443,6 +445,16 @@ func primitive(tdata templates.TemplateData, schema *openapi3spec.Schema) (strin
 			case "duration":
 				tdata.Import("time")
 				return "time.Duration", nil
+			case "uuid":
+				if tdata.Params[ParamKeyUUIDType] == "google" {
+					tdata.Import("github.com/google/uuid")
+					return "uuid.UUID", nil
+				}
+			case "decimal":
+				if tdata.Params[ParamKeyDecimalType] == "shopspring" {
+					tdata.Import("github.com/shopspring/decimal")
+					return "decimal.Decimal", nil
+				}
 			}
 		}
 		return "string", nil
@@ -582,8 +594,7 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		s.UniqueItems != nil ||
 		s.MaxProperties != nil ||
 		s.MinProperties != nil ||
-		len(s.Enum) > 0 ||
-		(s.Format != nil && *s.Format == "uuid")
+		len(s.Enum) > 0
 }
 
 func Imports(imps map[string]struct{}) string {

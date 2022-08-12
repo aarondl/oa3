@@ -8,5 +8,7 @@ require (
 	github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7
 	github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430
 	github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c
+	github.com/google/uuid v1.3.0
+	github.com/shopspring/decimal v1.3.1
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
 )

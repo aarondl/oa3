@@ -13,6 +13,8 @@ import (
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 // AlreadyHandled is an interface which an error return type can optionally
@@ -332,6 +334,123 @@ func (o GoServer) testserveropoverriderequestOp(w http.ResponseWriter, r *http.R
 	return nil
 }
 
+// testtypeoverrides get /test/type_overrides
+func (o GoServer) testtypeoverridesOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	const n0 = `number`
+	s0, s0Exists := r.URL.Query().Get(n0), r.URL.Query().Has(n0)
+	var p0 decimal.Decimal
+	if !s0Exists || len(s0) == 0 {
+		errs = support.AddErrs(errs, n0, errors.New(`must be provided and not be empty`))
+	} else {
+		p0, err = support.StringToDecimal(s0)
+		if err != nil {
+			errs = support.AddErrs(errs, n0, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n1 = `date`
+	s1, s1Exists := r.URL.Query().Get(n1), r.URL.Query().Has(n1)
+	var p1 chrono.Date
+	if !s1Exists || len(s1) == 0 {
+		errs = support.AddErrs(errs, n1, errors.New(`must be provided and not be empty`))
+	} else {
+		p1, err = support.StringToChronoDate(s1)
+		if err != nil {
+			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
+		}
+	}
+
+	const n2 = `number_null`
+	s2, s2Exists := r.URL.Query().Get(n2), r.URL.Query().Has(n2)
+	var p2 null.Val[decimal.Decimal]
+	if !s2Exists || len(s2) == 0 {
+		errs = support.AddErrs(errs, n2, errors.New(`must be provided and not be empty`))
+	} else {
+		p2c, err := support.StringToDecimal(s2)
+		if err != nil {
+			errs = support.AddErrs(errs, n2, errors.New(`was not in a valid format`))
+		}
+		p2.Set(p2c)
+	}
+
+	const n3 = `date_null`
+	s3, s3Exists := r.URL.Query().Get(n3), r.URL.Query().Has(n3)
+	var p3 null.Val[chrono.Date]
+	if !s3Exists || len(s3) == 0 {
+		errs = support.AddErrs(errs, n3, errors.New(`must be provided and not be empty`))
+	} else {
+		p3c, err := support.StringToChronoDate(s3)
+		if err != nil {
+			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
+		}
+		p3.Set(p3c)
+	}
+
+	const n4 = `number_non_req`
+	s4, s4Exists := r.URL.Query().Get(n4), r.URL.Query().Has(n4)
+	var p4 omit.Val[decimal.Decimal]
+	if s4Exists {
+		p4c, err := support.StringToDecimal(s4)
+		if err != nil {
+			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
+		}
+		p4.Set(p4c)
+	}
+
+	const n5 = `date_non_req`
+	s5, s5Exists := r.URL.Query().Get(n5), r.URL.Query().Has(n5)
+	var p5 omit.Val[chrono.Date]
+	if s5Exists {
+		p5c, err := support.StringToChronoDate(s5)
+		if err != nil {
+			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
+		}
+		p5.Set(p5c)
+	}
+
+	var reqBody Primitives
+
+	if r.Body == nil {
+		return support.ErrNoBody
+	} else {
+		if err = support.ReadJSON(r, &reqBody); err != nil {
+			return err
+		}
+
+		if newErrs := Validate(reqBody); newErrs != nil {
+			errs = support.MergeErrs(errs, newErrs)
+		}
+	}
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestTypeOverrides(w, r, &reqBody, p0, p1, p2, p3, p4, p5)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+	case HTTPStatusOk:
+		w.WriteHeader(200)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
 // testunknownbodytype post /test/unknown/body/type
 func (o GoServer) testunknownbodytypeOp(w http.ResponseWriter, r *http.Request) error {
 	var err error
@@ -413,7 +532,6 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
 		}
 		p3.Set(p3c)
-
 		ers = nil
 		if err := support.ValidateMaxNumber(p3.GetOrZero(), 5, true); err != nil {
 			ers = append(ers, err)
@@ -439,7 +557,6 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
 		}
-
 		ers = nil
 		if err := support.ValidateMaxNumber(p4, 5, true); err != nil {
 			ers = append(ers, err)
@@ -464,7 +581,6 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
 		}
 		p5.Set(p5c)
-
 		ers = nil
 		if err := support.ValidateMaxNumber(p5.GetOrZero(), 10.5, false); err != nil {
 			ers = append(ers, err)
@@ -490,7 +606,6 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			errs = support.AddErrs(errs, n6, errors.New(`was not in a valid format`))
 		}
-
 		ers = nil
 		if err := support.ValidateMaxNumber(p6, 10.5, false); err != nil {
 			ers = append(ers, err)
@@ -531,18 +646,13 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 
 	const n9 = `req_str_format`
 	s9, s9Exists := r.URL.Query().Get(n9), r.URL.Query().Has(n9)
-	var p9 string
+	var p9 uuid.UUID
 	if !s9Exists || len(s9) == 0 {
 		errs = support.AddErrs(errs, n9, errors.New(`must be provided and not be empty`))
 	} else {
-		p9 = s9
-
-		ers = nil
-		if err := support.ValidateFormatUUIDv4(p9); err != nil {
-			ers = append(ers, err)
-		}
-		if len(ers) != 0 {
-			errs = support.AddErrs(errs, n9, ers...)
+		p9, err = support.StringToUUID(s9)
+		if err != nil {
+			errs = support.AddErrs(errs, n9, errors.New(`was not in a valid format`))
 		}
 	}
 

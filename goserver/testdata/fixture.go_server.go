@@ -12,6 +12,8 @@ import (
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 // Interface is the interface that an application server must implement
@@ -33,13 +35,15 @@ type Interface interface {
 	TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerPathOverrideRequestResponse, error)
 	// TestServerOpOverrideRequest post /test/servers
 	TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerOpOverrideRequestResponse, error)
+	// TestTypeOverrides get /test/type_overrides
+	TestTypeOverrides(w http.ResponseWriter, r *http.Request, body *Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (TestTypeOverridesResponse, error)
 	// TestUnknownBodyType post /test/unknown/body/type
 	TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (TestUnknownBodyTypeResponse, error)
 	// GetUser get /users/{id}
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
 	// bleeding over the sacred 80 char limit.
-	GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, error)
+	GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, error)
 	// SetUser post /users/{id}
 	// Sets a user
 	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives) (SetUserResponse, error)
@@ -80,6 +84,7 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
 		r.Method(http.MethodPost, `/test/servers`, eh.Wrap(o.testserveropoverriderequestOp))
 		r.Method(http.MethodGet, `/test/servers`, eh.Wrap(o.testserverpathoverriderequestOp))
+		r.Method(http.MethodGet, `/test/type_overrides`, eh.Wrap(o.testtypeoverridesOp))
 		r.Method(http.MethodPost, `/test/unknown/body/type`, eh.Wrap(o.testunknownbodytypeOp))
 	})
 	// users tagged operations
@@ -189,6 +194,17 @@ type TestServerOpOverrideRequestResponse interface {
 // TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
 
+// TestTypeOverridesResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestTypeOverridesResponse interface {
+	TestTypeOverridesImpl()
+}
+
+// TestTypeOverridesImpl implements TestTypeOverridesResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestTypeOverridesImpl() {}
+
 // TestUnknownBodyTypeResponse one-of enforcer
 //
 // Implementors:
@@ -279,6 +295,10 @@ func (a API) TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Reques
 func (a API) TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.TestServerOpOverrideRequestResponse, error) {
     panic("not implemented")
 }
+// TestTypeOverrides get /test/type_overrides
+func (a API) TestTypeOverrides(w http.ResponseWriter, r *http.Request, body *oa3gen.Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (oa3gen.TestTypeOverridesResponse, error) {
+    panic("not implemented")
+}
 // TestUnknownBodyType post /test/unknown/body/type
 func (a API) TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (oa3gen.TestUnknownBodyTypeResponse, error) {
     panic("not implemented")
@@ -287,7 +307,7 @@ func (a API) TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (oa3gen
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (oa3gen.GetUserResponse, error) {
+func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[string], reqValidStr null.Val[string], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (oa3gen.GetUserResponse, error) {
     panic("not implemented")
 }
 // SetUser post /users/{id}

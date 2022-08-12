@@ -17,6 +17,8 @@ import (
 	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 // Authenticate post /auth
@@ -257,6 +259,56 @@ func (_c Client) TestServerOpOverrideRequest(ctx context.Context, baseURL BaseUR
 	return _resp, _httpResp, nil
 }
 
+// TestTypeOverrides get /test/type_overrides
+func (_c Client) TestTypeOverrides(ctx context.Context, baseURL BaseURLBuilder, body *Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (TestTypeOverridesResponse, *http.Response, error) {
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/type_overrides`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_bodyBytes, _err := json.Marshal(body)
+	if _err != nil {
+		return nil, nil, _err
+	}
+	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
+	var _query url.Values
+	if _query == nil {
+		_query = make(url.Values)
+	}
+	_query.Set(`number`, fmt.Sprintf("%v", number))
+	_query.Set(`date`, fmt.Sprintf("%v", date))
+	if val, ok := numberNull.Get(); ok {
+		_query.Set(`number_null`, fmt.Sprintf("%v", val))
+	}
+	if val, ok := dateNull.Get(); ok {
+		_query.Set(`date_null`, fmt.Sprintf("%v", val))
+	}
+	if val, ok := numberNonReq.Get(); ok {
+		_query.Set(`number_non_req`, fmt.Sprintf("%v", val))
+	}
+	if val, ok := dateNonReq.Get(); ok {
+		_query.Set(`date_non_req`, fmt.Sprintf("%v", val))
+	}
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err := _c.doRequest(ctx, _req)
+	if _err != nil {
+		return nil, nil, _err
+	}
+
+	var _resp TestTypeOverridesResponse
+	switch _httpResp.Status {
+	case `200`:
+		_resp = HTTPStatusOk{}
+	default:
+		return nil, nil, fmt.Errorf("unknown response code")
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // TestUnknownBodyType post /test/unknown/body/type
 func (_c Client) TestUnknownBodyType(ctx context.Context, baseURL BaseURLBuilder, body io.ReadCloser) (TestUnknownBodyTypeResponse, *http.Response, error) {
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/unknown/body/type`
@@ -291,7 +343,7 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, baseURL BaseURLBuilder
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string, validStr omitnull.Val[GetUserValidStrParam], reqValidStr null.Val[GetUserReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat string, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
+func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string, validStr omitnull.Val[GetUserValidStrParam], reqValidStr null.Val[GetUserReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/users/{id}`
 	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)

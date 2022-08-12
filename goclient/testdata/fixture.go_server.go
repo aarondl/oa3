@@ -375,6 +375,17 @@ type TestServerOpOverrideRequestResponse interface {
 // TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
 
+// TestTypeOverridesResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestTypeOverridesResponse interface {
+	TestTypeOverridesImpl()
+}
+
+// TestTypeOverridesImpl implements TestTypeOverridesResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestTypeOverridesImpl() {}
+
 // TestUnknownBodyTypeResponse one-of enforcer
 //
 // Implementors:

@@ -94,6 +94,10 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                         {{- end -}}
                     {{- else if eq $prim "time.Duration" -}}
                         {{- $convFn = printf "support.StringToDuration(s%d)" $i -}}
+                    {{- else if eq $prim "uuid.UUID" -}}
+                        {{- $convFn = printf "support.StringToUUID(s%d)" $i -}}
+                    {{- else if eq $prim "decimal.Decimal" -}}
+                        {{- $convFn = printf "support.StringToDecimal(s%d)" $i -}}
                     {{- else if hasPrefix "int" $prim -}}
                         {{- $convFn = printf "support.StringToInt[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
                     {{- else if hasPrefix "uint" $prim -}}
@@ -126,8 +130,8 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             errs = support.AddErrsFlatten(errs, n{{$i}}, newErrs)
         }
                 {{- else -}}
-                {{- $.Import "github.com/aarondl/oa3/support"}}
-        {{template "validate_field" (newDataRequired $ (omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required) $param.Schema.Schema $param.Required)}}
+                {{- $.Import "github.com/aarondl/oa3/support" -}}
+        {{- template "validate_field" (newDataRequired $ (omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required) $param.Schema.Schema $param.Required)}}
         if len(ers) != 0 {
             errs = support.AddErrs(errs, n{{$i}}, ers...)
         }
