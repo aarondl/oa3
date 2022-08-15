@@ -16,23 +16,23 @@ import (
 
 // GlobalFunctions for templates
 var GlobalFunctions = map[string]any{
-	"refName":                refName,
-	"mustValidate":           mustValidate,
-	"mustValidateRecurse":    mustValidateRecurse,
-	"keysReflect":            keysReflect,
+	"refName":                RefName,
+	"mustValidate":           MustValidate,
+	"mustValidateRecurse":    MustValidateRecurse,
+	"keysReflect":            KeysReflect,
 	"httpStatus":             http.StatusText,
-	"newData":                newData,
-	"newDataRequired":        newDataRequired,
-	"recurseData":            recurseData,
-	"recurseDataSetRequired": recurseDataSetRequired,
+	"newData":                NewData,
+	"newDataRequired":        NewDataRequired,
+	"recurseData":            RecurseData,
+	"recurseDataSetRequired": RecurseDataSetRequired,
 }
 
-func refName(ref string) string {
+func RefName(ref string) string {
 	splits := strings.Split(ref, "/")
 	return splits[len(splits)-1]
 }
 
-func keysReflect(mp any) ([]string, error) {
+func KeysReflect(mp any) ([]string, error) {
 	mapType := reflect.TypeOf(mp)
 	if mapType.Kind() != reflect.Map || mapType.Key().Kind() != reflect.String {
 		return nil, fmt.Errorf("want map[string]X, got: %s", mapType.Name())
@@ -49,8 +49,8 @@ func keysReflect(mp any) ([]string, error) {
 	return keys, nil
 }
 
-// mustValidate checks to see if the schema requires any kind of validation
-func mustValidate(s *openapi3spec.Schema) bool {
+// MustValidate checks to see if the schema requires any kind of validation
+func MustValidate(s *openapi3spec.Schema) bool {
 	return s.MultipleOf != nil ||
 		s.Maximum != nil ||
 		s.Minimum != nil ||
@@ -65,15 +65,15 @@ func mustValidate(s *openapi3spec.Schema) bool {
 		len(s.Enum) > 0
 }
 
-// mustValidateRecurse checks to see if the current schema, or any sub-schema
+// MustValidateRecurse checks to see if the current schema, or any sub-schema
 // requires validation
-func mustValidateRecurse(s *openapi3spec.Schema) bool {
+func MustValidateRecurse(s *openapi3spec.Schema) bool {
 	cycleMarkers := make(map[string]struct{})
 	return mustValidateRecurseHelper(s, cycleMarkers)
 }
 
 func mustValidateRecurseHelper(s *openapi3spec.Schema, visited map[string]struct{}) bool {
-	if mustValidate(s) {
+	if MustValidate(s) {
 		return true
 	}
 

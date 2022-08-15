@@ -8,14 +8,16 @@ type AlreadyHandled interface {
 
 // ErrHandled is a sentinel error that implements
 // the AlreadyHandled interface which prevents the
-// generated handler from firing.
+// generated handler's response code from firing.
 type ErrHandled struct {}
 // Error implements error
 func (ErrHandled) Error() string { return "already handled" }
 // AlreadyHandled implements AlreadyHandled
 func (ErrHandled) AlreadyHandled() bool { return true }
 
-{{range $url, $path := $.Spec.Paths -}}
+{{$queryOnce := dict -}}
+{{$cookieOnce := dict -}}
+{{- range $url, $path := $.Spec.Paths -}}
     {{range $method, $op := $path.Operations -}}
         {{- $opname := lower (camelcase $op.OperationID) -}}
         {{- $.Import "net/http"}}
@@ -28,33 +30,40 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
 
         {{- /* Process parameters */ -}}
         {{- range $i, $param := $op.Parameters -}}
-            {{- $prim := (primitive $ $param.Schema.Schema)}}
-            {{- $primWrapped := (primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required)}}
-
+            {{- $ptype := paramTypeName $ $op.OperationID $method $param}}
     const n{{$i}} = `{{$param.Name}}`
-            {{- if eq "query" $param.In}}
-    s{{$i}}, s{{$i}}Exists := r.URL.Query().Get(n{{$i}}), r.URL.Query().Has(n{{$i}})
+            {{- if eq "query" $param.In -}}
+                {{- if not (hasKey $queryOnce $op.OperationID)}}
+    query := r.URL.Query()
+                    {{- $_ := set $queryOnce $op.OperationID "" -}}
+                {{- end}}
+    s{{$i}} := query[n{{$i}}]
+    s{{$i}}Exists := len(s{{$i}}) > 0 && len(s{{$i}}[0]) > 0
             {{- else if eq "header" $param.In}}
-    s{{$i}}, s{{$i}}Exists := r.Header.Get(n{{$i}}), len(r.Header.Values(n{{$i}})) != 0
+    s{{$i}} := r.Header[http.CanonicalHeaderKey(n{{$i}})]
+    s{{$i}}Exists := len(s{{$i}}) > 0 && len(s{{$i}}[0]) > 0
             {{- else if eq "path" $param.In -}}
                 {{- $.Import "github.com/go-chi/chi/v5"}}
-    s{{$i}}, s{{$i}}Exists := chi.URLParam(r, n{{$i}}), true
+    s{{$i}}, s{{$i}}Exists := []string{chi.URLParam(r, n{{$i}})}, true
             {{- else if eq "cookie" $param.In -}}
                 {{- $.Import "net/http"}}
-    var s{{$i}} string
-    s{{$i}}Exists := true
-    c{{$i}}, err := r.Cookie(n{{$i}})
-    if err == http.ErrNoCookie {
-        s{{$i}}Exists = false
-    } err != nil {
-        return fmt.Errorf("failed to read cookie '{{$param.Name}}': %w", err)
-    } else if err = c{{$i}}.Valid(); err != nil {
-        return fmt.Errorf("failed to validate cookie '{{$param.Name}}': %w", err)
-    } else {
-        s{{$i}} = c{{$i}}.Value
+                {{- if not (hasKey $cookieOnce $op.OperationID)}}
+    cookies := r.Cookies()
+                    {{- $_ := set $cookieOnce $op.OperationID "" -}}
+                {{- end -}}
+    var s{{$i}} []string
+    s{{$i}}Exists := false
+    for _, c := range cookies {
+        if c.Name == n{{$i}} {
+            if err := c.Valid(); err != nil {
+                return fmt.Errorf("failed to validate cookie '{{$param.Name}}': %w", err)
+            }
+            s{{$i}} = append(s{{$i}}, c.Value)
+            s{{$i}}Exists = s{{$i}}Exists || len(c.Value) > 0
+        }
     }
             {{- end}}
-    var p{{$i}} {{$primWrapped}}
+    var p{{$i}} {{omitnullWrap $ $ptype $param.Schema.Nullable $param.Required }}
             {{- if $param.Required}}
     if !s{{$i}}Exists || len(s{{$i}}) == 0 {
             {{- $.Import "errors"}}
@@ -63,70 +72,36 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- else}}
     if s{{$i}}Exists {
             {{- end -}}
-            {{/*
-                There are many cases for the property type:
-                * string - Just assign
-                * int/uint/float/bool - Convert and assign
-                * (omit|null|omitnull).Val[string] - Set string without conversion
-                * (omit|null|omitnull).Val[int/uint/float/bool] - Convert then set
-            */}}
-            {{- if ne $primWrapped "string" -}}
-                {{- $.Import "github.com/aarondl/oa3/support" -}}
-                {{- if eq $prim "string"}}
-        p{{$i}}.Set(s{{$i}})
-        err = nil
-                {{- else -}}
-                    {{- $convFn := printf "support.StringToBool(s%d)" $i -}}
-                    {{- if eq $prim "chrono.DateTime" -}}
-                        {{- $convFn = printf "support.StringToChronoDateTime(s%d)" $i -}}
-                    {{- else if eq $prim "chrono.Date" -}}
-                        {{- $convFn = printf "support.StringToChronoDate(s%d)" $i -}}
-                    {{- else if eq $prim "chrono.Time" -}}
-                        {{- $convFn = printf "support.StringToChronoTime(s%d)" $i -}}
-                    {{- else if eq $prim "time.Time" -}}
-                        {{- $primFmt := printf "%s" $param.Schema.Schema.Format -}}
-                        {{- if eq $primFmt "date-time" -}}
-                            {{- $convFn = printf "support.StringToDateTime(s%d)" $i -}}
-                        {{- else if eq $primFmt "date" -}}
-                            {{- $convFn = printf "support.StringToDate(s%d)" $i -}}
-                        {{- else if eq $primFmt "time" -}}
-                            {{- $convFn = printf "support.StringToTime(s%d)" $i -}}
-                        {{- end -}}
-                    {{- else if eq $prim "time.Duration" -}}
-                        {{- $convFn = printf "support.StringToDuration(s%d)" $i -}}
-                    {{- else if eq $prim "uuid.UUID" -}}
-                        {{- $convFn = printf "support.StringToUUID(s%d)" $i -}}
-                    {{- else if eq $prim "decimal.Decimal" -}}
-                        {{- $convFn = printf "support.StringToDecimal(s%d)" $i -}}
-                    {{- else if hasPrefix "int" $prim -}}
-                        {{- $convFn = printf "support.StringToInt[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
-                    {{- else if hasPrefix "uint" $prim -}}
-                        {{- $convFn = printf "support.StringToUint[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
-                    {{- else if hasPrefix "float" $prim -}}
-                        {{- $convFn = printf "support.StringToFloat[%s](s%d, %s)" $prim $i (primitiveBits $ $param.Schema.Schema) -}}
-                    {{- end -}}
-                    {{- if or (hasPrefix "null." $primWrapped) (hasPrefix "omit." $primWrapped) (hasPrefix "omitnull." $primWrapped)}}
-        p{{$i}}c, err := {{$convFn}}
+
+            {{- $setVar := printf "s%d[0]" $i -}}
+            {{- $mustConvert := or (ne $param.Schema.Type "string") (and (not $param.Schema.Enum) (ne $ptype "string"))}}
+            {{- if $mustConvert }}
+                {{- $setVar = printf "c%d" $i -}}
+        c{{$i}}, err := {{paramConvertFn $ $param $ptype (printf "s%d" $i)}}
         if err != nil {
-                {{- $.Import "errors"}}
-            errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
+            {{- $.Import "fmt"}}
+            return fmt.Errorf("failed to convert parameter %q to %q: %w", n{{$i}}, `{{$ptype}}`, err)
         }
-        p{{$i}}.Set(p{{$i}}c)
-                    {{- else}}
-        p{{$i}}, err = {{$convFn}}
-        if err != nil {
-                {{- $.Import "errors"}}
-            errs = support.AddErrs(errs, n{{$i}}, errors.New(`was not in a valid format`))
-        }
-                    {{- end -}}
-                {{- end}}
-            {{- else}}
-        p{{$i}} = s{{$i}}
             {{- end -}}
+
+            {{- if $param.Schema.Enum -}}
+                {{- if $mustConvert -}}
+                    {{- $setVar = printf "%s(c%d)" $ptype $i -}}
+                {{- else -}}
+                    {{- $setVar = printf "%s(s%d[0])" $ptype $i -}}
+                {{- end -}}
+            {{- end -}}
+
+            {{- if omitnullIsWrapped $param.Schema.Schema.Nullable $param.Required}}
+        p{{$i}}.Set({{$setVar}})
+            {{- else}}
+        p{{$i}} = {{$setVar}}
+            {{- end -}}
+
+            {{- /* Validation */ -}}
             {{- if mustValidate $ $param.Schema.Schema -}}
-                {{- if and ($param.Schema.Enum) (gt (len $param.Schema.Enum) 0) -}}
-                    {{- /* In enum case we should not call validate_field since there will already be a type for it */}}
-        if newErrs := Validate({{printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)}}({{omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required}})); newErrs != nil {
+                {{- if paramRequiresType $param }}
+        if newErrs := Validate({{paramSchemaName $op.OperationID $method $param.Name}}({{omitnullUnwrap (printf "p%d" $i) $param.Schema.Nullable $param.Required}})); newErrs != nil {
             errs = support.AddErrsFlatten(errs, n{{$i}}, newErrs)
         }
                 {{- else -}}
@@ -136,8 +111,9 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             errs = support.AddErrs(errs, n{{$i}}, ers...)
         }
                 {{- end -}}
-            {{end -}}
-    }{{- /* This bracket closes the validation if above */ -}}
+            {{- end}}
+
+    }{{- /* This bracket closes the exists check if above */ -}}
         {{- end}}
         {{$json := ""}}
         {{- if $op.RequestBody -}}

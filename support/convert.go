@@ -2,8 +2,11 @@ package support
 
 import (
 	"errors"
+	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aarondl/chrono"
@@ -86,8 +89,11 @@ func StringToDuration(s string) (time.Duration, error) {
 }
 
 // StringToInt conversion
-func StringToInt[T constraints.Signed](s string, bits int) (T, error) {
-	i64, err := strconv.ParseInt(s, 10, bits)
+func StringToInt[T constraints.Signed](s string) (T, error) {
+	var t T
+	typ := reflect.TypeOf(t)
+
+	i64, err := strconv.ParseInt(s, 10, typ.Bits())
 	if err != nil {
 		var zero T
 		return zero, err
@@ -97,8 +103,11 @@ func StringToInt[T constraints.Signed](s string, bits int) (T, error) {
 }
 
 // StringToUint conversion
-func StringToUint[T constraints.Unsigned](s string, bits int) (T, error) {
-	u64, err := strconv.ParseUint(s, 10, bits)
+func StringToUint[T constraints.Unsigned](s string) (T, error) {
+	var t T
+	typ := reflect.TypeOf(t)
+
+	u64, err := strconv.ParseUint(s, 10, typ.Bits())
 	if err != nil {
 		var zero T
 		return zero, err
@@ -108,8 +117,11 @@ func StringToUint[T constraints.Unsigned](s string, bits int) (T, error) {
 }
 
 // StringToFloat conversion
-func StringToFloat[T constraints.Float](s string, bits int) (T, error) {
-	f64, err := strconv.ParseFloat(s, bits)
+func StringToFloat[T constraints.Float](s string) (T, error) {
+	var t T
+	typ := reflect.TypeOf(t)
+
+	f64, err := strconv.ParseFloat(s, typ.Bits())
 	if err != nil {
 		var zero T
 		return zero, err
@@ -131,4 +143,53 @@ func StringToDecimal(s string) (decimal.Decimal, error) {
 // StringToUUID converts a string to a uuid type
 func StringToUUID(s string) (uuid.UUID, error) {
 	return uuid.Parse(s)
+}
+
+// StringToString is a somewhat useless function but handy for using in
+// tandem with a Map() like function over a slice to convert a string to
+// a specialized version of a string and back.
+//
+// The error is to make it easier to pass in to a function that expects a
+// conversion may create an error.
+//
+// In particular this helps eliminate special cases for string where other
+// types will require conversion.
+func StringToString[A, B ~string](s A) (B, error) {
+	return B(s), nil
+}
+
+// StringNoOp is used to prevent extra special cases where other types will
+// require conversion.
+func StringNoOp(s string) (string, error) {
+	return s, nil
+}
+
+// ExplodedFormArrayToSlice simply takes an array gathered from color=blue&color=black
+// and converts it into []T using a conversion function
+func ExplodedFormArrayToSlice[T any](formArray []string, convert func(s string) (T, error)) ([]T, error) {
+	var err error
+	out := make([]T, len(formArray))
+	for i, s := range formArray {
+		out[i], err = convert(s)
+		if err != nil {
+			return nil, fmt.Errorf("error converting form value (%d) from []string to %T: %w", i, out, err)
+		}
+	}
+
+	return out, nil
+}
+
+// FlatFormArrayToSlice takes the first value from the form color=blue,black&color=yellow
+// (ie. [blue,black]) and converts it into []T using a conversion function.
+func FlatFormArrayToSlice[T any](formArray []string, convert func(s string) (T, error)) ([]T, error) {
+	var err error
+	out := make([]T, len(formArray))
+	for i, s := range strings.Split(formArray[0], ",") {
+		out[i], err = convert(s)
+		if err != nil {
+			return nil, fmt.Errorf("error converting form value (%d) from []string to %T: %w", i, out, err)
+		}
+	}
+
+	return out, nil
 }

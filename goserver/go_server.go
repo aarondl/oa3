@@ -2,6 +2,7 @@ package goserver
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"io/fs"
@@ -51,6 +52,10 @@ var TemplateFunctions = map[string]any{
 	"omitnullWrap":        omitnullWrap,
 	"omitnullUnwrap":      omitnullUnwrap,
 	"omitnullIsWrapped":   omitnullIsWrapped,
+	"paramConvertFn":      paramConvertFn,
+	"paramRequiresType":   paramRequiresType,
+	"paramSchemaName":     paramSchemaName,
+	"paramTypeName":       paramTypeName,
 	"primitive":           primitive,
 	"primitiveBits":       primitiveBits,
 	"primitiveWrapped":    primitiveWrapped,
@@ -99,7 +104,7 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 
 	f, err = generateAPIInterface(spec, params, g.tpl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to api interface: %w", err)
+		return nil, fmt.Errorf("failed to generate api interface: %w", err)
 	}
 
 	files = append(files, f...)
@@ -233,16 +238,22 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 			}
 
 			for _, p := range o.Op.Parameters {
-				// Because parameters for operations must be simple types due
-				// to an inability to serialize, but enum types still must be
-				// defined to get the constants.
-				if len(p.Schema.Enum) == 0 {
+				if p == nil {
 					continue
 				}
 
-				filename := "schema_" + camelSnake(o.Op.OperationID) + "_param_" + camelSnake(p.Name) + ".go"
+				if p.Content != nil {
+					return nil, errors.New("oa3 go server/client does not support content parameters yet")
+				} else if p.Schema.Type == "object" || (p.Schema.Type == "array" && (p.Schema.Items.Type == "object" || p.Schema.Items.Type == "array")) {
+					return nil, errors.New("oa3 go server/client does not support object serialization for parameters yet, only primitives or arrays of primitives (including enum)")
+				}
 
-				generated, err := makePseudoFile(spec, params, tpl, filename, snakeToCamel(o.Op.OperationID)+strings.Title(snakeToCamel(p.Name))+"Param", &p.Schema, p.Required) //nolint:staticcheck
+				if !paramRequiresType(*p) {
+					continue
+				}
+
+				filename := fmt.Sprintf("schema_%s_%s_%s_param.go", camelSnake(o.Op.OperationID), strings.ToLower(o.Verb), camelSnake(p.Name))
+				generated, err := makePseudoFile(spec, params, tpl, filename, paramSchemaName(o.Op.OperationID, o.Verb, p.Name), p.Schema, p.Required) //nolint:staticcheck
 				if err != nil {
 					return nil, err
 				}
@@ -757,4 +768,146 @@ func responseKind(op *openapi3spec.Operation, code string) string {
 	}
 
 	return ""
+}
+
+func paramTypeName(tdata templates.TemplateData, operationID string, methodName string, param openapi3spec.ParameterRef) (string, error) {
+	if len(param.Schema.Ref) > 0 {
+		return templates.RefName(param.Schema.Ref), nil
+	} else if paramRequiresType(param) {
+		return paramSchemaName(operationID, methodName, param.Name), nil
+	} else {
+		return primitive(tdata, param.Schema.Schema)
+	}
+}
+
+func paramSchemaName(operationID string, methodName string, paramName string) string {
+	return snakeToCamel(strings.Title(operationID)) + strings.Title(strings.ToLower(methodName)) + strings.Title(snakeToCamel(paramName)) + "Param"
+}
+
+func paramRequiresType(param openapi3spec.ParameterRef) bool {
+	return len(param.Schema.Schema.Enum) != 0 || param.Schema.Schema.Type == "object" || param.Schema.Schema.Type == "array"
+}
+
+// paramConvertFn returns a function that will be able to convert between
+// two types given the situation
+func paramConvertFn(tdata templates.TemplateData, param openapi3spec.ParameterRef, paramTypeName, rhs string) (string, error) {
+	outerType := param.Schema.Type
+	innerType := param.Schema.Type
+	if innerType == "array" {
+		innerType = param.Schema.Items.Type
+	}
+
+	var innerConversion string
+
+	format := ""
+	if param.Schema.Format != nil {
+		format = *param.Schema.Format
+	}
+
+	switch innerType {
+	case "string":
+		tdata.Import("github.com/aarondl/oa3/support")
+
+		switch format {
+		case "date":
+			if tdata.TemplateParamEquals("timetype", "chrono") {
+				innerConversion = "support.StringToChronoDate"
+			} else {
+				innerConversion = "support.StringToDate"
+			}
+		case "date-time":
+			if tdata.TemplateParamEquals("timetype", "chrono") {
+				innerConversion = "support.StringToChronoDateTime"
+			} else {
+				innerConversion = "support.StringToDateTime"
+			}
+		case "time":
+			if tdata.TemplateParamEquals("timetype", "chrono") {
+				innerConversion = "support.StringToChronoTime"
+			} else {
+				innerConversion = "support.StringToTime"
+			}
+		case "uuid":
+			if tdata.TemplateParamEquals("uuidtype", "google") {
+				innerConversion = "support.StringToUUID"
+			}
+		case "decimal":
+			if tdata.TemplateParamEquals("decimaltype", "shopspring") {
+				innerConversion = "support.StringToDecimal"
+			}
+		case "duration":
+			innerConversion = "support.StringToDuration"
+		case "":
+			if param.Schema.Items != nil && len(param.Schema.Items.Enum) > 0 {
+				innerConversion = fmt.Sprintf("support.StringToString[string, %s]", paramTypeName+"Item")
+			} else {
+				innerConversion = "support.StringNoOp"
+			}
+		default:
+			return "", fmt.Errorf("no conversion function available for %s", param.Name)
+		}
+		break
+	case "boolean":
+		tdata.Import("github.com/aarondl/oa3/support")
+		innerConversion = "support.StringToBool"
+	case "integer":
+		tdata.Import("github.com/aarondl/oa3/support")
+
+		switch format {
+		case "int32":
+			innerConversion = "support.StringToInt[int32]"
+		case "int64":
+			innerConversion = "support.StringToInt[int64]"
+		case "", "int":
+			innerConversion = "support.StringToInt[int]"
+		default:
+			return "", fmt.Errorf("no conversion function available for %s", param.Name)
+		}
+	case "number":
+		tdata.Import("github.com/aarondl/oa3/support")
+		switch format {
+		case "float":
+			innerConversion = "support.StringToFloat[float32]"
+		case "", "double":
+			innerConversion = "support.StringToFloat[float64]"
+		default:
+			return "", fmt.Errorf("no conversion function available for %s", param.Name)
+		}
+	}
+
+	if innerType == outerType {
+		return fmt.Sprintf("%s(%s[0])", innerConversion, rhs), nil
+	}
+
+	var prim string
+	if param.Schema.Items != nil && len(param.Schema.Items.Enum) > 0 {
+		prim = paramTypeName + "Item"
+	} else {
+		var err error
+		prim, err = primitive(tdata, param.Schema.Schema.Items.Schema)
+		if err != nil {
+			return "", fmt.Errorf("failed to get primitive for param (%s): %w", param.Name, err)
+		}
+	}
+
+	var outerConversion string
+	switch {
+	case *param.Style == "form" && *param.Explode && outerType == "array":
+		tdata.Import("github.com/aarondl/oa3/support")
+		outerConversion = fmt.Sprintf("support.ExplodedFormArrayToSlice[%s]", prim)
+	case *param.Style == "form" && !*param.Explode && outerType == "array":
+		tdata.Import("github.com/aarondl/oa3/support")
+		outerConversion = fmt.Sprintf("support.FlatFormArrayToSlice[%s]", prim)
+	// case *param.Style == "form" && *param.Explode && param.Schema.Type == "object":
+	// case *param.Style == "form" && !*param.Explode && param.Schema.Type == "object":
+
+	case *param.Style == "simple" && *param.Explode && outerType == "array":
+		tdata.Import("github.com/aarondl/oa3/support")
+		outerConversion = fmt.Sprintf("support.FlatFormArrayToSlice[%s]", prim)
+	case *param.Style == "simple" && !*param.Explode && outerType == "array":
+		tdata.Import("github.com/aarondl/oa3/support")
+		outerConversion = fmt.Sprintf("support.FlatFormArrayToSlice[%s]", prim)
+	}
+
+	return fmt.Sprintf("%s(%s, %s)", outerConversion, rhs, innerConversion), nil
 }

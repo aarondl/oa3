@@ -85,6 +85,37 @@ paths:
           in: query
           required: true
           schema: { type: string, format: duration }
+
+        - name: array_prim_explode
+          in: query
+          required: false
+          explode: true
+          schema: { type: array, items: { type: string } }
+        - name: array_prim_flat
+          in: query
+          required: true
+          explode: false
+          schema: { type: array, items: { type: string } }
+        - name: array_prim_int_explode
+          in: query
+          required: false
+          explode: true
+          schema: { type: array, items: { type: integer } }
+        - name: array_prim_int_flat
+          in: query
+          required: true
+          explode: false
+          schema: { type: array, items: { type: integer } }
+        - name: array_enum_explode
+          in: query
+          required: false
+          explode: true
+          schema: { type: array, items: { type: string, enum: ['a', 'b'] } }
+        - name: array_enum_flat
+          in: query
+          required: true
+          explode: false
+          schema: { type: array, items: { type: string, enum: ['a', 'b'] } }
       responses:
         '304': { description: Ok }
 

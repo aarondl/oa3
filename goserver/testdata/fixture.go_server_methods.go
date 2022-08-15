@@ -4,6 +4,7 @@ package oa3gen
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -27,7 +28,7 @@ type AlreadyHandled interface {
 
 // ErrHandled is a sentinel error that implements
 // the AlreadyHandled interface which prevents the
-// generated handler from firing.
+// generated handler's response code from firing.
 type ErrHandled struct{}
 
 // Error implements error
@@ -119,17 +120,19 @@ func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request)
 	var ers []error
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
-
 	const n0 = `sort`
-	s0, s0Exists := r.URL.Query().Get(n0), r.URL.Query().Has(n0)
-	var p0 string
+	query := r.URL.Query()
+	s0 := query[n0]
+	s0Exists := len(s0) > 0 && len(s0[0]) > 0
+	var p0 TestEnumQueryRequestGetSortParam
 	if !s0Exists || len(s0) == 0 {
 		errs = support.AddErrs(errs, n0, errors.New(`must be provided and not be empty`))
 	} else {
-		p0 = s0
-		if newErrs := Validate(TestEnumQueryRequestSortParam(p0)); newErrs != nil {
+		p0 = TestEnumQueryRequestGetSortParam(s0[0])
+		if newErrs := Validate(TestEnumQueryRequestGetSortParam(p0)); newErrs != nil {
 			errs = support.AddErrsFlatten(errs, n0, newErrs)
 		}
+
 	}
 
 	var reqBody TestEnumQueryRequestInline
@@ -340,77 +343,86 @@ func (o GoServer) testtypeoverridesOp(w http.ResponseWriter, r *http.Request) er
 	var ers []error
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
-
 	const n0 = `number`
-	s0, s0Exists := r.URL.Query().Get(n0), r.URL.Query().Has(n0)
+	query := r.URL.Query()
+	s0 := query[n0]
+	s0Exists := len(s0) > 0 && len(s0[0]) > 0
 	var p0 decimal.Decimal
 	if !s0Exists || len(s0) == 0 {
 		errs = support.AddErrs(errs, n0, errors.New(`must be provided and not be empty`))
 	} else {
-		p0, err = support.StringToDecimal(s0)
+		c0, err := support.StringToDecimal(s0[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n0, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n0, `decimal.Decimal`, err)
 		}
-	}
+		p0 = c0
 
+	}
 	const n1 = `date`
-	s1, s1Exists := r.URL.Query().Get(n1), r.URL.Query().Has(n1)
+	s1 := query[n1]
+	s1Exists := len(s1) > 0 && len(s1[0]) > 0
 	var p1 chrono.Date
 	if !s1Exists || len(s1) == 0 {
 		errs = support.AddErrs(errs, n1, errors.New(`must be provided and not be empty`))
 	} else {
-		p1, err = support.StringToChronoDate(s1)
+		c1, err := support.StringToChronoDate(s1[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n1, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n1, `chrono.Date`, err)
 		}
-	}
+		p1 = c1
 
+	}
 	const n2 = `number_null`
-	s2, s2Exists := r.URL.Query().Get(n2), r.URL.Query().Has(n2)
+	s2 := query[n2]
+	s2Exists := len(s2) > 0 && len(s2[0]) > 0
 	var p2 null.Val[decimal.Decimal]
 	if !s2Exists || len(s2) == 0 {
 		errs = support.AddErrs(errs, n2, errors.New(`must be provided and not be empty`))
 	} else {
-		p2c, err := support.StringToDecimal(s2)
+		c2, err := support.StringToDecimal(s2[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n2, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n2, `decimal.Decimal`, err)
 		}
-		p2.Set(p2c)
-	}
+		p2.Set(c2)
 
+	}
 	const n3 = `date_null`
-	s3, s3Exists := r.URL.Query().Get(n3), r.URL.Query().Has(n3)
+	s3 := query[n3]
+	s3Exists := len(s3) > 0 && len(s3[0]) > 0
 	var p3 null.Val[chrono.Date]
 	if !s3Exists || len(s3) == 0 {
 		errs = support.AddErrs(errs, n3, errors.New(`must be provided and not be empty`))
 	} else {
-		p3c, err := support.StringToChronoDate(s3)
+		c3, err := support.StringToChronoDate(s3[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n3, `chrono.Date`, err)
 		}
-		p3.Set(p3c)
-	}
+		p3.Set(c3)
 
+	}
 	const n4 = `number_non_req`
-	s4, s4Exists := r.URL.Query().Get(n4), r.URL.Query().Has(n4)
+	s4 := query[n4]
+	s4Exists := len(s4) > 0 && len(s4[0]) > 0
 	var p4 omit.Val[decimal.Decimal]
 	if s4Exists {
-		p4c, err := support.StringToDecimal(s4)
+		c4, err := support.StringToDecimal(s4[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n4, `decimal.Decimal`, err)
 		}
-		p4.Set(p4c)
-	}
+		p4.Set(c4)
 
+	}
 	const n5 = `date_non_req`
-	s5, s5Exists := r.URL.Query().Get(n5), r.URL.Query().Has(n5)
+	s5 := query[n5]
+	s5Exists := len(s5) > 0 && len(s5[0]) > 0
 	var p5 omit.Val[chrono.Date]
 	if s5Exists {
-		p5c, err := support.StringToChronoDate(s5)
+		c5, err := support.StringToChronoDate(s5[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n5, `chrono.Date`, err)
 		}
-		p5.Set(p5c)
+		p5.Set(c5)
+
 	}
 
 	var reqBody Primitives
@@ -489,49 +501,50 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 	var ers []error
 	var errs map[string][]string
 	_, _, _ = err, ers, errs
-
 	const n0 = `id`
-	s0, s0Exists := chi.URLParam(r, n0), true
+	s0, s0Exists := []string{chi.URLParam(r, n0)}, true
 	var p0 string
 	if !s0Exists || len(s0) == 0 {
 		errs = support.AddErrs(errs, n0, errors.New(`must be provided and not be empty`))
 	} else {
-		p0 = s0
-	}
+		p0 = s0[0]
 
+	}
 	const n1 = `valid_str`
-	s1, s1Exists := r.Header.Get(n1), len(r.Header.Values(n1)) != 0
-	var p1 omitnull.Val[string]
+	s1 := r.Header[http.CanonicalHeaderKey(n1)]
+	s1Exists := len(s1) > 0 && len(s1[0]) > 0
+	var p1 omitnull.Val[GetUserGetValidStrParam]
 	if s1Exists {
-		p1.Set(s1)
-		err = nil
-		if newErrs := Validate(GetUserValidStrParam(p1.GetOrZero())); newErrs != nil {
+		p1.Set(GetUserGetValidStrParam(s1[0]))
+		if newErrs := Validate(GetUserGetValidStrParam(p1.GetOrZero())); newErrs != nil {
 			errs = support.AddErrsFlatten(errs, n1, newErrs)
 		}
-	}
 
+	}
 	const n2 = `req_valid_str`
-	s2, s2Exists := r.URL.Query().Get(n2), r.URL.Query().Has(n2)
-	var p2 null.Val[string]
+	query := r.URL.Query()
+	s2 := query[n2]
+	s2Exists := len(s2) > 0 && len(s2[0]) > 0
+	var p2 null.Val[GetUserGetReqValidStrParam]
 	if !s2Exists || len(s2) == 0 {
 		errs = support.AddErrs(errs, n2, errors.New(`must be provided and not be empty`))
 	} else {
-		p2.Set(s2)
-		err = nil
-		if newErrs := Validate(GetUserReqValidStrParam(p2.GetOrZero())); newErrs != nil {
+		p2.Set(GetUserGetReqValidStrParam(s2[0]))
+		if newErrs := Validate(GetUserGetReqValidStrParam(p2.GetOrZero())); newErrs != nil {
 			errs = support.AddErrsFlatten(errs, n2, newErrs)
 		}
-	}
 
+	}
 	const n3 = `valid_int`
-	s3, s3Exists := r.URL.Query().Get(n3), r.URL.Query().Has(n3)
+	s3 := query[n3]
+	s3Exists := len(s3) > 0 && len(s3[0]) > 0
 	var p3 omit.Val[int]
 	if s3Exists {
-		p3c, err := support.StringToInt[int](s3, 64)
+		c3, err := support.StringToInt[int](s3[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n3, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n3, `int`, err)
 		}
-		p3.Set(p3c)
+		p3.Set(c3)
 		ers = nil
 		if err := support.ValidateMaxNumber(p3.GetOrZero(), 5, true); err != nil {
 			ers = append(ers, err)
@@ -545,18 +558,20 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if len(ers) != 0 {
 			errs = support.AddErrs(errs, n3, ers...)
 		}
-	}
 
+	}
 	const n4 = `req_valid_int`
-	s4, s4Exists := r.URL.Query().Get(n4), r.URL.Query().Has(n4)
+	s4 := query[n4]
+	s4Exists := len(s4) > 0 && len(s4[0]) > 0
 	var p4 int
 	if !s4Exists || len(s4) == 0 {
 		errs = support.AddErrs(errs, n4, errors.New(`must be provided and not be empty`))
 	} else {
-		p4, err = support.StringToInt[int](s4, 64)
+		c4, err := support.StringToInt[int](s4[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n4, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n4, `int`, err)
 		}
+		p4 = c4
 		ers = nil
 		if err := support.ValidateMaxNumber(p4, 5, true); err != nil {
 			ers = append(ers, err)
@@ -570,17 +585,18 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if len(ers) != 0 {
 			errs = support.AddErrs(errs, n4, ers...)
 		}
-	}
 
+	}
 	const n5 = `valid_num`
-	s5, s5Exists := r.URL.Query().Get(n5), r.URL.Query().Has(n5)
+	s5 := query[n5]
+	s5Exists := len(s5) > 0 && len(s5[0]) > 0
 	var p5 omit.Val[float64]
 	if s5Exists {
-		p5c, err := support.StringToFloat[float64](s5, 64)
+		c5, err := support.StringToFloat[float64](s5[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n5, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n5, `float64`, err)
 		}
-		p5.Set(p5c)
+		p5.Set(c5)
 		ers = nil
 		if err := support.ValidateMaxNumber(p5.GetOrZero(), 10.5, false); err != nil {
 			ers = append(ers, err)
@@ -594,18 +610,20 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if len(ers) != 0 {
 			errs = support.AddErrs(errs, n5, ers...)
 		}
-	}
 
+	}
 	const n6 = `req_valid_num`
-	s6, s6Exists := r.URL.Query().Get(n6), r.URL.Query().Has(n6)
+	s6 := query[n6]
+	s6Exists := len(s6) > 0 && len(s6[0]) > 0
 	var p6 float64
 	if !s6Exists || len(s6) == 0 {
 		errs = support.AddErrs(errs, n6, errors.New(`must be provided and not be empty`))
 	} else {
-		p6, err = support.StringToFloat[float64](s6, 64)
+		c6, err := support.StringToFloat[float64](s6[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n6, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n6, `float64`, err)
 		}
+		p6 = c6
 		ers = nil
 		if err := support.ValidateMaxNumber(p6, 10.5, false); err != nil {
 			ers = append(ers, err)
@@ -619,96 +637,188 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		if len(ers) != 0 {
 			errs = support.AddErrs(errs, n6, ers...)
 		}
-	}
 
+	}
 	const n7 = `valid_bool`
-	s7, s7Exists := r.URL.Query().Get(n7), r.URL.Query().Has(n7)
+	s7 := query[n7]
+	s7Exists := len(s7) > 0 && len(s7[0]) > 0
 	var p7 omit.Val[bool]
 	if s7Exists {
-		p7c, err := support.StringToBool(s7)
+		c7, err := support.StringToBool(s7[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n7, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n7, `bool`, err)
 		}
-		p7.Set(p7c)
-	}
+		p7.Set(c7)
 
+	}
 	const n8 = `req_valid_bool`
-	s8, s8Exists := r.URL.Query().Get(n8), r.URL.Query().Has(n8)
+	s8 := query[n8]
+	s8Exists := len(s8) > 0 && len(s8[0]) > 0
 	var p8 bool
 	if !s8Exists || len(s8) == 0 {
 		errs = support.AddErrs(errs, n8, errors.New(`must be provided and not be empty`))
 	} else {
-		p8, err = support.StringToBool(s8)
+		c8, err := support.StringToBool(s8[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n8, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n8, `bool`, err)
 		}
-	}
+		p8 = c8
 
+	}
 	const n9 = `req_str_format`
-	s9, s9Exists := r.URL.Query().Get(n9), r.URL.Query().Has(n9)
+	s9 := query[n9]
+	s9Exists := len(s9) > 0 && len(s9[0]) > 0
 	var p9 uuid.UUID
 	if !s9Exists || len(s9) == 0 {
 		errs = support.AddErrs(errs, n9, errors.New(`must be provided and not be empty`))
 	} else {
-		p9, err = support.StringToUUID(s9)
+		c9, err := support.StringToUUID(s9[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n9, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n9, `uuid.UUID`, err)
 		}
-	}
+		p9 = c9
 
+	}
 	const n10 = `date_time`
-	s10, s10Exists := r.URL.Query().Get(n10), r.URL.Query().Has(n10)
+	s10 := query[n10]
+	s10Exists := len(s10) > 0 && len(s10[0]) > 0
 	var p10 chrono.DateTime
 	if !s10Exists || len(s10) == 0 {
 		errs = support.AddErrs(errs, n10, errors.New(`must be provided and not be empty`))
 	} else {
-		p10, err = support.StringToChronoDateTime(s10)
+		c10, err := support.StringToChronoDateTime(s10[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n10, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n10, `chrono.DateTime`, err)
 		}
-	}
+		p10 = c10
 
+	}
 	const n11 = `date`
-	s11, s11Exists := r.URL.Query().Get(n11), r.URL.Query().Has(n11)
+	s11 := query[n11]
+	s11Exists := len(s11) > 0 && len(s11[0]) > 0
 	var p11 chrono.Date
 	if !s11Exists || len(s11) == 0 {
 		errs = support.AddErrs(errs, n11, errors.New(`must be provided and not be empty`))
 	} else {
-		p11, err = support.StringToChronoDate(s11)
+		c11, err := support.StringToChronoDate(s11[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n11, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n11, `chrono.Date`, err)
 		}
-	}
+		p11 = c11
 
+	}
 	const n12 = `time_val`
-	s12, s12Exists := r.URL.Query().Get(n12), r.URL.Query().Has(n12)
+	s12 := query[n12]
+	s12Exists := len(s12) > 0 && len(s12[0]) > 0
 	var p12 chrono.Time
 	if !s12Exists || len(s12) == 0 {
 		errs = support.AddErrs(errs, n12, errors.New(`must be provided and not be empty`))
 	} else {
-		p12, err = support.StringToChronoTime(s12)
+		c12, err := support.StringToChronoTime(s12[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n12, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n12, `chrono.Time`, err)
 		}
-	}
+		p12 = c12
 
+	}
 	const n13 = `duration_val`
-	s13, s13Exists := r.URL.Query().Get(n13), r.URL.Query().Has(n13)
+	s13 := query[n13]
+	s13Exists := len(s13) > 0 && len(s13[0]) > 0
 	var p13 time.Duration
 	if !s13Exists || len(s13) == 0 {
 		errs = support.AddErrs(errs, n13, errors.New(`must be provided and not be empty`))
 	} else {
-		p13, err = support.StringToDuration(s13)
+		c13, err := support.StringToDuration(s13[0])
 		if err != nil {
-			errs = support.AddErrs(errs, n13, errors.New(`was not in a valid format`))
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n13, `time.Duration`, err)
 		}
+		p13 = c13
+
+	}
+	const n14 = `array_prim_explode`
+	s14 := query[n14]
+	s14Exists := len(s14) > 0 && len(s14[0]) > 0
+	var p14 omit.Val[GetUserGetArrayPrimExplodeParam]
+	if s14Exists {
+		c14, err := support.ExplodedFormArrayToSlice[string](s14, support.StringNoOp)
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n14, `GetUserGetArrayPrimExplodeParam`, err)
+		}
+		p14.Set(c14)
+
+	}
+	const n15 = `array_prim_flat`
+	s15 := query[n15]
+	s15Exists := len(s15) > 0 && len(s15[0]) > 0
+	var p15 GetUserGetArrayPrimFlatParam
+	if !s15Exists || len(s15) == 0 {
+		errs = support.AddErrs(errs, n15, errors.New(`must be provided and not be empty`))
+	} else {
+		c15, err := support.FlatFormArrayToSlice[string](s15, support.StringNoOp)
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n15, `GetUserGetArrayPrimFlatParam`, err)
+		}
+		p15 = c15
+
+	}
+	const n16 = `array_prim_int_explode`
+	s16 := query[n16]
+	s16Exists := len(s16) > 0 && len(s16[0]) > 0
+	var p16 omit.Val[GetUserGetArrayPrimIntExplodeParam]
+	if s16Exists {
+		c16, err := support.ExplodedFormArrayToSlice[int](s16, support.StringToInt[int])
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n16, `GetUserGetArrayPrimIntExplodeParam`, err)
+		}
+		p16.Set(c16)
+
+	}
+	const n17 = `array_prim_int_flat`
+	s17 := query[n17]
+	s17Exists := len(s17) > 0 && len(s17[0]) > 0
+	var p17 GetUserGetArrayPrimIntFlatParam
+	if !s17Exists || len(s17) == 0 {
+		errs = support.AddErrs(errs, n17, errors.New(`must be provided and not be empty`))
+	} else {
+		c17, err := support.FlatFormArrayToSlice[int](s17, support.StringToInt[int])
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n17, `GetUserGetArrayPrimIntFlatParam`, err)
+		}
+		p17 = c17
+
+	}
+	const n18 = `array_enum_explode`
+	s18 := query[n18]
+	s18Exists := len(s18) > 0 && len(s18[0]) > 0
+	var p18 omit.Val[GetUserGetArrayEnumExplodeParam]
+	if s18Exists {
+		c18, err := support.ExplodedFormArrayToSlice[GetUserGetArrayEnumExplodeParamItem](s18, support.StringToString[string, GetUserGetArrayEnumExplodeParamItem])
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n18, `GetUserGetArrayEnumExplodeParam`, err)
+		}
+		p18.Set(c18)
+
+	}
+	const n19 = `array_enum_flat`
+	s19 := query[n19]
+	s19Exists := len(s19) > 0 && len(s19[0]) > 0
+	var p19 GetUserGetArrayEnumFlatParam
+	if !s19Exists || len(s19) == 0 {
+		errs = support.AddErrs(errs, n19, errors.New(`must be provided and not be empty`))
+	} else {
+		c19, err := support.FlatFormArrayToSlice[GetUserGetArrayEnumFlatParamItem](s19, support.StringToString[string, GetUserGetArrayEnumFlatParamItem])
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n19, `GetUserGetArrayEnumFlatParam`, err)
+		}
+		p19 = c19
+
 	}
 
 	if errs != nil {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13)
+	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19)
 	if err != nil {
 		if alreadyHandled, ok := err.(AlreadyHandled); ok {
 			if alreadyHandled.AlreadyHandled() {

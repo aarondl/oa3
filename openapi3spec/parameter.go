@@ -15,10 +15,10 @@ type Parameter struct {
 	Deprecated      bool    `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
 	AllowEmptyValue bool    `json:"allowEmptyValue,omitempty" yaml:"allowEmptyValue,omitempty"`
 
-	Style         *string   `json:"style,omitempty" yaml:"style,omitempty"`
-	Explode       bool      `json:"explode,omitempty" yaml:"explode,omitempty"`
-	AllowReserved bool      `json:"allowReserved,omitempty" yaml:"allowReserved,omitempty"`
-	Schema        SchemaRef `json:"schema,omitempty" yaml:"schema,omitempty"`
+	Style         *string    `json:"style,omitempty" yaml:"style,omitempty"`
+	Explode       *bool      `json:"explode,omitempty" yaml:"explode,omitempty"`
+	AllowReserved bool       `json:"allowReserved,omitempty" yaml:"allowReserved,omitempty"`
+	Schema        *SchemaRef `json:"schema,omitempty" yaml:"schema,omitempty"`
 
 	Example  any                 `json:"example,omitempty" yaml:"example,omitempty"`
 	Examples map[string]*Example `json:"examples,omitempty" yaml:"examples,omitempty"`
@@ -94,12 +94,41 @@ func (p *Parameter) Validate(pathTemplates []string) error {
 		return errors.New("in must be one of: path|query|header|cookie")
 	}
 
-	if p.Style != nil && *p.Style == "form" {
-		p.Explode = true
+	if p.Style != nil && p.Explode == nil {
+		p.Explode = new(bool)
+		*p.Explode = *p.Style == "form"
 	}
 	if p.Style != nil {
 		switch *p.Style {
-		case "matrix", "label", "form", "simple", "spaceDelimited", "pipeDelimited", "deepObject":
+		case "matrix", "label":
+			if p.In != "path" {
+				return fmt.Errorf("style %q can only be used in path", *p.Style)
+			}
+		case "form":
+			if p.In != "query" && p.In != "cookie" {
+				return fmt.Errorf("style %q can only be used in query or cookie", *p.Style)
+			}
+		case "simple":
+			if p.In != "path" && p.In != "header" {
+				return fmt.Errorf("style %q can only be used in path or header", *p.Style)
+			}
+			if p.Schema.Schema.Type != "array" && p.Schema.Schema.Type != "string" {
+				return fmt.Errorf("schema must be of type 'array' or 'string' when parameter style is simple, got: %s", p.Schema.Schema.Type)
+			}
+		case "spaceDelimited", "pipeDelimited":
+			if p.In != "query" {
+				return fmt.Errorf("style %q can only be used in query", *p.Style)
+			}
+			if p.Schema.Schema.Type != "array" && p.Schema.Schema.Type != "object" {
+				return fmt.Errorf("schema must be of type 'object' or 'array' when parameter style is spaceDelimited or pipeDelimited, got: %s", p.Schema.Schema.Type)
+			}
+		case "deepObject":
+			if p.In != "query" {
+				return fmt.Errorf("style %q can only be used in query", *p.Style)
+			}
+			if p.Schema.Schema.Type != "object" {
+				return fmt.Errorf("schema must be of type 'object' when parameter style is deepObject, got: %s", p.Schema.Schema.Type)
+			}
 		default:
 			return fmt.Errorf("style must be one of matrix|label|form|simple|spaceDelimited|pipeDelimited|deepObject but found %s", *p.Style)
 		}
@@ -109,8 +138,14 @@ func (p *Parameter) Validate(pathTemplates []string) error {
 		return errors.New("description if present must not be blank")
 	}
 
-	if err := p.Schema.Validate(); err != nil {
-		return fmt.Errorf("schema.%w", err)
+	if p.Schema != nil && len(p.Content) != 0 {
+		return errors.New("schema and content are mutually exclusive, define one or the other")
+	}
+
+	if p.Schema != nil {
+		if err := p.Schema.Validate(); err != nil {
+			return fmt.Errorf("schema.%w", err)
+		}
 	}
 
 	for k, c := range p.Content {

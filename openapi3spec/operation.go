@@ -67,7 +67,7 @@ func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) 
 			return fmt.Errorf("parameters[%d] cannot be nil", i)
 		}
 		if err := p.Validate(pathTemplates); err != nil {
-			return fmt.Errorf("parameters[%d].%w", i, err)
+			return fmt.Errorf("parameters[%d:%q].%w", i, p.Name, err)
 		}
 	}
 

@@ -14,14 +14,14 @@ type TemplateData struct {
 	Required bool
 }
 
-func newData(old TemplateData, name string, obj any) TemplateData {
+func NewData(old TemplateData, name string, obj any) TemplateData {
 	copy := old
 	copy.Name = name
 	copy.Object = obj
 	return copy
 }
 
-func newDataRequired(old TemplateData, name string, obj any, required bool) TemplateData {
+func NewDataRequired(old TemplateData, name string, obj any, required bool) TemplateData {
 	copy := old
 	copy.Name = name
 	copy.Object = obj
@@ -29,14 +29,14 @@ func newDataRequired(old TemplateData, name string, obj any, required bool) Temp
 	return copy
 }
 
-func recurseData(old TemplateData, nextName string, nextObj any) TemplateData {
+func RecurseData(old TemplateData, nextName string, nextObj any) TemplateData {
 	copy := old
 	copy.Name = old.Name + nextName
 	copy.Object = nextObj
 	return copy
 }
 
-func recurseDataSetRequired(old TemplateData, nextName string, nextObj any, required bool) TemplateData {
+func RecurseDataSetRequired(old TemplateData, nextName string, nextObj any, required bool) TemplateData {
 	copy := old
 	copy.Name = old.Name + nextName
 	copy.Object = nextObj
