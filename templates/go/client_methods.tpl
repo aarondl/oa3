@@ -34,12 +34,7 @@ func (_c Client) {{$opname}}(ctx context.Context
             {{- end -}}
         {{- end -}}
 		{{- range $param := $op.Parameters -}}
-		, {{untitle (camelcase $param.Name)}}{{" "}}
-            {{- if and $param.Schema.Schema.Enum (gt (len $param.Schema.Schema.Enum) 0) -}}
-                {{omitnullWrap $ (printf "%s%sParam" ($op.OperationID | snakeToCamel | title) ($param.Name | snakeToCamel | title)) $param.Schema.Schema.Nullable $param.Required}}
-            {{- else -}}
-                {{- primitiveWrapped $ $param.Schema.Schema $param.Schema.Nullable $param.Required -}}
-            {{- end -}}
+		, {{untitle (camelcase $param.Name)}} {{omitnullWrap $ (paramTypeName $ $op.OperationID $method $param) $param.Schema.Nullable $param.Required}}
 		{{- end -}}
 	) ({{title $op.OperationID}}Response, *http.Response, error) {
     {{- $.Import "strings"}}
@@ -73,12 +68,30 @@ func (_c Client) {{$opname}}(ctx context.Context
 	{{- range $param := $op.Parameters -}}
         {{- if and (eq $param.In "header") (not (has (lower $param.Name) (list "accept" "content-type" "authorization"))) -}}
             {{- $pname := untitle (camelcase $param.Name) -}}
-            {{- if or (not $param.Required) $param.Schema.Schema.Nullable }}
-                if val, ok := {{$pname}}.Get(); ok {
-                    _req.Header.Set(`{{$param.Name}}`, fmt.Sprintf("%v", val))
-                }
+            {{- $wrapped := omitnullIsWrapped $param.Schema.Schema.Nullable $param.Required -}}
+            {{- $useName := $pname -}}
+            {{- if $wrapped -}}
+                {{- $useName = "_val"}}
+    if _val, _ok := {{$pname}}.Get(); _ok {
+            {{- end -}}
+            {{- if eq $param.Schema.Schema.Type "array" -}}
+                {{- if deref $param.Explode}}
+        for _, _v := range {{$useName}} {
+            _req.Header.Add(`{{$param.Name}}`, fmt.Sprintf("%v", _v))
+        }
+                {{- else}}
+        var _{{$pname}}Slice []string
+        for _, _v := range {{$useName}} {
+            _{{$pname}}Slice = append(_{{$pname}}Slice, fmt.Sprintf("%v", _v))
+        }
+                {{- $.Import "strings" }}
+        _req.Header.Set(`{{$param.Name}}`, strings.Join(_{{$pname}}Slice, ","))
+                {{- end -}}
             {{- else}}
-                _req.Header.Set(`{{$param.Name}}`, fmt.Sprintf("%v", {{$pname}}))
+        _req.Header.Add(`{{$param.Name}}`, fmt.Sprintf("%v", {{$useName}}))
+            {{- end -}}
+            {{if $wrapped -}}
+    }
             {{- end -}}
         {{- end -}}
 	{{- end -}}
@@ -90,16 +103,34 @@ func (_c Client) {{$opname}}(ctx context.Context
             {{- $pname := untitle (camelcase $param.Name) -}}
             {{- if not $queryBuilt -}}
                 {{- $queryBuilt = true}}
-            if _query == nil {
-                _query = make(url.Values)
-            }
+    if _query == nil {
+        _query = make(url.Values)
+    }
             {{- end -}}
-            {{- if or (not $param.Required) $param.Schema.Schema.Nullable }}
-                if val, ok := {{$pname}}.Get(); ok {
-                    _query.Set(`{{$param.Name}}`, fmt.Sprintf("%v", val))
-                }
+            {{- $wrapped := omitnullIsWrapped $param.Schema.Schema.Nullable $param.Required -}}
+            {{- $useName := $pname -}}
+            {{- if $wrapped -}}
+                {{- $useName = "_val"}}
+    if _val, _ok := {{$pname}}.Get(); _ok {
+            {{- end -}}
+            {{- if eq $param.Schema.Schema.Type "array" -}}
+                {{- if deref $param.Explode}}
+        for _, _v := range {{$useName}} {
+            _query.Add(`{{$param.Name}}`, fmt.Sprintf("%v", _v))
+        }
+                {{- else}}
+        var _{{$pname}}Slice []string
+        for _, _v := range {{$useName}} {
+            _{{$pname}}Slice = append(_{{$pname}}Slice, fmt.Sprintf("%v", _v))
+        }
+                {{- $.Import "strings" }}
+        _query.Set(`{{$param.Name}}`, strings.Join(_{{$pname}}Slice, ","))
+                {{- end -}}
             {{- else}}
-                _query.Set(`{{$param.Name}}`, fmt.Sprintf("%v", {{$pname}}))
+        _query.Add(`{{$param.Name}}`, fmt.Sprintf("%v", {{$useName}}))
+            {{- end -}}
+            {{if $wrapped -}}
+    }
             {{- end -}}
         {{- end -}}
 	{{- end}}
@@ -109,7 +140,8 @@ func (_c Client) {{$opname}}(ctx context.Context
 
 	{{range $param := $op.Parameters -}}
         {{- if eq $param.In "cookie" -}}
-    // $param.Name cookie param not supported
+    // $param.Name cookie param not supported by go client yet
+            {{fail "cookie param not supported by go client yet"}}
         {{- end -}}
 	{{- end -}}
 

@@ -83,7 +83,7 @@ func (_c Client) TestArrayRequest(ctx context.Context, baseURL BaseURLBuilder, b
 }
 
 // TestEnumQueryRequest get /test/enum/query/request
-func (_c Client) TestEnumQueryRequest(ctx context.Context, baseURL BaseURLBuilder, body TestEnumQueryRequestInline, sort TestEnumQueryRequestSortParam) (TestEnumQueryRequestResponse, *http.Response, error) {
+func (_c Client) TestEnumQueryRequest(ctx context.Context, baseURL BaseURLBuilder, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (TestEnumQueryRequestResponse, *http.Response, error) {
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/enum/query/request`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
@@ -98,7 +98,7 @@ func (_c Client) TestEnumQueryRequest(ctx context.Context, baseURL BaseURLBuilde
 	if _query == nil {
 		_query = make(url.Values)
 	}
-	_query.Set(`sort`, fmt.Sprintf("%v", sort))
+	_query.Add(`sort`, fmt.Sprintf("%v", sort))
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
@@ -275,19 +275,19 @@ func (_c Client) TestTypeOverrides(ctx context.Context, baseURL BaseURLBuilder, 
 	if _query == nil {
 		_query = make(url.Values)
 	}
-	_query.Set(`number`, fmt.Sprintf("%v", number))
-	_query.Set(`date`, fmt.Sprintf("%v", date))
-	if val, ok := numberNull.Get(); ok {
-		_query.Set(`number_null`, fmt.Sprintf("%v", val))
+	_query.Add(`number`, fmt.Sprintf("%v", number))
+	_query.Add(`date`, fmt.Sprintf("%v", date))
+	if _val, _ok := numberNull.Get(); _ok {
+		_query.Add(`number_null`, fmt.Sprintf("%v", _val))
 	}
-	if val, ok := dateNull.Get(); ok {
-		_query.Set(`date_null`, fmt.Sprintf("%v", val))
+	if _val, _ok := dateNull.Get(); _ok {
+		_query.Add(`date_null`, fmt.Sprintf("%v", _val))
 	}
-	if val, ok := numberNonReq.Get(); ok {
-		_query.Set(`number_non_req`, fmt.Sprintf("%v", val))
+	if _val, _ok := numberNonReq.Get(); _ok {
+		_query.Add(`number_non_req`, fmt.Sprintf("%v", _val))
 	}
-	if val, ok := dateNonReq.Get(); ok {
-		_query.Set(`date_non_req`, fmt.Sprintf("%v", val))
+	if _val, _ok := dateNonReq.Get(); _ok {
+		_query.Add(`date_non_req`, fmt.Sprintf("%v", _val))
 	}
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
@@ -343,40 +343,70 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, baseURL BaseURLBuilder
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string, validStr omitnull.Val[GetUserValidStrParam], reqValidStr null.Val[GetUserReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration) (GetUserResponse, *http.Response, error) {
+func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (GetUserResponse, *http.Response, error) {
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/users/{id}`
 	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
 	}
-	if val, ok := validStr.Get(); ok {
-		_req.Header.Set(`valid_str`, fmt.Sprintf("%v", val))
+	if _val, _ok := validStr.Get(); _ok {
+		_req.Header.Add(`valid_str`, fmt.Sprintf("%v", _val))
 	}
 	var _query url.Values
 	if _query == nil {
 		_query = make(url.Values)
 	}
-	if val, ok := reqValidStr.Get(); ok {
-		_query.Set(`req_valid_str`, fmt.Sprintf("%v", val))
+	if _val, _ok := reqValidStr.Get(); _ok {
+		_query.Add(`req_valid_str`, fmt.Sprintf("%v", _val))
 	}
-	if val, ok := validInt.Get(); ok {
-		_query.Set(`valid_int`, fmt.Sprintf("%v", val))
+	if _val, _ok := validInt.Get(); _ok {
+		_query.Add(`valid_int`, fmt.Sprintf("%v", _val))
 	}
-	_query.Set(`req_valid_int`, fmt.Sprintf("%v", reqValidInt))
-	if val, ok := validNum.Get(); ok {
-		_query.Set(`valid_num`, fmt.Sprintf("%v", val))
+	_query.Add(`req_valid_int`, fmt.Sprintf("%v", reqValidInt))
+	if _val, _ok := validNum.Get(); _ok {
+		_query.Add(`valid_num`, fmt.Sprintf("%v", _val))
 	}
-	_query.Set(`req_valid_num`, fmt.Sprintf("%v", reqValidNum))
-	if val, ok := validBool.Get(); ok {
-		_query.Set(`valid_bool`, fmt.Sprintf("%v", val))
+	_query.Add(`req_valid_num`, fmt.Sprintf("%v", reqValidNum))
+	if _val, _ok := validBool.Get(); _ok {
+		_query.Add(`valid_bool`, fmt.Sprintf("%v", _val))
 	}
-	_query.Set(`req_valid_bool`, fmt.Sprintf("%v", reqValidBool))
-	_query.Set(`req_str_format`, fmt.Sprintf("%v", reqStrFormat))
-	_query.Set(`date_time`, fmt.Sprintf("%v", dateTime))
-	_query.Set(`date`, fmt.Sprintf("%v", date))
-	_query.Set(`time_val`, fmt.Sprintf("%v", timeVal))
-	_query.Set(`duration_val`, fmt.Sprintf("%v", durationVal))
+	_query.Add(`req_valid_bool`, fmt.Sprintf("%v", reqValidBool))
+	_query.Add(`req_str_format`, fmt.Sprintf("%v", reqStrFormat))
+	_query.Add(`date_time`, fmt.Sprintf("%v", dateTime))
+	_query.Add(`date`, fmt.Sprintf("%v", date))
+	_query.Add(`time_val`, fmt.Sprintf("%v", timeVal))
+	_query.Add(`duration_val`, fmt.Sprintf("%v", durationVal))
+	if _val, _ok := arrayPrimExplode.Get(); _ok {
+		for _, _v := range _val {
+			_query.Add(`array_prim_explode`, fmt.Sprintf("%v", _v))
+		}
+	}
+	var _arrayPrimFlatSlice []string
+	for _, _v := range arrayPrimFlat {
+		_arrayPrimFlatSlice = append(_arrayPrimFlatSlice, fmt.Sprintf("%v", _v))
+	}
+	_query.Set(`array_prim_flat`, strings.Join(_arrayPrimFlatSlice, ","))
+	if _val, _ok := arrayPrimIntExplode.Get(); _ok {
+		for _, _v := range _val {
+			_query.Add(`array_prim_int_explode`, fmt.Sprintf("%v", _v))
+		}
+	}
+	var _arrayPrimIntFlatSlice []string
+	for _, _v := range arrayPrimIntFlat {
+		_arrayPrimIntFlatSlice = append(_arrayPrimIntFlatSlice, fmt.Sprintf("%v", _v))
+	}
+	_query.Set(`array_prim_int_flat`, strings.Join(_arrayPrimIntFlatSlice, ","))
+	if _val, _ok := arrayEnumExplode.Get(); _ok {
+		for _, _v := range _val {
+			_query.Add(`array_enum_explode`, fmt.Sprintf("%v", _v))
+		}
+	}
+	var _arrayEnumFlatSlice []string
+	for _, _v := range arrayEnumFlat {
+		_arrayEnumFlatSlice = append(_arrayEnumFlatSlice, fmt.Sprintf("%v", _v))
+	}
+	_query.Set(`array_enum_flat`, strings.Join(_arrayEnumFlatSlice, ","))
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}

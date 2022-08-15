@@ -25,11 +25,24 @@ var GlobalFunctions = map[string]any{
 	"newDataRequired":        NewDataRequired,
 	"recurseData":            RecurseData,
 	"recurseDataSetRequired": RecurseDataSetRequired,
+	"deref":                  Deref,
 }
 
 func RefName(ref string) string {
 	splits := strings.Split(ref, "/")
 	return splits[len(splits)-1]
+}
+
+func Deref(ptr any) any {
+	val := reflect.ValueOf(ptr)
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return val.Interface()
+		}
+		return reflect.Indirect(val).Interface()
+	} else {
+		return val.Interface()
+	}
 }
 
 func KeysReflect(mp any) ([]string, error) {
