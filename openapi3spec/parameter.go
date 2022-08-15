@@ -112,8 +112,8 @@ func (p *Parameter) Validate(pathTemplates []string) error {
 			if p.In != "path" && p.In != "header" {
 				return fmt.Errorf("style %q can only be used in path or header", *p.Style)
 			}
-			if p.Schema.Schema.Type != "array" && p.Schema.Schema.Type != "string" {
-				return fmt.Errorf("schema must be of type 'array' or 'string' when parameter style is simple, got: %s", p.Schema.Schema.Type)
+			if p.Schema.Schema.Type == "object" {
+				return fmt.Errorf("schema can not be of type 'object' when parameter style is simple, got: %s", p.Schema.Schema.Type)
 			}
 		case "spaceDelimited", "pipeDelimited":
 			if p.In != "query" {
