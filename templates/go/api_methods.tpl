@@ -15,8 +15,6 @@ func (ErrHandled) Error() string { return "already handled" }
 // AlreadyHandled implements AlreadyHandled
 func (ErrHandled) AlreadyHandled() bool { return true }
 
-{{$queryOnce := dict -}}
-{{$cookieOnce := dict -}}
 {{- range $url, $path := $.Spec.Paths -}}
     {{range $method, $op := $path.Operations -}}
         {{- $opname := lower (camelcase $op.OperationID) -}}
@@ -29,13 +27,15 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     _, _, _ = err, ers, errs
 
         {{- /* Process parameters */ -}}
+        {{- $queryOnce := false -}}
+        {{- $cookieOnce := false -}}
         {{- range $i, $param := $op.Parameters -}}
             {{- $ptype := paramTypeName $ $op.OperationID $method $param}}
     const n{{$i}} = `{{$param.Name}}`
             {{- if eq "query" $param.In -}}
-                {{- if not (hasKey $queryOnce $op.OperationID)}}
+                {{- if not $queryOnce}}
     query := r.URL.Query()
-                    {{- $_ := set $queryOnce $op.OperationID "" -}}
+                    {{- $queryOnce = true -}}
                 {{- end}}
     s{{$i}} := query[n{{$i}}]
     s{{$i}}Exists := len(s{{$i}}) > 0 && len(s{{$i}}[0]) > 0
@@ -47,9 +47,9 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     s{{$i}}, s{{$i}}Exists := []string{chi.URLParam(r, n{{$i}})}, true
             {{- else if eq "cookie" $param.In -}}
                 {{- $.Import "net/http"}}
-                {{- if not (hasKey $cookieOnce $op.OperationID)}}
+                {{- if not $cookieOnce}}
     cookies := r.Cookies()
-                    {{- $_ := set $cookieOnce $op.OperationID "" -}}
+                    {{- $cookieOnce = true -}}
                 {{- end -}}
     var s{{$i}} []string
     s{{$i}}Exists := false
