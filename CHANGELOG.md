@@ -4,6 +4,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.37] - 2022-08-14
+
+### Changed
+
+- Revamped Go server and client parameter handling to be able to meet the spec
+  more closely. In the spec there are objects, arrays, and primitives allowed in
+  parameters. In general many of these are very useful because of body payloads
+  being sufficient for anything complicated and the serialization methods they
+  use are bizarre. However it can make sense to have an array of values
+  especially for query/header/cookie values where there are multiple values
+  allowed in the HTTP spec. Given that, these now support arrays and arrays of
+  enums (which are still only able to be strings).
+
 ## [v0.0.36] - 2022-08-12
 
 ### Added
