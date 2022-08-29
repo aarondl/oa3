@@ -43,7 +43,7 @@ func (_c Client) Authenticate(ctx context.Context, baseURL BaseURLBuilder) (Auth
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -76,7 +76,7 @@ func (_c Client) TestArrayRequest(ctx context.Context, baseURL BaseURLBuilder, b
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -113,7 +113,7 @@ func (_c Client) TestEnumQueryRequest(ctx context.Context, baseURL BaseURLBuilde
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -146,7 +146,7 @@ func (_c Client) TestInlinePrimitiveBody(ctx context.Context, baseURL BaseURLBui
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -197,7 +197,7 @@ func (_c Client) TestInline(ctx context.Context, baseURL BaseURLBuilder, body Te
 		}
 		_resp = _respObject
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -225,7 +225,7 @@ func (_c Client) TestServerPathOverrideRequest(ctx context.Context, baseURL Base
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -253,7 +253,7 @@ func (_c Client) TestServerOpOverrideRequest(ctx context.Context, baseURL BaseUR
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -303,7 +303,7 @@ func (_c Client) TestTypeOverrides(ctx context.Context, baseURL BaseURLBuilder, 
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -332,7 +332,7 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, baseURL BaseURLBuilder
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -421,7 +421,7 @@ func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string,
 	case 304:
 		_resp = HTTPStatusNotModified{}
 	default:
-		return nil, nil, fmt.Errorf("unknown response code")
+		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil

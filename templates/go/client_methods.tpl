@@ -194,7 +194,7 @@ func (_c Client) {{$opname}}(ctx context.Context
     {{- if not $hasDefault}}
     default:
         {{ $.Import "fmt" -}}
-        return nil, nil, fmt.Errorf("unknown response code")
+        return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
     {{- end -}}
     }
 

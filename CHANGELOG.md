@@ -4,6 +4,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.39] - 2022-08-29
+
+### Fixed
+
+- Go client: Allow response to introspect the response on response code failures
+- Go client: Client now produces error that contains the status code
+
 ## [v0.0.38] - 2022-08-28
 
 ### Fixed
