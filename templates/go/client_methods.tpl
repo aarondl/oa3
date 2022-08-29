@@ -151,10 +151,10 @@ func (_c Client) {{$opname}}(ctx context.Context
     }
 
     var _resp {{title $op.OperationID}}Response
-    switch _httpResp.Status {
+    switch _httpResp.StatusCode {
     {{- $hasDefault := index $op.Responses "default"}}
     {{- range $code, $resp := $op.Responses}}
-    {{if not (eq $code "default")}}case `{{$code}}`:{{- else -}}default:{{- end}}
+    {{if not (eq $code "default")}}case {{$code}}:{{- else -}}default:{{- end}}
         {{- $rkind := responseKind $op $code -}}
         {{- if eq $rkind "wrapped"}}
             var _respObject {{$opname}}{{$code}}WrappedResponse

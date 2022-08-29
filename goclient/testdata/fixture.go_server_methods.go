@@ -39,8 +39,8 @@ func (_c Client) Authenticate(ctx context.Context, baseURL BaseURLBuilder) (Auth
 	}
 
 	var _resp AuthenticateResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -72,8 +72,8 @@ func (_c Client) TestArrayRequest(ctx context.Context, baseURL BaseURLBuilder, b
 	}
 
 	var _resp TestArrayRequestResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -109,8 +109,8 @@ func (_c Client) TestEnumQueryRequest(ctx context.Context, baseURL BaseURLBuilde
 	}
 
 	var _resp TestEnumQueryRequestResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -142,8 +142,8 @@ func (_c Client) TestInlinePrimitiveBody(ctx context.Context, baseURL BaseURLBui
 	}
 
 	var _resp TestInlinePrimitiveBodyResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -175,8 +175,8 @@ func (_c Client) TestInline(ctx context.Context, baseURL BaseURLBuilder, body Te
 	}
 
 	var _resp TestInlineResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		var _respObject TestInline200Inline
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
@@ -186,7 +186,7 @@ func (_c Client) TestInline(ctx context.Context, baseURL BaseURLBuilder, body Te
 			return nil, nil, _err
 		}
 		_resp = _respObject
-	case `201`:
+	case 201:
 		var _respObject TestInline201Inline
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
@@ -221,8 +221,8 @@ func (_c Client) TestServerPathOverrideRequest(ctx context.Context, baseURL Base
 	}
 
 	var _resp TestServerPathOverrideRequestResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -249,8 +249,8 @@ func (_c Client) TestServerOpOverrideRequest(ctx context.Context, baseURL BaseUR
 	}
 
 	var _resp TestServerOpOverrideRequestResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -299,8 +299,8 @@ func (_c Client) TestTypeOverrides(ctx context.Context, baseURL BaseURLBuilder, 
 	}
 
 	var _resp TestTypeOverridesResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -328,8 +328,8 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, baseURL BaseURLBuilder
 	}
 
 	var _resp TestUnknownBodyTypeResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		_resp = HTTPStatusOk{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -417,8 +417,8 @@ func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string,
 	}
 
 	var _resp GetUserResponse
-	switch _httpResp.Status {
-	case `304`:
+	switch _httpResp.StatusCode {
+	case 304:
 		_resp = HTTPStatusNotModified{}
 	default:
 		return nil, nil, fmt.Errorf("unknown response code")
@@ -452,8 +452,8 @@ func (_c Client) SetUser(ctx context.Context, baseURL BaseURLBuilder, body *Prim
 	}
 
 	var _resp SetUserResponse
-	switch _httpResp.Status {
-	case `200`:
+	switch _httpResp.StatusCode {
+	case 200:
 		var _respObject SetUser200WrappedResponse
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
