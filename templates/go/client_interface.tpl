@@ -159,9 +159,9 @@ func hasDebug(ctx context.Context) bool {
 // It also takes an optional rate limiter to implement rate limiting.
 func NewClient(httpClient *http.Client, limiter *rate.Limiter) Client {
 	if httpClient != nil {
-		return Client{httpClient: httpClient}
+		return Client{httpClient: httpClient, limiter: limiter}
 	}
-	return Client{httpClient: apiHTTPClient}
+	return Client{httpClient: apiHTTPClient, limiter: limiter}
 }
 
 // NewLocalClient constructs an api client, but takes in a handler to call
