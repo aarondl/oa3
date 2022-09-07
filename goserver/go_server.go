@@ -781,7 +781,7 @@ func paramTypeName(tdata templates.TemplateData, operationID string, methodName 
 }
 
 func paramSchemaName(operationID string, methodName string, paramName string) string {
-	return snakeToCamel(strings.Title(operationID)) + strings.Title(strings.ToLower(methodName)) + strings.Title(snakeToCamel(paramName)) + "Param"
+	return snakeToCamel(strings.Title(operationID)) + strings.Title(strings.ToLower(methodName)) + strings.Title(snakeToCamel(paramName)) + "Param" //nolint:staticcheck
 }
 
 func paramRequiresType(param openapi3spec.ParameterRef) bool {
@@ -846,7 +846,6 @@ func paramConvertFn(tdata templates.TemplateData, param openapi3spec.ParameterRe
 		default:
 			return "", fmt.Errorf("no conversion function available for %s", param.Name)
 		}
-		break
 	case "boolean":
 		tdata.Import("github.com/aarondl/oa3/support")
 		innerConversion = "support.StringToBool"
