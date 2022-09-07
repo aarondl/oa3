@@ -305,8 +305,7 @@
     },
     "parameters": {
       "Parameter": {
-        "description": "description",
-        "schema": {}
+        "description": "description"
       }
     },
     "examples": {
