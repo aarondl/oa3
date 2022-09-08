@@ -45,7 +45,7 @@ func (p *Parameter) Validate(pathTemplates []string) error {
 		}
 
 		if !found {
-			return fmt.Errorf("name %s not found in path templates: [%s]",
+			return fmt.Errorf("name %q not found in path templates: [%s]",
 				p.Name, strings.Join(pathTemplates, ", "))
 		}
 
@@ -165,11 +165,6 @@ type ParameterRef struct {
 
 // Validate param ref
 func (p *ParameterRef) Validate(pathTemplates []string) error {
-	// Don't validate references
-	if p == nil || len(p.Ref) != 0 {
-		return nil
-	}
-
 	if err := p.Parameter.Validate(pathTemplates); err != nil {
 		return err
 	}

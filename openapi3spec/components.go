@@ -82,12 +82,9 @@ func (c *Components) Validate() error {
 			return fmt.Errorf("responses(%s).%w", k, err)
 		}
 	}
-	for k, v := range c.Parameters {
+	for k := range c.Parameters {
 		if !rgxComponentName.MatchString(k) {
 			return fmt.Errorf("parameters(%s): invalid component key name", k)
-		}
-		if err := v.Validate(nil); err != nil {
-			return fmt.Errorf("parameters(%s).%w", k, err)
 		}
 	}
 	for k := range c.Examples {

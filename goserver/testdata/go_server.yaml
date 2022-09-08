@@ -33,10 +33,7 @@ paths:
         over the sacred 80 char limit.
       tags: [users]
       parameters:
-        - name: id
-          in: path
-          schema: { type: string }
-          required: true
+        - $ref: '#/components/parameters/PathParam'
         - name: valid_str
           in: header
           schema: { nullable: true, type: string, maxLength: 5, minLength: 2, enum: [he"llo] }
@@ -116,6 +113,7 @@ paths:
           required: true
           explode: false
           schema: { type: array, items: { type: string, enum: ['a', 'b'] } }
+        - $ref: '#/components/parameters/Param'
       responses:
         '304': { description: Ok }
 
@@ -310,6 +308,18 @@ paths:
           default: v1
 
 components:
+  parameters:
+    Param:
+      name: param_component
+      in: query
+      schema: { type: string }
+      required: true
+    PathParam:
+      name: id
+      in: path
+      schema: { type: string }
+      required: true
+
   schemas:
     Primitives:
       description: Checks to see that all Go primitives work

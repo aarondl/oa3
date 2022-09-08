@@ -813,12 +813,22 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		p19 = c19
 
 	}
+	const n20 = `param_component`
+	s20 := query[n20]
+	s20Exists := len(s20) > 0 && len(s20[0]) > 0
+	var p20 string
+	if !s20Exists || len(s20) == 0 {
+		errs = support.AddErrs(errs, n20, errors.New(`must be provided and not be empty`))
+	} else {
+		p20 = s20[0]
+
+	}
 
 	if errs != nil {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19)
+	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20)
 	if err != nil {
 		if alreadyHandled, ok := err.(AlreadyHandled); ok {
 			if alreadyHandled.AlreadyHandled() {
