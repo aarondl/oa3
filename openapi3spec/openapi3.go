@@ -170,8 +170,8 @@ func (o *OpenAPI3) CopyInheritedItems() {
 				continue
 			}
 
+			var toAdd []*ParameterRef
 			for _, pathParam := range path.Parameters {
-
 				found := false
 				for _, opParam := range op.Parameters {
 					if pathParam.Name == opParam.Name && pathParam.In == opParam.In {
@@ -185,7 +185,11 @@ func (o *OpenAPI3) CopyInheritedItems() {
 					continue
 				}
 
-				op.Parameters = append(op.Parameters, pathParam)
+				toAdd = append(toAdd, pathParam)
+			}
+
+			if len(toAdd) > 0 {
+				op.Parameters = append(toAdd, op.Parameters...)
 			}
 		}
 	}

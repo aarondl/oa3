@@ -43,10 +43,10 @@ type Interface interface {
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
 	// bleeding over the sacred 80 char limit.
-	GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam, paramComponent string) (GetUserResponse, error)
+	GetUser(w http.ResponseWriter, r *http.Request, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (GetUserResponse, error)
 	// SetUser post /users/{id}
 	// Sets a user
-	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives) (SetUserResponse, error)
+	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives, id string, paramComponent string) (SetUserResponse, error)
 }
 
 type (
@@ -307,12 +307,12 @@ func (a API) TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (oa3gen
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam, paramComponent string) (oa3gen.GetUserResponse, error) {
+func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (oa3gen.GetUserResponse, error) {
     panic("not implemented")
 }
 // SetUser post /users/{id}
 // Sets a user
-func (a API) SetUser(w http.ResponseWriter, r *http.Request, body *oa3gen.Primitives) (oa3gen.SetUserResponse, error) {
+func (a API) SetUser(w http.ResponseWriter, r *http.Request, body *oa3gen.Primitives, id string, paramComponent string) (oa3gen.SetUserResponse, error) {
     panic("not implemented")
 }
 */

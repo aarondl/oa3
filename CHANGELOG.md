@@ -4,6 +4,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.42] - 2022-09-08
+
+### Fixed
+
+- Fix parameter ordering when using param refs
+
 ## [v0.0.41] - 2022-09-07
 
 ### Fixed

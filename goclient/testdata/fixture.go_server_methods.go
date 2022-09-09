@@ -343,7 +343,7 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, baseURL BaseURLBuilder
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam, paramComponent string) (GetUserResponse, *http.Response, error) {
+func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (GetUserResponse, *http.Response, error) {
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/users/{id}`
 	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
@@ -357,6 +357,7 @@ func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string,
 	if _query == nil {
 		_query = make(url.Values)
 	}
+	_query.Add(`param_component`, fmt.Sprintf("%v", paramComponent))
 	if _val, _ok := reqValidStr.Get(); _ok {
 		_query.Add(`req_valid_str`, fmt.Sprintf("%v", _val))
 	}
@@ -407,7 +408,6 @@ func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string,
 		_arrayEnumFlatSlice = append(_arrayEnumFlatSlice, fmt.Sprintf("%v", _v))
 	}
 	_query.Set(`array_enum_flat`, strings.Join(_arrayEnumFlatSlice, ","))
-	_query.Add(`param_component`, fmt.Sprintf("%v", paramComponent))
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
@@ -431,8 +431,9 @@ func (_c Client) GetUser(ctx context.Context, baseURL BaseURLBuilder, id string,
 // SetUser post /users/{id}
 //
 // Sets a user
-func (_c Client) SetUser(ctx context.Context, baseURL BaseURLBuilder, body *Primitives) (SetUserResponse, *http.Response, error) {
+func (_c Client) SetUser(ctx context.Context, baseURL BaseURLBuilder, body *Primitives, id string, paramComponent string) (SetUserResponse, *http.Response, error) {
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/users/{id}`
+	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
 		return nil, nil, _err
@@ -443,6 +444,10 @@ func (_c Client) SetUser(ctx context.Context, baseURL BaseURLBuilder, body *Prim
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
+	if _query == nil {
+		_query = make(url.Values)
+	}
+	_query.Add(`param_component`, fmt.Sprintf("%v", paramComponent))
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
