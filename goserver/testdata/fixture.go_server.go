@@ -25,12 +25,20 @@ type Interface interface {
 	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
 	// TestArrayRequest get /test/array/request
 	TestArrayRequest(w http.ResponseWriter, r *http.Request, body TestArrayRequestInline) (TestArrayRequestResponse, error)
+	// TestMapsArrayInline get /test/arraymaps
+	TestMapsArrayInline(w http.ResponseWriter, r *http.Request) (TestMapsArrayInlineResponse, error)
+	// TestMapsArrayRef post /test/arraymaps
+	TestMapsArrayRef(w http.ResponseWriter, r *http.Request) (TestMapsArrayRefResponse, error)
 	// TestEnumQueryRequest get /test/enum/query/request
 	TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (TestEnumQueryRequestResponse, error)
 	// TestInlinePrimitiveBody get /test/inline
 	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
 	// TestInline post /test/inline
 	TestInline(w http.ResponseWriter, r *http.Request, body TestInlineInline) (TestInlineResponse, error)
+	// TestMapsInline get /test/maps
+	TestMapsInline(w http.ResponseWriter, r *http.Request) (TestMapsInlineResponse, error)
+	// TestMapsRef post /test/maps
+	TestMapsRef(w http.ResponseWriter, r *http.Request) (TestMapsRefResponse, error)
 	// TestServerPathOverrideRequest get /test/servers
 	TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerPathOverrideRequestResponse, error)
 	// TestServerOpOverrideRequest post /test/servers
@@ -82,6 +90,10 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/enum/query/request`, eh.Wrap(o.testenumqueryrequestOp))
 		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
+		r.Method(http.MethodGet, `/test/arraymaps`, eh.Wrap(o.testmapsarrayinlineOp))
+		r.Method(http.MethodPost, `/test/arraymaps`, eh.Wrap(o.testmapsarrayrefOp))
+		r.Method(http.MethodGet, `/test/maps`, eh.Wrap(o.testmapsinlineOp))
+		r.Method(http.MethodPost, `/test/maps`, eh.Wrap(o.testmapsrefOp))
 		r.Method(http.MethodPost, `/test/servers`, eh.Wrap(o.testserveropoverriderequestOp))
 		r.Method(http.MethodGet, `/test/servers`, eh.Wrap(o.testserverpathoverriderequestOp))
 		r.Method(http.MethodGet, `/test/type_overrides`, eh.Wrap(o.testtypeoverridesOp))
@@ -135,6 +147,28 @@ type TestArrayRequestResponse interface {
 // TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) TestArrayRequestImpl() {}
 
+// TestMapsArrayInlineResponse one-of enforcer
+//
+// Implementors:
+// - TestMapsArrayInline200Inline
+type TestMapsArrayInlineResponse interface {
+	TestMapsArrayInlineImpl()
+}
+
+// TestMapsArrayInlineImpl implements TestMapsArrayInlineHeadersResponse(200) for
+func (TestMapsArrayInline200Inline) TestMapsArrayInlineImpl() {}
+
+// TestMapsArrayRefResponse one-of enforcer
+//
+// Implementors:
+// - TestMapsArrayRef200Inline
+type TestMapsArrayRefResponse interface {
+	TestMapsArrayRefImpl()
+}
+
+// TestMapsArrayRefImpl implements TestMapsArrayRefHeadersResponse(200) for
+func (TestMapsArrayRef200Inline) TestMapsArrayRefImpl() {}
+
 // TestEnumQueryRequestResponse one-of enforcer
 //
 // Implementors:
@@ -171,6 +205,28 @@ func (TestInline200Inline) TestInlineImpl() {}
 
 // TestInlineImpl implements TestInlineHeadersResponse(201) for
 func (TestInline201Inline) TestInlineImpl() {}
+
+// TestMapsInlineResponse one-of enforcer
+//
+// Implementors:
+// - TestMapsInline200Inline
+type TestMapsInlineResponse interface {
+	TestMapsInlineImpl()
+}
+
+// TestMapsInlineImpl implements TestMapsInlineHeadersResponse(200) for
+func (TestMapsInline200Inline) TestMapsInlineImpl() {}
+
+// TestMapsRefResponse one-of enforcer
+//
+// Implementors:
+// - MapAny - #/components/schemas/MapAny
+type TestMapsRefResponse interface {
+	TestMapsRefImpl()
+}
+
+// TestMapsRefImpl implements TestMapsRefHeadersResponse(200) for MapAny
+func (MapAny) TestMapsRefImpl() {}
 
 // TestServerPathOverrideRequestResponse one-of enforcer
 //
@@ -275,6 +331,14 @@ func (a API) Authenticate(w http.ResponseWriter, r *http.Request) (oa3gen.Authen
 func (a API) TestArrayRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestArrayRequestInline) (oa3gen.TestArrayRequestResponse, error) {
     panic("not implemented")
 }
+// TestMapsArrayInline get /test/arraymaps
+func (a API) TestMapsArrayInline(w http.ResponseWriter, r *http.Request) (oa3gen.TestMapsArrayInlineResponse, error) {
+    panic("not implemented")
+}
+// TestMapsArrayRef post /test/arraymaps
+func (a API) TestMapsArrayRef(w http.ResponseWriter, r *http.Request) (oa3gen.TestMapsArrayRefResponse, error) {
+    panic("not implemented")
+}
 // TestEnumQueryRequest get /test/enum/query/request
 func (a API) TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (oa3gen.TestEnumQueryRequestResponse, error) {
     panic("not implemented")
@@ -285,6 +349,14 @@ func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, bod
 }
 // TestInline post /test/inline
 func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.TestInlineInline) (oa3gen.TestInlineResponse, error) {
+    panic("not implemented")
+}
+// TestMapsInline get /test/maps
+func (a API) TestMapsInline(w http.ResponseWriter, r *http.Request) (oa3gen.TestMapsInlineResponse, error) {
+    panic("not implemented")
+}
+// TestMapsRef post /test/maps
+func (a API) TestMapsRef(w http.ResponseWriter, r *http.Request) (oa3gen.TestMapsRefResponse, error) {
     panic("not implemented")
 }
 // TestServerPathOverrideRequest get /test/servers
