@@ -260,6 +260,22 @@ paths:
       responses:
         '200': { description: OK }
 
+  /test/single_servers:
+    get:
+      operationId: testSingleServerPathOverrideRequest
+      responses:
+        '200': { description: OK }
+    post:
+      operationId: testSingleServerOpOverrideRequest
+      responses:
+        '200': { description: OK }
+      servers:
+      - url: http://op.dev.local:3030
+        description: Local development
+    servers:
+    - url: http://path.dev.local:3030
+      description: Local development
+
   /test/servers:
     get:
       operationId: testServerPathOverrideRequest

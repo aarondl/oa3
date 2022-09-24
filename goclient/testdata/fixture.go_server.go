@@ -21,7 +21,7 @@ const (
 	ctxKeyDebug ctxKey = "debug"
 )
 
-// BaseURLBuilder builds a base url. Implementations are likely simple fixed
+// URLBuilder builds a base url. Implementations are likely simple fixed
 // strings or slightly more complicated variable replacement strings with
 // defaults.
 //
@@ -29,17 +29,17 @@ const (
 // - Httpdevlocal
 // - Httpprodlocalonetwo
 // - Httpvariableslocalvariable
-type BaseURLBuilder interface {
+type URLBuilder interface {
 	ToURL() string
 }
 
-// BaseURLSimple is a simple base url builder that's just a static string
-type BaseURLSimple string
+// URL is a simple base url builder that's just a static string
+type URL string
 
-func (b BaseURLSimple) ToURL() string { return string(b) }
+func (b URL) ToURL() string { return string(b) }
 
 // Local development
-var Httpdevlocal = BaseURLSimple(`http://dev.local:3030`)
+var Httpdevlocal = URL(`http://dev.local:3030`)
 
 // Production
 type Httpprodlocalonetwo struct {
@@ -82,26 +82,26 @@ func (s Httpvariableslocalvariable) ToURL() string {
 	return uri
 }
 
-// BaseURLSimpleTestservers is a simple string url like BaseURLSimple
-type BaseURLSimpleTestservers string
+// URLTestservers is a simple string url like URLSimple
+type URLTestservers string
 
-func (b BaseURLSimpleTestservers) ToURL() string       { return string(b) }
-func (b BaseURLSimpleTestservers) TestserversSatisfy() {}
+func (b URLTestservers) ToURL() string       { return string(b) }
+func (b URLTestservers) TestserversSatisfy() {}
 
-// BaseURLBuilderTestservers builds a base url like BaseURLBuilder but
-// restricts the implementing types to a smaller subset.
+// URLBuilderTestservers builds a base url like URLBuilder
+// but restricts the implementing types to a smaller subset.
 //
 // Implementors:
 // - Httppathdevlocal
 // - Httppathprodlocalonetwo
 // - Httppathvariableslocalvariable
-type BaseURLBuilderTestservers interface {
-	BaseURLBuilder
+type URLBuilderTestservers interface {
+	URLBuilder
 	TestserversSatisfy()
 }
 
 // Local development
-var Httppathdevlocal = BaseURLSimpleTestservers(`http://path.dev.local:3030`)
+var Httppathdevlocal = URLTestservers(`http://path.dev.local:3030`)
 
 // Production
 type Httppathprodlocalonetwo struct {
@@ -146,26 +146,26 @@ func (s Httppathvariableslocalvariable) ToURL() string {
 	return uri
 }
 
-// BaseURLSimpleTestserversPost is a simple string url like BaseURLSimple
-type BaseURLSimpleTestserversPost string
+// URLTestserversPost is a simple url
+type URLTestserversPost string
 
-func (b BaseURLSimpleTestserversPost) ToURL() string           { return string(b) }
-func (b BaseURLSimpleTestserversPost) TestserversPostSatisfy() {}
+func (b URLTestserversPost) ToURL() string           { return string(b) }
+func (b URLTestserversPost) TestserversPostSatisfy() {}
 
-// BaseURLBuilderTestserversPost builds a base url like BaseURLBuilder but
-// restricts the implementing types to a smaller subset.
+// URLBuilderTestserversPost builds a base url like URLBuilder
+// but restricts the implementing types to a smaller subset.
 //
 // Implementors:
 // - Httpopdevlocal
 // - Httpopprodlocalonetwo
 // - Httpopvariableslocalvariable
-type BaseURLBuilderTestserversPost interface {
-	BaseURLBuilder
+type URLBuilderTestserversPost interface {
+	URLBuilder
 	TestserversPostSatisfy()
 }
 
 // Local development
-var Httpopdevlocal = BaseURLSimpleTestserversPost(`http://op.dev.local:3030`)
+var Httpopdevlocal = URLTestserversPost(`http://op.dev.local:3030`)
 
 // Production
 type Httpopprodlocalonetwo struct {
@@ -221,6 +221,8 @@ type Client struct {
 	httpClient  *http.Client
 	httpHandler http.Handler
 	limiter     *rate.Limiter
+
+	url URLBuilder
 }
 
 // WithDebug creates a context that will emit debugging information to stdout
@@ -241,18 +243,27 @@ func hasDebug(ctx context.Context) bool {
 // has reasonable defaults for timeouts.
 //
 // It also takes an optional rate limiter to implement rate limiting.
-func NewClient(httpClient *http.Client, limiter *rate.Limiter) Client {
+func NewClient(httpClient *http.Client, limiter *rate.Limiter, baseURL URLBuilder) Client {
+	client := Client{httpClient: apiHTTPClient, limiter: limiter, url: baseURL}
 	if httpClient != nil {
-		return Client{httpClient: httpClient, limiter: limiter}
+		client.httpClient = httpClient
 	}
-	return Client{httpClient: apiHTTPClient, limiter: limiter}
+	return client
 }
 
 // NewLocalClient constructs an api client, but takes in a handler to call
 // with the prepared requests instead of an http client that will touch the
 // network. Useful for testing.
 func NewLocalClient(httpHandler http.Handler) Client {
-	return Client{httpHandler: httpHandler}
+	return Client{httpHandler: httpHandler, url: URL("")}
+}
+
+// WithURL sets the url for this client, the client is a shallow clone and
+// therefore still shares the same http client, handler and rate limiter.
+func (c Client) WithURL(url URLBuilder) Client {
+	newClient := c
+	newClient.url = url
+	return newClient
 }
 
 func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Response, error) {
@@ -374,6 +385,28 @@ type TestServerOpOverrideRequestResponse interface {
 
 // TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
 func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
+
+// TestSingleServerPathOverrideRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestSingleServerPathOverrideRequestResponse interface {
+	TestSingleServerPathOverrideRequestImpl()
+}
+
+// TestSingleServerPathOverrideRequestImpl implements TestSingleServerPathOverrideRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestSingleServerPathOverrideRequestImpl() {}
+
+// TestSingleServerOpOverrideRequestResponse one-of enforcer
+//
+// Implementors:
+// - HTTPStatusOk
+type TestSingleServerOpOverrideRequestResponse interface {
+	TestSingleServerOpOverrideRequestImpl()
+}
+
+// TestSingleServerOpOverrideRequestImpl implements TestSingleServerOpOverrideRequestResponse(200) for HTTPStatusOk
+func (HTTPStatusOk) TestSingleServerOpOverrideRequestImpl() {}
 
 // TestTypeOverridesResponse one-of enforcer
 //

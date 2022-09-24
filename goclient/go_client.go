@@ -18,6 +18,7 @@ import (
 var tpls = []string{
 	"client_interface.tpl",
 	"client_methods.tpl",
+	"client_urls.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
 	"responses.tpl",

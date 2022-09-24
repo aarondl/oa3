@@ -4,6 +4,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.43] - 2022-09-24
+
+### Changed
+
+- Go client: Change url handling to be much less annoying. Types are only
+  generated when necessary (there are more than 1 url or there's a parameterized
+  url). The client now carries its own url builder as the default to be used.
+
 ## [v0.0.42] - 2022-09-08
 
 ### Fixed

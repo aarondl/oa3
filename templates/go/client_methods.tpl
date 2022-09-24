@@ -9,12 +9,10 @@
 {{- end -}}
 {{- $.Import "context"}}
 func (_c Client) {{$opname}}(ctx context.Context
-        {{- if $op.Servers -}}
-        , baseURL BaseURLBuilder{{$url | filterNonIdentChars | title}}{{$method | filterNonIdentChars | title}}
-        {{- else if $path.Servers -}}
-        , baseURL BaseURLBuilder{{$url | filterNonIdentChars | title}}
-        {{- else -}}
-        , baseURL BaseURLBuilder
+        {{- if hasComplexServers $op.Servers -}}
+        , baseURL URLBuilder{{$url | filterNonIdentChars | title}}{{$method | filterNonIdentChars | title}}
+        {{- else if hasComplexServers $path.Servers -}}
+        , baseURL URLBuilder{{$url | filterNonIdentChars | title}}
         {{- end -}}
 		{{- if $op.RequestBody -}}
             {{- $json := index $op.RequestBody.Content "application/json" -}}
@@ -37,6 +35,13 @@ func (_c Client) {{$opname}}(ctx context.Context
 		, {{untitle (camelcase $param.Name)}} {{omitnullWrap $ (paramTypeName $ $op.OperationID $method $param) $param.Schema.Nullable $param.Required}}
 		{{- end -}}
 	) ({{title $op.OperationID}}Response, *http.Response, error) {
+    {{- if and (not $op.Servers) (not $path.Servers) -}}
+    baseURL := _c.url
+    {{- else if and $op.Servers (not (hasComplexServers $op.Servers)) -}}
+    baseURL := {{(index $op.Servers 0).URL | filterNonIdentChars | title}}
+    {{- else if and $path.Servers (not (hasComplexServers $path.Servers)) -}}
+    baseURL := {{(index $path.Servers 0).URL | filterNonIdentChars | title}}
+    {{- end -}}
     {{- $.Import "strings"}}
     _urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `{{$url}}`
 	{{- range $param := $op.Parameters -}}

@@ -62,6 +62,7 @@ var TemplateFunctions = map[string]any{
 	"responseKind":        responseKind,
 	"snakeToCamel":        snakeToCamel,
 	"taggedPaths":         tagPaths,
+	"hasComplexServers":   hasComplexServers,
 
 	// overrides of the defaults
 	"mustValidate":        mustValidate,
@@ -909,4 +910,16 @@ func paramConvertFn(tdata templates.TemplateData, param openapi3spec.ParameterRe
 	}
 
 	return fmt.Sprintf("%s(%s, %s)", outerConversion, rhs, innerConversion), nil
+}
+
+func hasComplexServers(servers []openapi3spec.Server) bool {
+	complicated := false
+	for _, s := range servers {
+		if len(s.Variables) > 0 {
+			complicated = true
+			break
+		}
+	}
+
+	return len(servers) > 1 && complicated
 }
