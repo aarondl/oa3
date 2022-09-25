@@ -313,8 +313,12 @@ func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Respons
 // - TestInline201Inline
 type TestInlineResponse interface {
 	TestInlineImpl()
-}                                           // TestInlineImpl implements TestInlineResponse(200) for TestInline200Inline
-func (TestInline200Inline) TestInlineImpl() {} // TestInlineImpl implements TestInlineResponse(201) for TestInline201Inline
+}
+
+// TestInlineImpl implements TestInlineResponse(200) for TestInline200Inline
+func (TestInline200Inline) TestInlineImpl() {}
+
+// TestInlineImpl implements TestInlineResponse(201) for TestInline201Inline
 func (TestInline201Inline) TestInlineImpl() {}
 
 // SetUserResponse one-of enforcer
@@ -335,8 +339,10 @@ type SetUserWrappedResponse struct {
 }
 
 // SetUserImpl implements SetUserResponse(200) for SetUserWrappedResponse
-func (SetUserWrappedResponse) SetUserImpl() {} // SetUserImpl implements SetUserResponse(default) for Primitives
-func (Primitives) SetUserImpl()             {}
+func (SetUserWrappedResponse) SetUserImpl() {}
+
+// SetUserImpl implements SetUserResponse(default) for Primitives
+func (Primitives) SetUserImpl() {}
 
 // HTTPStatusNotModified is an empty response
 type HTTPStatusNotModified struct{}

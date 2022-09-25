@@ -4,6 +4,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.46] - 2022-09-25
+
+### Changed
+
+- Go server: Now uses pointers for returns where applicable to allow
+  `return nil, err`.
+
 ## [v0.0.45] - 2022-09-24
 
 ### Changed

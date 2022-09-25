@@ -33,7 +33,7 @@ type Interface interface {
         {{- end -}}
         {{- $respName := responseRefName $op -}}
         {{- if $respName -}}
-    ) ({{$respName}}, error)
+    ) ({{if responseNeedsPtr $op}}*{{end}}{{$respName}}, error)
         {{else -}}
     ) error
         {{end -}}
@@ -127,7 +127,7 @@ func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
         {{- end -}}
         {{- $respName := responseRefName $op -}}
         {{- if $respName -}}
-    ) ({{$.Params.package}}.{{$respName}}, error) {
+    ) ({{if responseNeedsPtr $op}}*{{end}}{{$.Params.package}}.{{$respName}}, error) {
         {{- else -}}
     ) error {
         {{- end}}

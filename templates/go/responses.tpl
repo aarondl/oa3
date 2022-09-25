@@ -59,7 +59,7 @@ func ({{$typeName}}) {{$opname}}Impl() {}
                     {{- $_ := set $needIOReadClosers $typeName "" -}}
                 {{- end -}}
                 {{- if $multi -}}
-                    {{- range $content, $schema := $resp.Content -}}
+                    {{- range $content, $schema := $resp.Content}}
 // {{$opname}}Impl implements {{$opname}}Response({{$code}}) for {{$typeName}}
 func ({{$typeName}}) {{$opname}}Impl() {}
                     {{- end -}}

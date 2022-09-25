@@ -68,6 +68,7 @@ var TemplateFunctions = map[string]any{
 	"hasJSONResponse":     hasJSONResponse,
 	"responseTypeName":    responseTypeName,
 	"responseNeedsWrap":   responseNeedsWrap,
+	"responseNeedsPtr":    responseNeedsPtr,
 	"responseRefName":     responseRefName,
 
 	// overrides of the defaults
@@ -854,6 +855,21 @@ func responseRefName(op *openapi3spec.Operation) string {
 	}
 
 	return ""
+}
+
+func responseNeedsPtr(op *openapi3spec.Operation) bool {
+	if len(op.Responses) > 1 {
+		return false
+	}
+
+	for _, resp := range op.Responses {
+		// For non-json payloads we don't want a pointer
+		if _, ok := resp.Content["application/json"]; !ok && len(resp.Content) > 0 {
+			return false
+		}
+	}
+
+	return true
 }
 
 func paramTypeName(tdata templates.TemplateData, operationID string, methodName string, param openapi3spec.ParameterRef) (string, error) {
