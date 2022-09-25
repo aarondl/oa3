@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 // Paths holds the relative paths to the individual endpoints and their
@@ -101,35 +103,36 @@ func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error
 		return errors.New("description if present must not be blank")
 	}
 
-	if err := p.Get.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("get.%w", err)
-	}
-	if err := p.Put.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("put.%w", err)
-	}
-	if err := p.Post.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("post.%w", err)
-	}
-	if err := p.Delete.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("delete.%w", err)
-	}
-	if err := p.Options.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("options.%w", err)
-	}
-	if err := p.Head.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("head.%w", err)
-	}
-	if err := p.Patch.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("patch.%w", err)
-	}
-	if err := p.Trace.Validate(pathTemplates, opIDs); err != nil {
-		return fmt.Errorf("trace.%w", err)
+	requiredPathTpls := make([]string, 0, len(pathTemplates))
+	for _, pathTpl := range pathTemplates {
+		if -1 == slices.IndexFunc(p.Parameters, func(p *ParameterRef) bool { return p != nil && p.Name == pathTpl }) {
+			requiredPathTpls = append(requiredPathTpls, pathTpl)
+		}
 	}
 
-	for i, s := range p.Servers {
-		if err := s.Validate(); err != nil {
-			return fmt.Errorf("servers[%d].%w", i, err)
-		}
+	if err := p.Get.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("get.%w", err)
+	}
+	if err := p.Put.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("put.%w", err)
+	}
+	if err := p.Post.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("post.%w", err)
+	}
+	if err := p.Delete.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("delete.%w", err)
+	}
+	if err := p.Options.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("options.%w", err)
+	}
+	if err := p.Head.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("head.%w", err)
+	}
+	if err := p.Patch.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("patch.%w", err)
+	}
+	if err := p.Trace.Validate(pathTemplates, requiredPathTpls, opIDs); err != nil {
+		return fmt.Errorf("trace.%w", err)
 	}
 
 	if err := paramDuplicateKeyCheck(p.Parameters); err != nil {
@@ -142,6 +145,12 @@ func (p *Path) Validate(pathTemplates []string, opIDs map[string]struct{}) error
 		}
 		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d].%w", i, err)
+		}
+	}
+
+	for i, s := range p.Servers {
+		if err := s.Validate(); err != nil {
+			return fmt.Errorf("servers[%d].%w", i, err)
 		}
 	}
 

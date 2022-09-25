@@ -28,7 +28,7 @@ type Operation struct {
 }
 
 // Validate an operation
-func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) error {
+func (o *Operation) Validate(pathTemplates, requiredPathTemplates []string, opIDs map[string]struct{}) error {
 	if o == nil {
 		return nil
 	}
@@ -68,6 +68,18 @@ func (o *Operation) Validate(pathTemplates []string, opIDs map[string]struct{}) 
 		}
 		if err := p.Validate(pathTemplates); err != nil {
 			return fmt.Errorf("parameters[%d:%q].%w", i, p.Name, err)
+		}
+	}
+	for _, pathTemplate := range requiredPathTemplates {
+		found := false
+		for _, p := range o.Parameters {
+			if p.In == "path" && p.Name == pathTemplate {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("parameters: missing path parameter %s", pathTemplate)
 		}
 	}
 
