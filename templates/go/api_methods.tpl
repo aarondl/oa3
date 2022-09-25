@@ -136,9 +136,14 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     if r.Body != nil {
                 {{- end -}}
             {{- $.Import "github.com/aarondl/oa3/support"}}
-        if err = support.ReadJSON(r, {{if not $json.Schema.Nullable}}&{{end}}reqBody); err != nil {
+        var buf *bytes.Buffer
+        if buf, err = support.ReadJSONBuffer(r, {{if not $json.Schema.Nullable}}&{{end}}reqBody); err != nil {
             return err
         }
+
+        defer support.ReturnJSONBuffer(buf)
+            {{- $.Import "io"}}
+        r.Body = io.NopCloser(buf)
 
         if newErrs := Validate(reqBody); newErrs != nil {
             errs = support.MergeErrs(errs, newErrs)

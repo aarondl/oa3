@@ -167,3 +167,33 @@ func ReadJSON(r *http.Request, object any) error {
 
 	return nil
 }
+
+// ReadJSONBuffer is like ReadJSON but does not put back its buffer, instead
+// it allows further use, must end with a ReturnJSONBuffer call.
+//
+// If an error occurs the buffer does not need to be returned.
+func ReadJSONBuffer(r *http.Request, object any) (*bytes.Buffer, error) {
+	buf := getBuffer()
+
+	if _, err := io.Copy(buf, r.Body); err != nil {
+		putBuffer(buf)
+		return nil, fmt.Errorf("failed to copy into temp buffer: %w", err)
+	}
+
+	if err := r.Body.Close(); err != nil {
+		putBuffer(buf)
+		return nil, fmt.Errorf("failed to close body after json read: %w", err)
+	}
+
+	if err := json.Unmarshal(buf.Bytes(), object); err != nil {
+		putBuffer(buf)
+		return nil, err
+	}
+
+	return buf, nil
+}
+
+// ReturnJSONBuffer is called to return a buffer to the pool.
+func ReturnJSONBuffer(b *bytes.Buffer) {
+	putBuffer(b)
+}

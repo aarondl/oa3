@@ -4,6 +4,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.45] - 2022-09-24
+
+### Changed
+
+- Go server: Change json payload reading in server to keep the payload in a buf
+  and pass it into r.Body again so the body could be read again if necessary.
+  This prolongs the duration of the bytes.Buffer pool alloc slightly.
+
 ## [v0.0.44] - 2022-09-24
 
 ### Fixed

@@ -77,9 +77,13 @@ func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) err
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		if err = support.ReadJSON(r, &reqBody); err != nil {
+		var buf *bytes.Buffer
+		if buf, err = support.ReadJSONBuffer(r, &reqBody); err != nil {
 			return err
 		}
+
+		defer support.ReturnJSONBuffer(buf)
+		r.Body = io.NopCloser(buf)
 
 		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
@@ -131,9 +135,13 @@ func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request)
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		if err = support.ReadJSON(r, &reqBody); err != nil {
+		var buf *bytes.Buffer
+		if buf, err = support.ReadJSONBuffer(r, &reqBody); err != nil {
 			return err
 		}
+
+		defer support.ReturnJSONBuffer(buf)
+		r.Body = io.NopCloser(buf)
 
 		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
@@ -171,9 +179,13 @@ func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Reque
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		if err = support.ReadJSON(r, &reqBody); err != nil {
+		var buf *bytes.Buffer
+		if buf, err = support.ReadJSONBuffer(r, &reqBody); err != nil {
 			return err
 		}
+
+		defer support.ReturnJSONBuffer(buf)
+		r.Body = io.NopCloser(buf)
 
 		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
@@ -211,9 +223,13 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		if err = support.ReadJSON(r, &reqBody); err != nil {
+		var buf *bytes.Buffer
+		if buf, err = support.ReadJSONBuffer(r, &reqBody); err != nil {
 			return err
 		}
+
+		defer support.ReturnJSONBuffer(buf)
+		r.Body = io.NopCloser(buf)
 
 		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
@@ -456,9 +472,13 @@ func (o GoServer) testtypeoverridesOp(w http.ResponseWriter, r *http.Request) er
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		if err = support.ReadJSON(r, &reqBody); err != nil {
+		var buf *bytes.Buffer
+		if buf, err = support.ReadJSONBuffer(r, &reqBody); err != nil {
 			return err
 		}
+
+		defer support.ReturnJSONBuffer(buf)
+		r.Body = io.NopCloser(buf)
 
 		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
@@ -900,9 +920,13 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 	if r.Body == nil {
 		return support.ErrNoBody
 	} else {
-		if err = support.ReadJSON(r, &reqBody); err != nil {
+		var buf *bytes.Buffer
+		if buf, err = support.ReadJSONBuffer(r, &reqBody); err != nil {
 			return err
 		}
+
+		defer support.ReturnJSONBuffer(buf)
+		r.Body = io.NopCloser(buf)
 
 		if newErrs := Validate(reqBody); newErrs != nil {
 			errs = support.MergeErrs(errs, newErrs)
