@@ -42,10 +42,8 @@ func (r *Response) Validate() error {
 		}
 	}
 
-	if r.Content != nil {
-		if _, ok := r.Content["application/json"]; !ok {
-			return errors.New("content: must have application/json key if not empty")
-		}
+	if len(r.Content) > 1 {
+		return errors.New("content: only one response type is supported")
 	}
 
 	return nil

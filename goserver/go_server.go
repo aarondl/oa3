@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"io/fs"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 	"unicode"
@@ -14,6 +15,7 @@ import (
 	"github.com/aarondl/oa3/generator"
 	"github.com/aarondl/oa3/openapi3spec"
 	"github.com/aarondl/oa3/templates"
+	"github.com/huandu/xstrings"
 )
 
 const (
@@ -63,6 +65,10 @@ var TemplateFunctions = map[string]any{
 	"snakeToCamel":        snakeToCamel,
 	"taggedPaths":         tagPaths,
 	"hasComplexServers":   hasComplexServers,
+	"hasJSONResponse":     hasJSONResponse,
+	"responseTypeName":    responseTypeName,
+	"responseNeedsWrap":   responseNeedsWrap,
+	"responseRefName":     responseRefName,
 
 	// overrides of the defaults
 	"mustValidate":        mustValidate,
@@ -306,7 +312,12 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 					continue
 				}
 
-				schema := resp.Content["application/json"].Schema
+				json := resp.Content["application/json"]
+				if json == nil {
+					continue
+				}
+
+				schema := json.Schema
 				// Refs are taken care of already
 				if len(schema.Ref) != 0 {
 					continue
@@ -720,6 +731,34 @@ func filterNonIdentChars(in string) string {
 	return build.String()
 }
 
+func responseNeedsWrap(op *openapi3spec.Operation, code string) bool {
+	r := op.Responses[code]
+	if len(r.Headers) > 0 {
+		return true
+	}
+
+	// Look for dupe schemas
+	for k1, v1 := range r.Content {
+		for k2, v2 := range r.Content {
+			if k1 == k2 {
+				continue
+			}
+
+			if len(v1.Schema.Ref) != 0 && len(v2.Schema.Ref) != 0 && v1.Schema.Ref == v2.Schema.Ref {
+				// If they're both refs to the same thing
+				return true
+			} else if len(v1.Schema.Ref) == 0 && len(v2.Schema.Ref) == 0 && v1.Schema.Type == v2.Schema.Type {
+				// If they're both not refs to the same basic type
+				if isInlinePrimitive(v1.Schema.Schema) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
 // responseKind returns the type of abstraction we need for a specific response
 // code in an operation.
 //
@@ -727,7 +766,7 @@ func filterNonIdentChars(in string) string {
 //
 // Wrapped indicates it must be wrapped in a struct because it either has
 // headers or it is a duplicate response type (say two strings) and we need
-// to differentiate code.
+// to differentiate on code.
 //
 // Empty means there is no response body, and an empty response code type
 // must be used in its place.
@@ -744,6 +783,11 @@ func responseKind(op *openapi3spec.Operation, code string) string {
 	// collide with
 	if len(r.Content) == 0 {
 		return "empty"
+	}
+
+	json := r.Content["application/json"]
+	if json == nil {
+		return ""
 	}
 
 	body := r.Content["application/json"].Schema
@@ -766,6 +810,47 @@ func responseKind(op *openapi3spec.Operation, code string) string {
 				return "wrapped"
 			}
 		}
+	}
+
+	return ""
+}
+
+func responseTypeName(op *openapi3spec.Operation, code string, ignoreWrap bool) string {
+	opName := strings.Title(op.OperationID) //nolint:staticcheck
+
+	if !ignoreWrap && responseNeedsWrap(op, code) {
+		return opName + "WrappedResponse"
+	}
+
+	resp := op.Responses[code]
+	if len(resp.Content) == 0 {
+		n, err := strconv.Atoi(code)
+		if err != nil {
+			panic("failed to convert status to int")
+		}
+		return "HTTPStatus" + xstrings.ToCamelCase(templates.HTTPStatus(n))
+	}
+
+	for _, schema := range resp.Content {
+		if len(schema.Schema.Ref) != 0 {
+			return templates.RefName(schema.Schema.Ref)
+		} else {
+			return opName + strings.Title(code) + "Inline" //nolint:staticcheck
+		}
+	}
+
+	return "UNKNOWN"
+}
+
+func responseRefName(op *openapi3spec.Operation) string {
+	if len(op.Responses) > 1 {
+		// We need the interface for > 1
+		opName := strings.Title(op.OperationID) //nolint:staticcheck
+		return opName + "Response"
+	}
+
+	for code := range op.Responses {
+		return responseTypeName(op, code, false)
 	}
 
 	return ""
@@ -922,4 +1007,14 @@ func hasComplexServers(servers []openapi3spec.Server) bool {
 	}
 
 	return len(servers) > 1 && complicated
+}
+
+func hasJSONResponse(op openapi3spec.Operation) bool {
+	for _, r := range op.Responses {
+		if _, ok := r.Content["application/json"]; ok {
+			return true
+		}
+	}
+
+	return false
 }

@@ -20,12 +20,16 @@ var GlobalFunctions = map[string]any{
 	"mustValidate":           MustValidate,
 	"mustValidateRecurse":    MustValidateRecurse,
 	"keysReflect":            KeysReflect,
-	"httpStatus":             http.StatusText,
+	"httpStatus":             HTTPStatus,
 	"newData":                NewData,
 	"newDataRequired":        NewDataRequired,
 	"recurseData":            RecurseData,
 	"recurseDataSetRequired": RecurseDataSetRequired,
 	"deref":                  Deref,
+}
+
+func HTTPStatus(code int) string {
+	return http.StatusText(code)
 }
 
 func RefName(ref string) string {

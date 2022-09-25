@@ -31,8 +31,13 @@ type Interface interface {
         {{- range $param := $op.Parameters -}}
         , {{untitle (camelcase $param.Name)}} {{omitnullWrap $ (paramTypeName $ $op.OperationID $method $param) $param.Schema.Nullable $param.Required }}
         {{- end -}}
-    ) ({{title $op.OperationID}}Response, error)
-    {{end -}}
+        {{- $respName := responseRefName $op -}}
+        {{- if $respName -}}
+    ) ({{$respName}}, error)
+        {{else -}}
+    ) error
+        {{end -}}
+    {{- end -}}
 {{end -}}
 }
 
@@ -120,7 +125,12 @@ func (a API) {{$opname}}(w http.ResponseWriter, r *http.Request
         {{- range $param := $op.Parameters -}}
         , {{untitle (camelcase $param.Name)}} {{omitnullWrap $ (paramTypeName $ $op.OperationID $method $param) $param.Schema.Nullable $param.Required }}
         {{- end -}}
-    ) ({{$.Params.package}}.{{title $op.OperationID}}Response, error) {
+        {{- $respName := responseRefName $op -}}
+        {{- if $respName -}}
+    ) ({{$.Params.package}}.{{$respName}}, error) {
+        {{- else -}}
+    ) error {
+        {{- end}}
     panic("not implemented")
 }
         {{- end -}}

@@ -1,6 +1,7 @@
 {{- range $url, $path := $.Spec.Paths -}}
     {{- range $method, $op := $path.Operations -}}
         {{- $opname := (title $op.OperationID) -}}
+        {{- $respRefName := responseRefName $op -}}
         {{- $.Import "net/http"}}
 // {{$opname}} {{$method}} {{$url}}
 {{- if $op.Description}}
@@ -15,8 +16,7 @@ func (_c Client) {{$opname}}(ctx context.Context
         , baseURL URLBuilder{{$url | filterNonIdentChars | title}}
         {{- end -}}
 		{{- if $op.RequestBody -}}
-            {{- $json := index $op.RequestBody.Content "application/json" -}}
-            {{- if $json -}}
+            {{- with $json := index $op.RequestBody.Content "application/json" -}}
                 , body{{" " -}}
                     {{- if $json.Schema.Ref -}}
                         {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
@@ -34,12 +34,15 @@ func (_c Client) {{$opname}}(ctx context.Context
 		{{- range $param := $op.Parameters -}}
 		, {{untitle (camelcase $param.Name)}} {{omitnullWrap $ (paramTypeName $ $op.OperationID $method $param) $param.Schema.Nullable $param.Required}}
 		{{- end -}}
-	) ({{title $op.OperationID}}Response, *http.Response, error) {
-    {{- if and (not $op.Servers) (not $path.Servers) -}}
+	) ({{$respRefName}}, *http.Response, error) {
+        var _resp {{$respRefName}}
+        var _httpResp *http.Response
+        var _err error
+    {{- if and (not $op.Servers) (not $path.Servers)}}
     baseURL := _c.url
-    {{- else if and $op.Servers (not (hasComplexServers $op.Servers)) -}}
+    {{- else if and $op.Servers (not (hasComplexServers $op.Servers))}}
     baseURL := {{(index $op.Servers 0).URL | filterNonIdentChars | title}}
-    {{- else if and $path.Servers (not (hasComplexServers $path.Servers)) -}}
+    {{- else if and $path.Servers (not (hasComplexServers $path.Servers))}}
     baseURL := {{(index $path.Servers 0).URL | filterNonIdentChars | title}}
     {{- end -}}
     {{- $.Import "strings"}}
@@ -53,7 +56,7 @@ func (_c Client) {{$opname}}(ctx context.Context
 	{{- end}}
 	_req, _err := http.NewRequestWithContext(ctx, http.Method{{camelcase $method}}, _urlStr, nil)
     if _err != nil {
-        return nil, nil, _err
+        return _resp, _httpResp, _err
     }
 	{{- if $op.RequestBody -}}
         {{- $json := index $op.RequestBody.Content "application/json" -}}
@@ -63,7 +66,7 @@ func (_c Client) {{$opname}}(ctx context.Context
             {{- $.Import "io"}}
             _bodyBytes, _err := json.Marshal(body)
             if _err != nil {
-                return nil, nil, _err
+                return _resp, _httpResp, _err
             }
             _req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
         {{- else}}
@@ -150,56 +153,67 @@ func (_c Client) {{$opname}}(ctx context.Context
         {{- end -}}
 	{{- end -}}
 
-    _httpResp, _err := _c.doRequest(ctx, _req)
+    _httpResp, _err = _c.doRequest(ctx, _req)
     if _err != nil {
-        return nil, nil, _err
+        return _resp, _httpResp, _err
     }
 
-    var _resp {{title $op.OperationID}}Response
     switch _httpResp.StatusCode {
-    {{- $hasDefault := index $op.Responses "default"}}
+    {{- $hasDefault := index $op.Responses "default" -}}
+    {{- $multi := gt (len $op.Responses) 1}}
     {{- range $code, $resp := $op.Responses}}
-    {{if not (eq $code "default")}}case {{$code}}:{{- else -}}default:{{- end}}
-        {{- $rkind := responseKind $op $code -}}
-        {{- if eq $rkind "wrapped"}}
-            var _respObject {{$opname}}{{$code}}WrappedResponse
-            {{- $.Import "io" -}}
-            {{- $.Import "github.com/aarondl/json" }}
+        {{- $typeName := responseTypeName $op $code true}}
+        {{if not (eq $code "default")}}case {{$code}}:{{- else -}}default:{{- end}}
+        {{- if responseNeedsWrap $op $code -}}
+            {{- $wrapName := responseTypeName $op $code false}}
+            var _respObject {{$wrapName}}
+            {{- with $content := $resp.Content -}}
+                {{- if index $content "application/json" -}}
+                    {{- $.Import "io" -}}
+                    {{- $.Import "github.com/aarondl/json" }}
             _b, _err := io.ReadAll(_httpResp.Body)
             if _err != nil {
-                return nil, nil, _err
+                return _resp, _httpResp, _err
             }
             if _err = json.Unmarshal(_b, &_respObject.Body); _err != nil {
-                return nil, nil, _err
+                return _resp, _httpResp, _err
             }
+                {{- else -}}
+            _respObject.Body = _httpResp.Body
+                {{- end -}}
+            {{- end -}}
             {{- range $hname, $header := $resp.Headers}}
             if hdr := _httpResp.Header.Get(`{{$hname}}`); len(hdr) != 0 {
                 _respObject.Header{{$hname | replace "-" "" | title}}{{if $header.Required -}} {{/*space*/}} = hdr{{- else -}}.Set(hdr){{- end}}
             }
             {{- end}}
             _resp = _respObject
-        {{- else if eq $rkind "empty" -}}
-            {{- $statusName := camelcase (httpStatus (atoi $code))}}
-            _resp = HTTPStatus{{$statusName}}{{"{}"}}
-        {{- else }}
-            {{- $schema := index $resp.Content "application/json"}}
-            var _respObject {{if $schema.Schema.Ref}}{{refName $schema.Schema.Ref}}{{else}}{{title $opname}}{{title $code}}Inline{{end}}
-            {{- $.Import "io" -}}
-            {{- $.Import "github.com/aarondl/json" }}
+        {{- else if not $resp.Content -}}
+            _resp = {{$typeName}}{{"{}"}}
+        {{- else -}}
+            {{- with $content := $resp.Content -}}
+                {{- with $schema := index $content "application/json" -}}
+                    {{- $.Import "io" -}}
+                    {{- $.Import "github.com/aarondl/json" }}
+            var _respObject {{$typeName}}
             _b, _err := io.ReadAll(_httpResp.Body)
             if _err != nil {
-                return nil, nil, _err
+                return _resp, _httpResp, _err
             }
             if _err = json.Unmarshal(_b, &_respObject); _err != nil {
-                return nil, nil, _err
+                return _resp, _httpResp, _err
             }
             _resp = _respObject
+                {{- else -}}
+            _resp = _httpResp.Body
+                {{- end -}}
+            {{- end -}}
         {{- end -}}
     {{- end}}
     {{- if not $hasDefault}}
     default:
         {{ $.Import "fmt" -}}
-        return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+        return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
     {{- end -}}
     }
 

@@ -161,7 +161,11 @@ paths:
           multipart/form-data:
             schema: { type: string }
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK
+          content:
+            multipart/form-data:
+              schema: { type: string }
 
   /test/inline:
     get:

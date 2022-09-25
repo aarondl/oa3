@@ -22,45 +22,50 @@ import (
 )
 
 // Authenticate post /auth
-func (_c Client) Authenticate(ctx context.Context) (AuthenticateResponse, *http.Response, error) {
+func (_c Client) Authenticate(ctx context.Context) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/auth`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	var _query url.Values
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp AuthenticateResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestArrayRequest get /test/array/request
-func (_c Client) TestArrayRequest(ctx context.Context, body TestArrayRequestInline) (TestArrayRequestResponse, *http.Response, error) {
+func (_c Client) TestArrayRequest(ctx context.Context, body TestArrayRequestInline) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/array/request`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_bodyBytes, _err := json.Marshal(body)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
@@ -68,33 +73,35 @@ func (_c Client) TestArrayRequest(ctx context.Context, body TestArrayRequestInli
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestArrayRequestResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestEnumQueryRequest get /test/enum/query/request
-func (_c Client) TestEnumQueryRequest(ctx context.Context, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (TestEnumQueryRequestResponse, *http.Response, error) {
+func (_c Client) TestEnumQueryRequest(ctx context.Context, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/enum/query/request`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_bodyBytes, _err := json.Marshal(body)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
@@ -106,33 +113,35 @@ func (_c Client) TestEnumQueryRequest(ctx context.Context, body TestEnumQueryReq
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestEnumQueryRequestResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestInlinePrimitiveBody get /test/inline
-func (_c Client) TestInlinePrimitiveBody(ctx context.Context, body string) (TestInlinePrimitiveBodyResponse, *http.Response, error) {
+func (_c Client) TestInlinePrimitiveBody(ctx context.Context, body string) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/inline`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_bodyBytes, _err := json.Marshal(body)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
@@ -140,17 +149,16 @@ func (_c Client) TestInlinePrimitiveBody(ctx context.Context, body string) (Test
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestInlinePrimitiveBodyResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -158,15 +166,18 @@ func (_c Client) TestInlinePrimitiveBody(ctx context.Context, body string) (Test
 
 // TestInline post /test/inline
 func (_c Client) TestInline(ctx context.Context, body TestInlineInline) (TestInlineResponse, *http.Response, error) {
+	var _resp TestInlineResponse
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/inline`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_bodyBytes, _err := json.Marshal(body)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
@@ -174,165 +185,175 @@ func (_c Client) TestInline(ctx context.Context, body TestInlineInline) (TestInl
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestInlineResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		var _respObject TestInline200Inline
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
 		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
 		_resp = _respObject
 	case 201:
 		var _respObject TestInline201Inline
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
 		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
 		_resp = _respObject
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestServerPathOverrideRequest get /test/servers
-func (_c Client) TestServerPathOverrideRequest(ctx context.Context, baseURL URLBuilderTestservers) (TestServerPathOverrideRequestResponse, *http.Response, error) {
+func (_c Client) TestServerPathOverrideRequest(ctx context.Context, baseURL URLBuilderTestservers) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/servers`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	var _query url.Values
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestServerPathOverrideRequestResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestServerOpOverrideRequest post /test/servers
-func (_c Client) TestServerOpOverrideRequest(ctx context.Context, baseURL URLBuilderTestserversPost) (TestServerOpOverrideRequestResponse, *http.Response, error) {
+func (_c Client) TestServerOpOverrideRequest(ctx context.Context, baseURL URLBuilderTestserversPost) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/servers`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	var _query url.Values
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestServerOpOverrideRequestResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestSingleServerPathOverrideRequest get /test/single_servers
-func (_c Client) TestSingleServerPathOverrideRequest(ctx context.Context) (TestSingleServerPathOverrideRequestResponse, *http.Response, error) {
+func (_c Client) TestSingleServerPathOverrideRequest(ctx context.Context) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := Httppathdevlocal
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/single_servers`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	var _query url.Values
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestSingleServerPathOverrideRequestResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestSingleServerOpOverrideRequest post /test/single_servers
-func (_c Client) TestSingleServerOpOverrideRequest(ctx context.Context) (TestSingleServerOpOverrideRequestResponse, *http.Response, error) {
+func (_c Client) TestSingleServerOpOverrideRequest(ctx context.Context) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := Httpopdevlocal
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/single_servers`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	var _query url.Values
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestSingleServerOpOverrideRequestResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestTypeOverrides get /test/type_overrides
-func (_c Client) TestTypeOverrides(ctx context.Context, body *Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (TestTypeOverridesResponse, *http.Response, error) {
+func (_c Client) TestTypeOverrides(ctx context.Context, body *Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/type_overrides`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_bodyBytes, _err := json.Marshal(body)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
@@ -357,29 +378,31 @@ func (_c Client) TestTypeOverrides(ctx context.Context, body *Primitives, number
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestTypeOverridesResponse
 	switch _httpResp.StatusCode {
 	case 200:
 		_resp = HTTPStatusOk{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
 }
 
 // TestUnknownBodyType post /test/unknown/body/type
-func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (TestUnknownBodyTypeResponse, *http.Response, error) {
+func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (TestUnknownBodyType200Inline, *http.Response, error) {
+	var _resp TestUnknownBodyType200Inline
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/unknown/body/type`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = body
 	var _query url.Values
@@ -387,17 +410,16 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (T
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp TestUnknownBodyTypeResponse
 	switch _httpResp.StatusCode {
 	case 200:
-		_resp = HTTPStatusOk{}
+		_resp = _httpResp.Body
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -408,13 +430,16 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (T
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (_c Client) GetUser(ctx context.Context, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (GetUserResponse, *http.Response, error) {
+func (_c Client) GetUser(ctx context.Context, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (HTTPStatusNotModified, *http.Response, error) {
+	var _resp HTTPStatusNotModified
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/users/{id}`
 	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	if _val, _ok := validStr.Get(); _ok {
 		_req.Header.Add(`valid_str`, fmt.Sprintf("%v", _val))
@@ -478,17 +503,16 @@ func (_c Client) GetUser(ctx context.Context, id string, paramComponent string, 
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp GetUserResponse
 	switch _httpResp.StatusCode {
 	case 304:
 		_resp = HTTPStatusNotModified{}
 	default:
-		return nil, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
 	}
 
 	return _resp, _httpResp, nil
@@ -498,16 +522,19 @@ func (_c Client) GetUser(ctx context.Context, id string, paramComponent string, 
 //
 // Sets a user
 func (_c Client) SetUser(ctx context.Context, body *Primitives, id string, paramComponent string) (SetUserResponse, *http.Response, error) {
+	var _resp SetUserResponse
+	var _httpResp *http.Response
+	var _err error
 	baseURL := _c.url
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/users/{id}`
 	_urlStr = strings.Replace(_urlStr, `{id}`, fmt.Sprintf("%v", id), 1)
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_bodyBytes, _err := json.Marshal(body)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 	_req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
 	var _query url.Values
@@ -519,34 +546,33 @@ func (_c Client) SetUser(ctx context.Context, body *Primitives, id string, param
 		_req.URL.RawQuery = _query.Encode()
 	}
 
-	_httpResp, _err := _c.doRequest(ctx, _req)
+	_httpResp, _err = _c.doRequest(ctx, _req)
 	if _err != nil {
-		return nil, nil, _err
+		return _resp, _httpResp, _err
 	}
 
-	var _resp SetUserResponse
 	switch _httpResp.StatusCode {
 	case 200:
-		var _respObject SetUser200WrappedResponse
+		var _respObject SetUserWrappedResponse
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
 		if _err = json.Unmarshal(_b, &_respObject.Body); _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
 		if hdr := _httpResp.Header.Get(`X-Response-Header`); len(hdr) != 0 {
 			_respObject.HeaderXResponseHeader.Set(hdr)
 		}
 		_resp = _respObject
 	default:
-		var _respObject SetUserdefaultWrappedResponse
+		var _respObject Primitives
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
-			return nil, nil, _err
+			return _resp, _httpResp, _err
 		}
-		if _err = json.Unmarshal(_b, &_respObject.Body); _err != nil {
-			return nil, nil, _err
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
 		}
 		_resp = _respObject
 	}

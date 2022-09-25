@@ -5,6 +5,7 @@ package oa3gen
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -58,13 +59,8 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -103,13 +99,8 @@ func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -162,13 +153,8 @@ func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -207,13 +193,8 @@ func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -253,6 +234,7 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	switch respBody := ret.(type) {
+
 	case TestInline200Inline:
 		w.WriteHeader(200)
 
@@ -294,13 +276,8 @@ func (o GoServer) testserverpathoverriderequestOp(w http.ResponseWriter, r *http
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -326,13 +303,62 @@ func (o GoServer) testserveropoverriderequestOp(w http.ResponseWriter, r *http.R
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
+	_ = ret
+	w.WriteHeader(200)
+
+	return nil
+}
+
+// testsingleserverpathoverriderequest get /test/single_servers
+func (o GoServer) testsingleserverpathoverriderequestOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
 	}
+
+	ret, err := o.impl.TestSingleServerPathOverrideRequest(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	return nil
+}
+
+// testsingleserveropoverriderequest post /test/single_servers
+func (o GoServer) testsingleserveropoverriderequestOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestSingleServerOpOverrideRequest(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -452,13 +478,8 @@ func (o GoServer) testtypeoverridesOp(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(200)
 
 	return nil
 }
@@ -484,12 +505,15 @@ func (o GoServer) testunknownbodytypeOp(w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusOk:
-		w.WriteHeader(200)
-	default:
-		_ = respBody
-		panic("impossible case")
+	_ = ret
+	w.WriteHeader(200)
+	if ret != nil {
+		if _, err := io.Copy(w, ret); err != nil {
+			return err
+		}
+		if err := ret.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -838,13 +862,8 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	switch respBody := ret.(type) {
-	case HTTPStatusNotModified:
-		w.WriteHeader(304)
-	default:
-		_ = respBody
-		panic("impossible case")
-	}
+	_ = ret
+	w.WriteHeader(304)
 
 	return nil
 }
@@ -904,7 +923,8 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	switch respBody := ret.(type) {
-	case SetUser200WrappedResponse:
+
+	case SetUserWrappedResponse:
 		headers := w.Header()
 		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
 			headers.Set("X-Response-Header", val)
@@ -913,8 +933,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
-	case SetUserdefaultWrappedResponse:
-
+	case Primitives:
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}

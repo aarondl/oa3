@@ -5,6 +5,7 @@ package oa3gen
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -305,50 +306,6 @@ func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Respons
 	return resp, nil
 }
 
-// AuthenticateResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type AuthenticateResponse interface {
-	AuthenticateImpl()
-}
-
-// AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) AuthenticateImpl() {}
-
-// TestArrayRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestArrayRequestResponse interface {
-	TestArrayRequestImpl()
-}
-
-// TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestArrayRequestImpl() {}
-
-// TestEnumQueryRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestEnumQueryRequestResponse interface {
-	TestEnumQueryRequestImpl()
-}
-
-// TestEnumQueryRequestImpl implements TestEnumQueryRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestEnumQueryRequestImpl() {}
-
-// TestInlinePrimitiveBodyResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestInlinePrimitiveBodyResponse interface {
-	TestInlinePrimitiveBodyImpl()
-}
-
-// TestInlinePrimitiveBodyImpl implements TestInlinePrimitiveBodyResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
-
 // TestInlineResponse one-of enforcer
 //
 // Implementors:
@@ -356,123 +313,34 @@ func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
 // - TestInline201Inline
 type TestInlineResponse interface {
 	TestInlineImpl()
-}
-
-// TestInlineImpl implements TestInlineHeadersResponse(200) for
-func (TestInline200Inline) TestInlineImpl() {}
-
-// TestInlineImpl implements TestInlineHeadersResponse(201) for
+}                                           // TestInlineImpl implements TestInlineResponse(200) for TestInline200Inline
+func (TestInline200Inline) TestInlineImpl() {} // TestInlineImpl implements TestInlineResponse(201) for TestInline201Inline
 func (TestInline201Inline) TestInlineImpl() {}
-
-// TestServerPathOverrideRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestServerPathOverrideRequestResponse interface {
-	TestServerPathOverrideRequestImpl()
-}
-
-// TestServerPathOverrideRequestImpl implements TestServerPathOverrideRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestServerPathOverrideRequestImpl() {}
-
-// TestServerOpOverrideRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestServerOpOverrideRequestResponse interface {
-	TestServerOpOverrideRequestImpl()
-}
-
-// TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
-
-// TestSingleServerPathOverrideRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestSingleServerPathOverrideRequestResponse interface {
-	TestSingleServerPathOverrideRequestImpl()
-}
-
-// TestSingleServerPathOverrideRequestImpl implements TestSingleServerPathOverrideRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestSingleServerPathOverrideRequestImpl() {}
-
-// TestSingleServerOpOverrideRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestSingleServerOpOverrideRequestResponse interface {
-	TestSingleServerOpOverrideRequestImpl()
-}
-
-// TestSingleServerOpOverrideRequestImpl implements TestSingleServerOpOverrideRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestSingleServerOpOverrideRequestImpl() {}
-
-// TestTypeOverridesResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestTypeOverridesResponse interface {
-	TestTypeOverridesImpl()
-}
-
-// TestTypeOverridesImpl implements TestTypeOverridesResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestTypeOverridesImpl() {}
-
-// TestUnknownBodyTypeResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestUnknownBodyTypeResponse interface {
-	TestUnknownBodyTypeImpl()
-}
-
-// TestUnknownBodyTypeImpl implements TestUnknownBodyTypeResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestUnknownBodyTypeImpl() {}
-
-// GetUserResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusNotModified
-type GetUserResponse interface {
-	GetUserImpl()
-}
-
-// GetUserImpl implements GetUserResponse(304) for HTTPStatusNotModified
-func (HTTPStatusNotModified) GetUserImpl() {}
 
 // SetUserResponse one-of enforcer
 //
 // Implementors:
-// - SetUser200HeadersResponse
-// - Primitives - #/components/schemas/Primitives
+// - SetUserWrappedResponse
+// - Primitives
 type SetUserResponse interface {
 	SetUserImpl()
 }
 
-// SetUser200WrappedResponse wraps the normal body response with a
+// SetUserWrappedResponse wraps the normal body response with a
 // struct to be able to additionally return headers or differentiate between
 // multiple response codes with the same response body.
-type SetUser200WrappedResponse struct {
+type SetUserWrappedResponse struct {
 	HeaderXResponseHeader omit.Val[string]
 	Body                  Primitives
 }
 
-// SetUserImpl implements SetUserResponse(200) for SetUser200WrappedResponse
-func (SetUser200WrappedResponse) SetUserImpl() {}
-
-// SetUserdefaultWrappedResponse wraps the normal body response with a
-// struct to be able to additionally return headers or differentiate between
-// multiple response codes with the same response body.
-type SetUserdefaultWrappedResponse struct {
-	Body Primitives
-}
-
-// SetUserImpl implements SetUserResponse(default) for SetUserdefaultWrappedResponse
-func (SetUserdefaultWrappedResponse) SetUserImpl() {}
+// SetUserImpl implements SetUserResponse(200) for SetUserWrappedResponse
+func (SetUserWrappedResponse) SetUserImpl() {} // SetUserImpl implements SetUserResponse(default) for Primitives
+func (Primitives) SetUserImpl()             {}
 
 // HTTPStatusNotModified is an empty response
 type HTTPStatusNotModified struct{}
 
 // HTTPStatusOk is an empty response
 type HTTPStatusOk struct{}
+type TestUnknownBodyType200Inline io.ReadCloser

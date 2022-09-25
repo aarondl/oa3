@@ -11,6 +11,12 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Go client: Change url handling to be much less annoying. Types are only
   generated when necessary (there are more than 1 url or there's a parameterized
   url). The client now carries its own url builder as the default to be used.
+- Go client/server: Change response handling to be much more streamlined. Oneof
+  interface enforcers are only created and used when there's more than one type.
+  When there's only a single type both the server and client simply use that
+  type inline.
+- Go client/server: io.ReadCloser is used when non-json mime types are used for
+  responses, previously this was disallowed by the spec validation.
 
 ## [v0.0.42] - 2022-09-08
 

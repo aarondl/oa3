@@ -3,6 +3,7 @@
 package oa3gen
 
 import (
+	"io"
 	"net/http"
 	"time"
 
@@ -22,28 +23,32 @@ import (
 // A great api
 type Interface interface {
 	// Authenticate post /auth
-	Authenticate(w http.ResponseWriter, r *http.Request) (AuthenticateResponse, error)
+	Authenticate(w http.ResponseWriter, r *http.Request) (HTTPStatusOk, error)
 	// TestArrayRequest get /test/array/request
-	TestArrayRequest(w http.ResponseWriter, r *http.Request, body TestArrayRequestInline) (TestArrayRequestResponse, error)
+	TestArrayRequest(w http.ResponseWriter, r *http.Request, body TestArrayRequestInline) (HTTPStatusOk, error)
 	// TestEnumQueryRequest get /test/enum/query/request
-	TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (TestEnumQueryRequestResponse, error)
+	TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (HTTPStatusOk, error)
 	// TestInlinePrimitiveBody get /test/inline
-	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (TestInlinePrimitiveBodyResponse, error)
+	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (HTTPStatusOk, error)
 	// TestInline post /test/inline
 	TestInline(w http.ResponseWriter, r *http.Request, body TestInlineInline) (TestInlineResponse, error)
 	// TestServerPathOverrideRequest get /test/servers
-	TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerPathOverrideRequestResponse, error)
+	TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (HTTPStatusOk, error)
 	// TestServerOpOverrideRequest post /test/servers
-	TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (TestServerOpOverrideRequestResponse, error)
+	TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (HTTPStatusOk, error)
+	// TestSingleServerPathOverrideRequest get /test/single_servers
+	TestSingleServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (HTTPStatusOk, error)
+	// TestSingleServerOpOverrideRequest post /test/single_servers
+	TestSingleServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (HTTPStatusOk, error)
 	// TestTypeOverrides get /test/type_overrides
-	TestTypeOverrides(w http.ResponseWriter, r *http.Request, body *Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (TestTypeOverridesResponse, error)
+	TestTypeOverrides(w http.ResponseWriter, r *http.Request, body *Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (HTTPStatusOk, error)
 	// TestUnknownBodyType post /test/unknown/body/type
-	TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (TestUnknownBodyTypeResponse, error)
+	TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (TestUnknownBodyType200Inline, error)
 	// GetUser get /users/{id}
 	// Retrieves a user with a long description that spans multiple lines so
 	// that we can see that both wrapping and long-line support is not
 	// bleeding over the sacred 80 char limit.
-	GetUser(w http.ResponseWriter, r *http.Request, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (GetUserResponse, error)
+	GetUser(w http.ResponseWriter, r *http.Request, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (HTTPStatusNotModified, error)
 	// SetUser post /users/{id}
 	// Sets a user
 	SetUser(w http.ResponseWriter, r *http.Request, body *Primitives, id string, paramComponent string) (SetUserResponse, error)
@@ -84,6 +89,8 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
 		r.Method(http.MethodPost, `/test/servers`, eh.Wrap(o.testserveropoverriderequestOp))
 		r.Method(http.MethodGet, `/test/servers`, eh.Wrap(o.testserverpathoverriderequestOp))
+		r.Method(http.MethodPost, `/test/single_servers`, eh.Wrap(o.testsingleserveropoverriderequestOp))
+		r.Method(http.MethodGet, `/test/single_servers`, eh.Wrap(o.testsingleserverpathoverriderequestOp))
 		r.Method(http.MethodGet, `/test/type_overrides`, eh.Wrap(o.testtypeoverridesOp))
 		r.Method(http.MethodPost, `/test/unknown/body/type`, eh.Wrap(o.testunknownbodytypeOp))
 	})
@@ -113,50 +120,6 @@ func Validate(toValidate validatable) support.Errors {
 	return toValidate.validateSchema()
 }
 
-// AuthenticateResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type AuthenticateResponse interface {
-	AuthenticateImpl()
-}
-
-// AuthenticateImpl implements AuthenticateResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) AuthenticateImpl() {}
-
-// TestArrayRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestArrayRequestResponse interface {
-	TestArrayRequestImpl()
-}
-
-// TestArrayRequestImpl implements TestArrayRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestArrayRequestImpl() {}
-
-// TestEnumQueryRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestEnumQueryRequestResponse interface {
-	TestEnumQueryRequestImpl()
-}
-
-// TestEnumQueryRequestImpl implements TestEnumQueryRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestEnumQueryRequestImpl() {}
-
-// TestInlinePrimitiveBodyResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestInlinePrimitiveBodyResponse interface {
-	TestInlinePrimitiveBodyImpl()
-}
-
-// TestInlinePrimitiveBodyImpl implements TestInlinePrimitiveBodyResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
-
 // TestInlineResponse one-of enforcer
 //
 // Implementors:
@@ -164,123 +127,56 @@ func (HTTPStatusOk) TestInlinePrimitiveBodyImpl() {}
 // - TestInline201Inline
 type TestInlineResponse interface {
 	TestInlineImpl()
-}
-
-// TestInlineImpl implements TestInlineHeadersResponse(200) for
-func (TestInline200Inline) TestInlineImpl() {}
-
-// TestInlineImpl implements TestInlineHeadersResponse(201) for
+}                                           // TestInlineImpl implements TestInlineResponse(200) for TestInline200Inline
+func (TestInline200Inline) TestInlineImpl() {} // TestInlineImpl implements TestInlineResponse(201) for TestInline201Inline
 func (TestInline201Inline) TestInlineImpl() {}
-
-// TestServerPathOverrideRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestServerPathOverrideRequestResponse interface {
-	TestServerPathOverrideRequestImpl()
-}
-
-// TestServerPathOverrideRequestImpl implements TestServerPathOverrideRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestServerPathOverrideRequestImpl() {}
-
-// TestServerOpOverrideRequestResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestServerOpOverrideRequestResponse interface {
-	TestServerOpOverrideRequestImpl()
-}
-
-// TestServerOpOverrideRequestImpl implements TestServerOpOverrideRequestResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestServerOpOverrideRequestImpl() {}
-
-// TestTypeOverridesResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestTypeOverridesResponse interface {
-	TestTypeOverridesImpl()
-}
-
-// TestTypeOverridesImpl implements TestTypeOverridesResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestTypeOverridesImpl() {}
-
-// TestUnknownBodyTypeResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusOk
-type TestUnknownBodyTypeResponse interface {
-	TestUnknownBodyTypeImpl()
-}
-
-// TestUnknownBodyTypeImpl implements TestUnknownBodyTypeResponse(200) for HTTPStatusOk
-func (HTTPStatusOk) TestUnknownBodyTypeImpl() {}
-
-// GetUserResponse one-of enforcer
-//
-// Implementors:
-// - HTTPStatusNotModified
-type GetUserResponse interface {
-	GetUserImpl()
-}
-
-// GetUserImpl implements GetUserResponse(304) for HTTPStatusNotModified
-func (HTTPStatusNotModified) GetUserImpl() {}
 
 // SetUserResponse one-of enforcer
 //
 // Implementors:
-// - SetUser200HeadersResponse
-// - Primitives - #/components/schemas/Primitives
+// - SetUserWrappedResponse
+// - Primitives
 type SetUserResponse interface {
 	SetUserImpl()
 }
 
-// SetUser200WrappedResponse wraps the normal body response with a
+// SetUserWrappedResponse wraps the normal body response with a
 // struct to be able to additionally return headers or differentiate between
 // multiple response codes with the same response body.
-type SetUser200WrappedResponse struct {
+type SetUserWrappedResponse struct {
 	HeaderXResponseHeader omit.Val[string]
 	Body                  Primitives
 }
 
-// SetUserImpl implements SetUserResponse(200) for SetUser200WrappedResponse
-func (SetUser200WrappedResponse) SetUserImpl() {}
-
-// SetUserdefaultWrappedResponse wraps the normal body response with a
-// struct to be able to additionally return headers or differentiate between
-// multiple response codes with the same response body.
-type SetUserdefaultWrappedResponse struct {
-	Body Primitives
-}
-
-// SetUserImpl implements SetUserResponse(default) for SetUserdefaultWrappedResponse
-func (SetUserdefaultWrappedResponse) SetUserImpl() {}
+// SetUserImpl implements SetUserResponse(200) for SetUserWrappedResponse
+func (SetUserWrappedResponse) SetUserImpl() {} // SetUserImpl implements SetUserResponse(default) for Primitives
+func (Primitives) SetUserImpl()             {}
 
 // HTTPStatusNotModified is an empty response
 type HTTPStatusNotModified struct{}
 
 // HTTPStatusOk is an empty response
 type HTTPStatusOk struct{}
+type TestUnknownBodyType200Inline io.ReadCloser
 
 /*
 Here is a copy pastable list of function signatures
 for implementing the main interface
 
 // Authenticate post /auth
-func (a API) Authenticate(w http.ResponseWriter, r *http.Request) (oa3gen.AuthenticateResponse, error) {
+func (a API) Authenticate(w http.ResponseWriter, r *http.Request) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestArrayRequest get /test/array/request
-func (a API) TestArrayRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestArrayRequestInline) (oa3gen.TestArrayRequestResponse, error) {
+func (a API) TestArrayRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestArrayRequestInline) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestEnumQueryRequest get /test/enum/query/request
-func (a API) TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (oa3gen.TestEnumQueryRequestResponse, error) {
+func (a API) TestEnumQueryRequest(w http.ResponseWriter, r *http.Request, body oa3gen.TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestInlinePrimitiveBody get /test/inline
-func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (oa3gen.TestInlinePrimitiveBodyResponse, error) {
+func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestInline post /test/inline
@@ -288,26 +184,34 @@ func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.Test
     panic("not implemented")
 }
 // TestServerPathOverrideRequest get /test/servers
-func (a API) TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.TestServerPathOverrideRequestResponse, error) {
+func (a API) TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestServerOpOverrideRequest post /test/servers
-func (a API) TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.TestServerOpOverrideRequestResponse, error) {
+func (a API) TestServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.HTTPStatusOk, error) {
+    panic("not implemented")
+}
+// TestSingleServerPathOverrideRequest get /test/single_servers
+func (a API) TestSingleServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.HTTPStatusOk, error) {
+    panic("not implemented")
+}
+// TestSingleServerOpOverrideRequest post /test/single_servers
+func (a API) TestSingleServerOpOverrideRequest(w http.ResponseWriter, r *http.Request) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestTypeOverrides get /test/type_overrides
-func (a API) TestTypeOverrides(w http.ResponseWriter, r *http.Request, body *oa3gen.Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (oa3gen.TestTypeOverridesResponse, error) {
+func (a API) TestTypeOverrides(w http.ResponseWriter, r *http.Request, body *oa3gen.Primitives, number decimal.Decimal, date chrono.Date, numberNull null.Val[decimal.Decimal], dateNull null.Val[chrono.Date], numberNonReq omit.Val[decimal.Decimal], dateNonReq omit.Val[chrono.Date]) (oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestUnknownBodyType post /test/unknown/body/type
-func (a API) TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (oa3gen.TestUnknownBodyTypeResponse, error) {
+func (a API) TestUnknownBodyType(w http.ResponseWriter, r *http.Request) (oa3gen.TestUnknownBodyType200Inline, error) {
     panic("not implemented")
 }
 // GetUser get /users/{id}
 // Retrieves a user with a long description that spans multiple lines so
 // that we can see that both wrapping and long-line support is not
 // bleeding over the sacred 80 char limit.
-func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (oa3gen.GetUserResponse, error) {
+func (a API) GetUser(w http.ResponseWriter, r *http.Request, id string, paramComponent string, validStr omitnull.Val[GetUserGetValidStrParam], reqValidStr null.Val[GetUserGetReqValidStrParam], validInt omit.Val[int], reqValidInt int, validNum omit.Val[float64], reqValidNum float64, validBool omit.Val[bool], reqValidBool bool, reqStrFormat uuid.UUID, dateTime chrono.DateTime, date chrono.Date, timeVal chrono.Time, durationVal time.Duration, arrayPrimExplode omit.Val[GetUserGetArrayPrimExplodeParam], arrayPrimFlat GetUserGetArrayPrimFlatParam, arrayPrimIntExplode omit.Val[GetUserGetArrayPrimIntExplodeParam], arrayPrimIntFlat GetUserGetArrayPrimIntFlatParam, arrayEnumExplode omit.Val[GetUserGetArrayEnumExplodeParam], arrayEnumFlat GetUserGetArrayEnumFlatParam) (oa3gen.HTTPStatusNotModified, error) {
     panic("not implemented")
 }
 // SetUser post /users/{id}
