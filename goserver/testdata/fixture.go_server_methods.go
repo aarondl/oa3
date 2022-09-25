@@ -3,6 +3,7 @@
 package oa3gen
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"

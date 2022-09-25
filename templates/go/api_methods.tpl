@@ -136,6 +136,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     if r.Body != nil {
                 {{- end -}}
             {{- $.Import "github.com/aarondl/oa3/support"}}
+            {{- $.Import "bytes"}}
         var buf *bytes.Buffer
         if buf, err = support.ReadJSONBuffer(r, {{if not $json.Schema.Nullable}}&{{end}}reqBody); err != nil {
             return err
