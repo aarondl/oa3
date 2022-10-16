@@ -6,12 +6,11 @@ import (
 	"github.com/aarondl/oa3/support"
 )
 
-// Map types with an embedded object
-type MapEmbedded map[string]MapEmbeddedItem
+type TestMapsArrayInline200Inline []TestMapsArrayInline200InlineItem
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o MapEmbedded) validateSchema() support.Errors {
+func (o TestMapsArrayInline200Inline) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors

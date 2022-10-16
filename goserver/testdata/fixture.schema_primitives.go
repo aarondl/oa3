@@ -48,62 +48,6 @@ type Primitives struct {
 	UuidNull  null.Val[uuid.UUID]         `json:"uuid_null"`
 }
 
-type PrimitivesStr string
-
-const (
-	PrimitivesStrHello = PrimitivesStr("hello")
-)
-
-// validateSchema validates the object and returns
-// errors that can be returned to the user.
-func (o PrimitivesStr) validateSchema() support.Errors {
-	var ctx []string
-	var ers []error
-	var errs support.Errors
-	_, _, _ = ctx, ers, errs
-
-	ers = nil
-	if err := support.ValidateMaxLength(o, 5); err != nil {
-		ers = append(ers, err)
-	}
-	if err := support.ValidateMinLength(o, 5); err != nil {
-		ers = append(ers, err)
-	}
-	if err := support.ValidateEnum(o, []string{"hello"}); err != nil {
-		ers = append(ers, err)
-	}
-
-	return errs
-}
-
-type PrimitivesStrNull string
-
-var (
-	PrimitivesStrNullHello = PrimitivesStrNull("hello")
-)
-
-// validateSchema validates the object and returns
-// errors that can be returned to the user.
-func (o PrimitivesStrNull) validateSchema() support.Errors {
-	var ctx []string
-	var ers []error
-	var errs support.Errors
-	_, _, _ = ctx, ers, errs
-
-	ers = nil
-	if err := support.ValidateMaxLength(o, 5); err != nil {
-		ers = append(ers, err)
-	}
-	if err := support.ValidateMinLength(o, 5); err != nil {
-		ers = append(ers, err)
-	}
-	if err := support.ValidateEnum(o, []string{"hello"}); err != nil {
-		ers = append(ers, err)
-	}
-
-	return errs
-}
-
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
 func (o Primitives) validateSchema() support.Errors {

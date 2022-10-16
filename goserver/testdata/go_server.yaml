@@ -328,6 +328,42 @@ paths:
           enum: [v1, v2, v3]
           default: v1
 
+  /test/maps:
+    get:
+      operationId: testMapsInline
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object }
+    post:
+      operationId: testMapsRef
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MapAny' }
+
+  /test/arraymaps:
+    get:
+      operationId: testMapsArrayInline
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { type: object } }
+    post:
+      operationId: testMapsArrayRef
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/MapAny' } }
+
 components:
   parameters:
     Param:
@@ -455,12 +491,16 @@ components:
         required: [prop]
         type: object
         properties:
-          prop: { type: string }
+          prop: { type: string, maxLength: 5 }
 
     Map:
       description: Map types
       type: object
       additionalProperties: { type: array, items: { type: string } }
+
+    MapAny:
+      description: Map any
+      type: object
 
     MapEmbedded:
       description: Map types with an embedded object
@@ -487,6 +527,14 @@ components:
           minProperties: 5
           maxProperties: 6
           additionalProperties: { type: string }
+
+    MapBug:
+      description: Embedded array objects break
+      type: object
+      properties:
+        yap:
+          type: array
+          items: { type: object }
 
     Ref:
       description: References to other objects

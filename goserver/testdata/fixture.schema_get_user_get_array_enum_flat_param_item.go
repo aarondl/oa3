@@ -6,16 +6,25 @@ import (
 	"github.com/aarondl/oa3/support"
 )
 
-// Map types with an embedded object
-type MapEmbedded map[string]MapEmbeddedItem
+type GetUserGetArrayEnumFlatParamItem string
+
+const (
+	GetUserGetArrayEnumFlatParamItemA = GetUserGetArrayEnumFlatParamItem("a")
+	GetUserGetArrayEnumFlatParamItemB = GetUserGetArrayEnumFlatParamItem("b")
+)
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o MapEmbedded) validateSchema() support.Errors {
+func (o GetUserGetArrayEnumFlatParamItem) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
+
+	ers = nil
+	if err := support.ValidateEnum(o, []string{"a", "b"}); err != nil {
+		ers = append(ers, err)
+	}
 
 	return errs
 }

@@ -3,32 +3,30 @@
 package oa3gen
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/aarondl/oa3/support"
 )
 
-type GetUserGetArrayEnumFlatParam []GetUserGetArrayEnumFlatParamItem
+// This object is embedded in an array
+type ArrayEmbeddedItem struct {
+	Prop string `json:"prop"`
+}
 
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
-func (o GetUserGetArrayEnumFlatParam) validateSchema() support.Errors {
+func (o ArrayEmbeddedItem) validateSchema() support.Errors {
 	var ctx []string
 	var ers []error
 	var errs support.Errors
 	_, _, _ = ctx, ers, errs
 
-	for i, o := range o {
-		_ = o
-		ctx = append(ctx, fmt.Sprintf("[%d]", i))
-		var ers []error
-
-		ers = nil
-		if err := support.ValidateEnum(o, []string{"a", "b"}); err != nil {
-			ers = append(ers, err)
-		}
-
+	ers = nil
+	if err := support.ValidateMaxLength(o.Prop, 5); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "prop")
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
 		ctx = ctx[:len(ctx)-1]
 	}

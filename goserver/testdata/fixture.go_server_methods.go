@@ -110,6 +110,68 @@ func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
+// testmapsarrayinline get /test/arraymaps
+func (o GoServer) testmapsarrayinlineOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestMapsArrayInline(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	if err := support.WriteJSON(w, ret); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// testmapsarrayref post /test/arraymaps
+func (o GoServer) testmapsarrayrefOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestMapsArrayRef(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	if err := support.WriteJSON(w, ret); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // testenumqueryrequest get /test/enum/query/request
 func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request) error {
 	var err error
@@ -267,6 +329,68 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 	default:
 		_ = respBody
 		panic("impossible case")
+	}
+
+	return nil
+}
+
+// testmapsinline get /test/maps
+func (o GoServer) testmapsinlineOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestMapsInline(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	if err := support.WriteJSON(w, ret); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// testmapsref post /test/maps
+func (o GoServer) testmapsrefOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestMapsRef(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	if err := support.WriteJSON(w, ret); err != nil {
+		return err
 	}
 
 	return nil

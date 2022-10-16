@@ -11,29 +11,6 @@ import (
 
 type GetUserGetArrayEnumExplodeParam []GetUserGetArrayEnumExplodeParamItem
 
-type GetUserGetArrayEnumExplodeParamItem string
-
-const (
-	GetUserGetArrayEnumExplodeParamItemA = GetUserGetArrayEnumExplodeParamItem("a")
-	GetUserGetArrayEnumExplodeParamItemB = GetUserGetArrayEnumExplodeParamItem("b")
-)
-
-// validateSchema validates the object and returns
-// errors that can be returned to the user.
-func (o GetUserGetArrayEnumExplodeParamItem) validateSchema() support.Errors {
-	var ctx []string
-	var ers []error
-	var errs support.Errors
-	_, _, _ = ctx, ers, errs
-
-	ers = nil
-	if err := support.ValidateEnum(o, []string{"a", "b"}); err != nil {
-		ers = append(ers, err)
-	}
-
-	return errs
-}
-
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
 func (o GetUserGetArrayEnumExplodeParam) validateSchema() support.Errors {

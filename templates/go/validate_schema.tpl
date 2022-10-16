@@ -22,7 +22,7 @@
         _ = o
         {{- $.Import "fmt"}}
         ctx = append(ctx, fmt.Sprintf("[%d]", i))
-            {{- if $s.Items.Ref}}
+            {{- if or $s.Items.Ref (not (isInlinePrimitive $s.Items.Schema))}}
         if newErrs := Validate(o); newErrs != nil {
             errs = support.AddErrsFlatten(errs, strings.Join(ctx, "."), newErrs)
         }
