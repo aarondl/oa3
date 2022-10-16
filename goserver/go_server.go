@@ -202,6 +202,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		return nil, nil
 	}
 
+	var err error
 	keys := make([]string, 0, len(spec.Components.Schemas))
 	for k := range spec.Components.Schemas {
 		keys = append(keys, k)
@@ -213,12 +214,10 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 	for _, k := range keys {
 		v := spec.Components.Schemas[k]
 		filename := "schema_" + camelSnake(k) + ".go"
-
-		generated, err := makePseudoFile(spec, params, tpl, filename, k, v, false)
+		topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, k, v, false)
 		if err != nil {
 			return nil, err
 		}
-		topLevelStructs = append(topLevelStructs, generated)
 	}
 
 	type opMap struct {
@@ -253,11 +252,10 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := fmt.Sprintf("schema_%s_%s_%s_param.go", camelSnake(o.Op.OperationID), strings.ToLower(o.Verb), camelSnake(p.Name))
-				generated, err := makePseudoFile(spec, params, tpl, filename, paramSchemaName(o.Op.OperationID, o.Verb, p.Name), p.Schema, p.Required) //nolint:staticcheck
+				topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, paramSchemaName(o.Op.OperationID, o.Verb, p.Name), p.Schema, p.Required)
 				if err != nil {
 					return nil, err
 				}
-				topLevelStructs = append(topLevelStructs, generated)
 			}
 		}
 		for _, o := range opMaps {
@@ -283,12 +281,11 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_reqbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+"Inline", &schema, o.Op.RequestBody.Required) //nolint:staticcheck
+				name := strings.Title(o.Op.OperationID) + "Inline" //nolint:staticcheck
+				topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, name, &schema, o.Op.RequestBody.Required)
 				if err != nil {
 					return nil, err
 				}
-
-				topLevelStructs = append(topLevelStructs, generated)
 			}
 		}
 
@@ -312,12 +309,11 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
-				generated, err := makePseudoFile(spec, params, tpl, filename, strings.Title(o.Op.OperationID)+strings.Title(code)+"Inline", &schema, true) //nolint:staticcheck
+				name := strings.Title(o.Op.OperationID) + strings.Title(code) + "Inline"
+				topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, name, &schema, true)
 				if err != nil {
 					return nil, err
 				}
-
-				topLevelStructs = append(topLevelStructs, generated)
 			}
 		}
 	}
@@ -329,12 +325,10 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		}
 
 		filename := "schema_" + camelSnake(name) + "_reqbody.go"
-		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, req.Required)
+		topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, name+"Inline", &schema, req.Required)
 		if err != nil {
 			return nil, err
 		}
-
-		topLevelStructs = append(topLevelStructs, generated)
 	}
 
 	for name, resp := range spec.Components.Responses {
@@ -347,7 +341,59 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 		}
 
 		filename := "schema_" + camelSnake(name) + "_respbody.go"
-		generated, err := makePseudoFile(spec, params, tpl, filename, name+"Inline", &schema, true)
+		topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, name+"Inline", &schema, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return topLevelStructs, nil
+}
+
+// recurseSchemas checks for any embedded structs or enums that should
+// be brought to the top level
+func recurseSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, topLevelStructs []generator.File, filename, name string, ref *openapi3spec.SchemaRef, required bool) ([]generator.File, error) {
+	if ref.IsRef() {
+		return topLevelStructs, nil
+	}
+
+	var err error
+	switch ref.Type {
+	case "object":
+		if ref.AdditionalProperties != nil && ref.AdditionalProperties.SchemaRef != nil {
+			topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, "", name+"Item", ref.AdditionalProperties.SchemaRef, true)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		for propname, prop := range ref.Properties {
+			objname := name + snakeToCamel(strings.Title(propname))
+			fmt.Println("YEAH MAN", name, propname, objname)
+			topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, "", objname, prop, ref.IsRequired(propname)) //nolint:staticcheck
+			if err != nil {
+				return nil, err
+			}
+		}
+	case "array":
+		topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, "", name+"Item", ref.Items, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if ref.Schema == nil {
+		return topLevelStructs, nil
+	}
+
+	// If the filename has been set that means we're intent on writing this file
+	// no matter what, else if there's an enum present or it's not an inline
+	// primitive we have to render a type out for it.
+	if len(filename) != 0 || ref.HasEnum() || !isInlinePrimitive(ref.Schema) {
+		if len(filename) == 0 {
+			filename = "schema_" + camelSnake(name) + ".go"
+		}
+		generated, err := makePseudoFile(spec, params, tpl, filename, name, ref, required)
 		if err != nil {
 			return nil, err
 		}

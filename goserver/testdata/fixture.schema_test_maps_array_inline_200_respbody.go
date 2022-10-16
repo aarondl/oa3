@@ -8,19 +8,6 @@ import (
 
 type TestMapsArrayInline200Inline []TestMapsArrayInline200InlineItem
 
-type TestMapsArrayInline200InlineItem map[string]any
-
-// validateSchema validates the object and returns
-// errors that can be returned to the user.
-func (o TestMapsArrayInline200InlineItem) validateSchema() support.Errors {
-	var ctx []string
-	var ers []error
-	var errs support.Errors
-	_, _, _ = ctx, ers, errs
-
-	return errs
-}
-
 // validateSchema validates the object and returns
 // errors that can be returned to the user.
 func (o TestMapsArrayInline200Inline) validateSchema() support.Errors {

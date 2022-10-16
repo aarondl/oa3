@@ -471,13 +471,13 @@ components:
         required: [prop]
         type: object
         properties:
-          prop: { type: string }
+          prop: { type: string, maxLength: 5 }
 
     Map:
       description: Map types
       type: object
       additionalProperties: { type: array, items: { type: string } }
-    
+
     MapAny:
       description: Map any
       type: object

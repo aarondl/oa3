@@ -421,6 +421,16 @@ type SchemaRef struct {
 	*Schema
 }
 
+// IsRef returns true if this ref is a reference to something else.
+func (s SchemaRef) IsRef() bool {
+	return len(s.Ref) != 0
+}
+
+// HasEnum returns true if this schema has an enum property.
+func (s SchemaRef) HasEnum() bool {
+	return len(s.Enum) != 0
+}
+
 // Validate schema ref
 func (s *SchemaRef) Validate() error {
 	// Don't validate references

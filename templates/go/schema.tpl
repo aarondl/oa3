@@ -8,7 +8,7 @@
                 {{title .Name}}
             {{- end -}}
         {{- else -}}
-            {{- template "schema" (recurseData $ $.Name $.Object) -}}
+            {{- template "schema" $ -}}
         {{- end -}}
     {{- else -}}
         {{- if $.Object.Schema.Nullable}}*{{end}}{{.Name}}
@@ -22,18 +22,6 @@
     {{title $.Name}}{{filterNonIdentChars $value | snakeToCamel | title }} = {{title $.Name}}({{printf "%q" $value}})
     {{- end}}
 )
-{{- end -}}
-
-{{- /* Used to output an embedded type, takes a TemplateData with the object set
-to a schema ref */ -}}
-{{- define "type_embedded" -}}
-    {{- if and (not $.Object.Ref) $.Object.Enum}}
-
-{{template "schema_top" (newDataRequired $ $.Name $.Object true)}}
-    {{- else if and (not .Object.Ref) (not (isInlinePrimitive .Object.Schema))}}
-
-{{template "schema_top" $ -}}
-    {{- end -}}
 {{- end -}}
 
 {{- /* Write out the schema after ensuring it's not a ref */ -}}
@@ -54,18 +42,12 @@ to a schema ref */ -}}
     {{- else if eq $s.Type "array" -}}[]
         {{- template "type_name" (recurseDataSetRequired $ "Item" $s.Items true) -}}
 
-        {{- /* Array properties embedded */ -}}
-        {{- template "type_embedded" (recurseDataSetRequired $ "Item" $s.Items true) -}}
-
     {{- else if eq $s.Type "object" -}}
         {{- if or (eq 0 (len $s.Properties)) $s.AdditionalProperties -}}map[string]
             {{- if $s.AdditionalProperties -}}
                 {{- if not $s.AdditionalProperties.SchemaRef -}}{{fail "additionalItems must not be the bool case"}}{{- end -}}
                 {{- /* Map properties normal */ -}}
                 {{- template "type_name" (recurseDataSetRequired $ "Item" $s.AdditionalProperties.SchemaRef true) }}
-
-                {{- /* Map properties embedded */ -}}
-                {{- template "type_embedded" (recurseDataSetRequired $ "Item" $s.AdditionalProperties.SchemaRef true) -}}
             {{- else -}}
             any
             {{- end -}}
@@ -94,11 +76,6 @@ to a schema ref */ -}}
                 {{- end}} `json:"{{$name}}{{if not $elementRequired}},omitempty{{end}}"`
             {{- end}}
 }
-
-            {{- /* Process embedded structs */ -}}
-            {{- range $name, $element := $s.Properties -}}
-                {{- template "type_embedded" (recurseDataSetRequired $ (camelcase $name) $element ($s.IsRequired $name)) -}}
-            {{- end -}}
         {{- end}}
     {{- else}}
         {{- primitive $ $s -}}
