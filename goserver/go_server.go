@@ -382,7 +382,6 @@ func recurseSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 
 		for propname, prop := range ref.Properties {
 			objname := name + snakeToCamel(strings.Title(propname))
-			fmt.Println("YEAH MAN", name, propname, objname)
 			topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, "", objname, prop, ref.IsRequired(propname)) //nolint:staticcheck
 			if err != nil {
 				return nil, err
