@@ -322,7 +322,7 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 				}
 
 				filename := "schema_" + camelSnake(o.Op.OperationID) + "_" + code + "_respbody.go"
-				name := strings.Title(o.Op.OperationID) + strings.Title(code) + "Inline"
+				name := strings.Title(o.Op.OperationID) + strings.Title(code) + "Inline" //nolint:staticcheck
 				topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, filename, name, &schema, true)
 				if err != nil {
 					return nil, err
@@ -381,8 +381,8 @@ func recurseSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 		}
 
 		for propname, prop := range ref.Properties {
-			objname := name + snakeToCamel(strings.Title(propname))
-			topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, "", objname, prop, ref.IsRequired(propname)) //nolint:staticcheck
+			objname := name + snakeToCamel(strings.Title(propname)) //nolint:staticcheck
+			topLevelStructs, err = recurseSchemas(spec, params, tpl, topLevelStructs, "", objname, prop, ref.IsRequired(propname))
 			if err != nil {
 				return nil, err
 			}
