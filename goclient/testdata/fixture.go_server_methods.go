@@ -88,6 +88,84 @@ func (_c Client) TestArrayRequest(ctx context.Context, body TestArrayRequestInli
 	return _resp, _httpResp, nil
 }
 
+// TestMapsArrayInline get /test/arraymaps
+func (_c Client) TestMapsArrayInline(ctx context.Context) (TestMapsArrayInline200Inline, *http.Response, error) {
+	var _resp TestMapsArrayInline200Inline
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/arraymaps`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		var _respObject TestMapsArrayInline200Inline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return _resp, _httpResp, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
+		}
+		_resp = _respObject
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
+// TestMapsArrayRef post /test/arraymaps
+func (_c Client) TestMapsArrayRef(ctx context.Context) (TestMapsArrayRef200Inline, *http.Response, error) {
+	var _resp TestMapsArrayRef200Inline
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/arraymaps`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		var _respObject TestMapsArrayRef200Inline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return _resp, _httpResp, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
+		}
+		_resp = _respObject
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // TestEnumQueryRequest get /test/enum/query/request
 func (_c Client) TestEnumQueryRequest(ctx context.Context, body TestEnumQueryRequestInline, sort TestEnumQueryRequestGetSortParam) (HTTPStatusOk, *http.Response, error) {
 	var _resp HTTPStatusOk
@@ -203,6 +281,84 @@ func (_c Client) TestInline(ctx context.Context, body TestInlineInline) (TestInl
 		_resp = _respObject
 	case 201:
 		var _respObject TestInline201Inline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return _resp, _httpResp, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
+		}
+		_resp = _respObject
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
+// TestMapsInline get /test/maps
+func (_c Client) TestMapsInline(ctx context.Context) (TestMapsInline200Inline, *http.Response, error) {
+	var _resp TestMapsInline200Inline
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/maps`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		var _respObject TestMapsInline200Inline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return _resp, _httpResp, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
+		}
+		_resp = _respObject
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
+// TestMapsRef post /test/maps
+func (_c Client) TestMapsRef(ctx context.Context) (MapAny, *http.Response, error) {
+	var _resp MapAny
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/maps`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		var _respObject MapAny
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
 			return _resp, _httpResp, _err

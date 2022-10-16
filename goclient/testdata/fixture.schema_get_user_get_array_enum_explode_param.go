@@ -3,10 +3,3 @@
 package oa3gen
 
 type GetUserGetArrayEnumExplodeParam []GetUserGetArrayEnumExplodeParamItem
-
-type GetUserGetArrayEnumExplodeParamItem string
-
-const (
-	GetUserGetArrayEnumExplodeParamItemA = GetUserGetArrayEnumExplodeParamItem("a")
-	GetUserGetArrayEnumExplodeParamItemB = GetUserGetArrayEnumExplodeParamItem("b")
-)

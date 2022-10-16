@@ -3,10 +3,3 @@
 package oa3gen
 
 type GetUserGetArrayEnumFlatParam []GetUserGetArrayEnumFlatParamItem
-
-type GetUserGetArrayEnumFlatParamItem string
-
-const (
-	GetUserGetArrayEnumFlatParamItemA = GetUserGetArrayEnumFlatParamItem("a")
-	GetUserGetArrayEnumFlatParamItemB = GetUserGetArrayEnumFlatParamItem("b")
-)

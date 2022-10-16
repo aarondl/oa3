@@ -4,6 +4,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.47] - 2022-10-16
+
+### Changed
+
+- Go server/client: Now use dfs for outputting embedded structs. This creates
+  more smaller files, previously this would output embedded items in the same
+  file as their parents which was nice, but had corner cases which would break
+  generation.
+
 ## [v0.0.46] - 2022-09-25
 
 ### Changed

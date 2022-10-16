@@ -4,7 +4,3 @@ package oa3gen
 
 // Map types with an embedded object
 type MapEmbedded map[string]MapEmbeddedItem
-
-type MapEmbeddedItem struct {
-	Prop string `json:"prop"`
-}

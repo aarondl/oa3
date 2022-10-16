@@ -45,15 +45,3 @@ type Primitives struct {
 	Uuid      uuid.UUID                   `json:"uuid"`
 	UuidNull  null.Val[uuid.UUID]         `json:"uuid_null"`
 }
-
-type PrimitivesStr string
-
-const (
-	PrimitivesStrHello = PrimitivesStr("hello")
-)
-
-type PrimitivesStrNull string
-
-var (
-	PrimitivesStrNullHello = PrimitivesStrNull("hello")
-)

@@ -2,5 +2,7 @@
 // This file is meant to be re-generated in place and/or deleted at any time.
 package oa3gen
 
-// Embedded object in an array
-type ArrayEmbedded []ArrayEmbeddedItem
+// This object is embedded in an array
+type ArrayEmbeddedItem struct {
+	Prop string `json:"prop"`
+}
