@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/aarondl/chrono v0.0.0-20220619041552-b7e20a5d82b7
 	github.com/aarondl/fixtures v0.0.1
-	github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430
+	github.com/aarondl/json v0.0.0-20221020222930-8b0db17ef1bf
 	github.com/google/uuid v1.3.0
 	github.com/peterhellberg/duration v0.0.0-20191119133758-ec6baeebcd10
 	github.com/shopspring/decimal v1.3.1
@@ -18,6 +18,7 @@ require (
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/aarondl/opt v0.0.0-20221020222611-de91b81639ae // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

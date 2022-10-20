@@ -10,6 +10,12 @@ github.com/aarondl/fixtures v0.0.1 h1:V8kNm0gyNqGz6plX2b7Yu65MDs9k2Advnw/ddRBSkQ
 github.com/aarondl/fixtures v0.0.1/go.mod h1:3HSL7FaxMCcKQITEV46UhLsokm1tVgGoGxFEJxQMxfo=
 github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430 h1:JwYT8qI5VZhk19g6IwSZisNyqbtOHzIKMsJ3dyD2j40=
 github.com/aarondl/json v0.0.0-20220617154744-cd8aeb26b430/go.mod h1:FZqLhJSj2tg0ZN48GB1zvj00+ZYcHPqgsC7yzcgCq6k=
+github.com/aarondl/json v0.0.0-20221020222930-8b0db17ef1bf h1:+edM69bH/X6JpYPmJYBRLanAMe1V5yRXYU3hHUovGcE=
+github.com/aarondl/json v0.0.0-20221020222930-8b0db17ef1bf/go.mod h1:FZqLhJSj2tg0ZN48GB1zvj00+ZYcHPqgsC7yzcgCq6k=
+github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c h1:2Gqf5w8k30czPgvm78I6ifVBDxqlwmwbc9hjzbWWKA8=
+github.com/aarondl/opt v0.0.0-20220611032941-846a5a057d8c/go.mod h1:SVWo7tdg6gXZt1ylP4RgzL78B+Jp5bZlhpu40Kp8YXk=
+github.com/aarondl/opt v0.0.0-20221020222611-de91b81639ae h1:Bn2JbjbALhFxLmupwK13VW5xnKgJn29nZuL5E4BLGXo=
+github.com/aarondl/opt v0.0.0-20221020222611-de91b81639ae/go.mod h1:SVWo7tdg6gXZt1ylP4RgzL78B+Jp5bZlhpu40Kp8YXk=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
