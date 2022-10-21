@@ -4,9 +4,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.49] - 2022-10-21
+
+### Fixed
+
+- Go server/client: Bump the opt package to not switch json packages mid-encode.
+- Go client: Fix a bug where you could not use WithDebug with the generated
+  client due to empty url.
+
 ## [v0.0.48] - 2022-10-20
 
-- Go server/client: Bump the omit and json package to have symmetrical behavior
+### Fixed
+
+- Go server/client: Bump the opt and json package to have symmetrical behavior
   in edge cases in encoding.
 
 ## [v0.0.47] - 2022-10-16

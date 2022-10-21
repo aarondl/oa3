@@ -18,7 +18,7 @@ require (
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/aarondl/opt v0.0.0-20221020222611-de91b81639ae // indirect
+	github.com/aarondl/opt v0.0.0-20221021153724-6caa84eca0a7 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
