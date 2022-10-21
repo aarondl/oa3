@@ -256,7 +256,7 @@ func NewClient(httpClient *http.Client, limiter *rate.Limiter, baseURL URLBuilde
 // with the prepared requests instead of an http client that will touch the
 // network. Useful for testing.
 func NewLocalClient(httpHandler http.Handler) Client {
-	return Client{httpHandler: httpHandler, url: URL("")}
+	return Client{httpHandler: httpHandler, url: URL("http://localhost")}
 }
 
 // WithURL sets the url for this client, the client is a shallow clone and
