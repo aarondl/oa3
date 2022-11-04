@@ -3,10 +3,4 @@
 package oa3gen
 
 // An example of an object that can be exactly one of 3 things
-type OneOf interface {
-	OneOfTypeCheck()
-}
-
-type OneOfIntf interface {
-	OneOfTypeCheck()
-}
+type OneOf any
