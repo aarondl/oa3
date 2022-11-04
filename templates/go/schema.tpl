@@ -36,9 +36,6 @@
         {{$.Name}}TypeCheck()
     }
 
-    type {{$.Name}}Intf interface {
-        {{$.Name}}TypeCheck()
-    }
     {{- else if eq $s.Type "array" -}}[]
         {{- template "type_name" (recurseDataSetRequired $ "Item" $s.Items true) -}}
 
