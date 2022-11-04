@@ -32,9 +32,7 @@
 
     {{template "type_enum" (newDataRequired $ $.Name $s true)}}
 
-    {{- else if or $s.AnyOf $s.OneOf -}}interface {
-        {{$.Name}}TypeCheck()
-    }
+    {{- else if or $s.AnyOf $s.OneOf -}}any
 
     {{- else if eq $s.Type "array" -}}[]
         {{- template "type_name" (recurseDataSetRequired $ "Item" $s.Items true) -}}
