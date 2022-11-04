@@ -4,6 +4,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.50] - 2022-11-04
+
+### Changed
+
+- Go client/server: Current OneOf strategy thrown out for `any`
+  until such time that we can improve it to work with primitives.
+
 ## [v0.0.49] - 2022-10-21
 
 ### Fixed
