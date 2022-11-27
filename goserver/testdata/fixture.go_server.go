@@ -40,6 +40,8 @@ type Interface interface {
 	TestMapsInline(w http.ResponseWriter, r *http.Request) (*TestMapsInline200Inline, error)
 	// TestMapsRef post /test/maps
 	TestMapsRef(w http.ResponseWriter, r *http.Request) (*MapAny, error)
+	// TestQueryIntArrayParam post /test/queryintarrayparam
+	TestQueryIntArrayParam(w http.ResponseWriter, r *http.Request, intarray omit.Val[TestQueryIntArrayParamPostIntarrayParam], intarrayrequired TestQueryIntArrayParamPostIntarrayrequiredParam) (*HTTPStatusOk, error)
 	// TestServerPathOverrideRequest get /test/servers
 	TestServerPathOverrideRequest(w http.ResponseWriter, r *http.Request) (*HTTPStatusOk, error)
 	// TestServerOpOverrideRequest post /test/servers
@@ -99,6 +101,7 @@ func NewGoServer(
 		r.Method(http.MethodPost, `/test/arraymaps`, eh.Wrap(o.testmapsarrayrefOp))
 		r.Method(http.MethodGet, `/test/maps`, eh.Wrap(o.testmapsinlineOp))
 		r.Method(http.MethodPost, `/test/maps`, eh.Wrap(o.testmapsrefOp))
+		r.Method(http.MethodPost, `/test/queryintarrayparam`, eh.Wrap(o.testqueryintarrayparamOp))
 		r.Method(http.MethodPost, `/test/servers`, eh.Wrap(o.testserveropoverriderequestOp))
 		r.Method(http.MethodGet, `/test/servers`, eh.Wrap(o.testserverpathoverriderequestOp))
 		r.Method(http.MethodPost, `/test/single_servers`, eh.Wrap(o.testsingleserveropoverriderequestOp))
@@ -215,6 +218,10 @@ func (a API) TestMapsInline(w http.ResponseWriter, r *http.Request) (*oa3gen.Tes
 }
 // TestMapsRef post /test/maps
 func (a API) TestMapsRef(w http.ResponseWriter, r *http.Request) (*oa3gen.MapAny, error) {
+    panic("not implemented")
+}
+// TestQueryIntArrayParam post /test/queryintarrayparam
+func (a API) TestQueryIntArrayParam(w http.ResponseWriter, r *http.Request, intarray omit.Val[TestQueryIntArrayParamPostIntarrayParam], intarrayrequired TestQueryIntArrayParamPostIntarrayrequiredParam) (*oa3gen.HTTPStatusOk, error) {
     panic("not implemented")
 }
 // TestServerPathOverrideRequest get /test/servers

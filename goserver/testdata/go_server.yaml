@@ -364,6 +364,20 @@ paths:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/MapAny' } }
 
+  /test/queryintarrayparam:
+    post:
+      operationId: testQueryIntArrayParam
+      parameters:
+        - name: intarray
+          in: query
+          schema: { type: array, items: { type: integer, format: int32 }}
+        - name: intarrayrequired
+          in: query
+          required: true
+          schema: { type: array, items: { type: integer, format: int32 }}
+      responses:
+        '200': { description: OK }
+
 components:
   parameters:
     Param:

@@ -396,6 +396,60 @@ func (o GoServer) testmapsrefOp(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// testqueryintarrayparam post /test/queryintarrayparam
+func (o GoServer) testqueryintarrayparamOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+	const n0 = `intarray`
+	query := r.URL.Query()
+	s0 := query[n0]
+	s0Exists := len(s0) > 0 && len(s0[0]) > 0
+	var p0 omit.Val[TestQueryIntArrayParamPostIntarrayParam]
+	if s0Exists {
+		c0, err := support.ExplodedFormArrayToSlice[int32](s0, support.StringToInt[int32])
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n0, `TestQueryIntArrayParamPostIntarrayParam`, err)
+		}
+		p0.Set(c0)
+
+	}
+	const n1 = `intarrayrequired`
+	s1 := query[n1]
+	s1Exists := len(s1) > 0 && len(s1[0]) > 0
+	var p1 TestQueryIntArrayParamPostIntarrayrequiredParam
+	if !s1Exists || len(s1) == 0 {
+		errs = support.AddErrs(errs, n1, errors.New(`must be provided and not be empty`))
+	} else {
+		c1, err := support.ExplodedFormArrayToSlice[int32](s1, support.StringToInt[int32])
+		if err != nil {
+			return fmt.Errorf("failed to convert parameter %q to %q: %w", n1, `TestQueryIntArrayParamPostIntarrayrequiredParam`, err)
+		}
+		p1 = c1
+
+	}
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestQueryIntArrayParam(w, r, p0, p1)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	return nil
+}
+
 // testserverpathoverriderequest get /test/servers
 func (o GoServer) testserverpathoverriderequestOp(w http.ResponseWriter, r *http.Request) error {
 	var err error

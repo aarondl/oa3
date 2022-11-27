@@ -940,22 +940,23 @@ func paramRequiresType(param openapi3spec.ParameterRef) bool {
 func paramConvertFn(tdata templates.TemplateData, param openapi3spec.ParameterRef, paramTypeName, rhs string) (string, error) {
 	outerType := param.Schema.Type
 	innerType := param.Schema.Type
+	innerFormat := ""
 	if innerType == "array" {
 		innerType = param.Schema.Items.Type
+		if param.Schema.Items.Format != nil {
+			innerFormat = *param.Schema.Items.Format
+		}
+	} else if param.Schema.Format != nil {
+		innerFormat = *param.Schema.Format
 	}
 
 	var innerConversion string
-
-	format := ""
-	if param.Schema.Format != nil {
-		format = *param.Schema.Format
-	}
 
 	switch innerType {
 	case "string":
 		tdata.Import("github.com/aarondl/oa3/support")
 
-		switch format {
+		switch innerFormat {
 		case "date":
 			if tdata.TemplateParamEquals("timetype", "chrono") {
 				innerConversion = "support.StringToChronoDate"
@@ -999,7 +1000,7 @@ func paramConvertFn(tdata templates.TemplateData, param openapi3spec.ParameterRe
 	case "integer":
 		tdata.Import("github.com/aarondl/oa3/support")
 
-		switch format {
+		switch innerFormat {
 		case "int32":
 			innerConversion = "support.StringToInt[int32]"
 		case "int64":
@@ -1011,7 +1012,7 @@ func paramConvertFn(tdata templates.TemplateData, param openapi3spec.ParameterRe
 		}
 	case "number":
 		tdata.Import("github.com/aarondl/oa3/support")
-		switch format {
+		switch innerFormat {
 		case "float":
 			innerConversion = "support.StringToFloat[float32]"
 		case "", "double":
