@@ -374,6 +374,48 @@ func (_c Client) TestMapsRef(ctx context.Context) (MapAny, *http.Response, error
 	return _resp, _httpResp, nil
 }
 
+// TestQueryIntArrayParam post /test/queryintarrayparam
+func (_c Client) TestQueryIntArrayParam(ctx context.Context, intarray omit.Val[TestQueryIntArrayParamPostIntarrayParam], intarrayrequired TestQueryIntArrayParamPostIntarrayrequiredParam) (HTTPStatusOk, *http.Response, error) {
+	var _resp HTTPStatusOk
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/queryintarrayparam`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if _query == nil {
+		_query = make(url.Values)
+	}
+	if _val, _ok := intarray.Get(); _ok {
+		for _, _v := range _val {
+			_query.Add(`intarray`, fmt.Sprintf("%v", _v))
+		}
+	}
+	for _, _v := range intarrayrequired {
+		_query.Add(`intarrayrequired`, fmt.Sprintf("%v", _v))
+	}
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		_resp = HTTPStatusOk{}
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // TestServerPathOverrideRequest get /test/servers
 func (_c Client) TestServerPathOverrideRequest(ctx context.Context, baseURL URLBuilderTestservers) (HTTPStatusOk, *http.Response, error) {
 	var _resp HTTPStatusOk
