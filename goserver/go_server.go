@@ -235,8 +235,12 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 
 	for _, p := range spec.Paths {
 		opMaps := []opMap{
-			{"GET", p.Get}, {"POST", p.Post}, {"PUT", p.Put},
-			{"PATCH", p.Patch}, {"TRACE", p.Trace}, {"HEAD", p.Head},
+			{"GET", p.Get},
+			{"POST", p.Post},
+			{"PUT", p.Put},
+			{"PATCH", p.Patch},
+			{"TRACE", p.Trace},
+			{"HEAD", p.Head},
 			{"DELETE", p.Delete},
 		}
 		for _, o := range opMaps {
@@ -332,7 +336,12 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 	}
 
 	for name, req := range spec.Components.RequestBodies {
-		schema := req.Content["application/json"].Schema
+		reqMedia, ok := req.Content["application/json"]
+		if !ok {
+			continue
+		}
+
+		schema := reqMedia.Schema
 		if len(schema.Ref) != 0 {
 			continue
 		}
@@ -345,10 +354,16 @@ func GenerateTopLevelSchemas(spec *openapi3spec.OpenAPI3, params map[string]stri
 	}
 
 	for name, resp := range spec.Components.Responses {
+		respMedia, ok := resp.Content["application/json"]
+		if !ok {
+			continue
+		}
+
 		if len(resp.Content) == 0 {
 			continue
 		}
-		schema := resp.Content["application/json"].Schema
+
+		schema := respMedia.Schema
 		if len(schema.Ref) != 0 {
 			continue
 		}
