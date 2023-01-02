@@ -320,7 +320,19 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
+	case *TestInline200Inline:
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
 	case TestInline201Inline:
+		w.WriteHeader(201)
+
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	case *TestInline201Inline:
 		w.WriteHeader(201)
 
 		if err := support.WriteJSON(w, respBody); err != nil {
@@ -1136,7 +1148,20 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
+	case *SetUserWrappedResponse:
+		headers := w.Header()
+		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
+			headers.Set("X-Response-Header", val)
+		}
+		w.WriteHeader(200)
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
 	case Primitives:
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	case *Primitives:
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
