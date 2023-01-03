@@ -67,9 +67,10 @@ type Interface interface {
 type (
 	// GoServer implements all the wrapper functionality for the API
 	GoServer struct {
-		impl      Interface
-		converter support.ValidationConverter
-		router    *chi.Mux
+		impl        Interface
+		converter   support.ValidationConverter
+		router      *chi.Mux
+		interceptor support.Interceptor
 	}
 )
 
@@ -79,12 +80,14 @@ func NewGoServer(
 	cnv support.ValidationConverter,
 	eh support.ErrorHandler,
 	mw support.MW,
+	interceptor support.Interceptor,
 ) http.Handler {
 
 	o := GoServer{
-		impl:      impl,
-		converter: cnv,
-		router:    chi.NewRouter(),
+		impl:        impl,
+		converter:   cnv,
+		router:      chi.NewRouter(),
+		interceptor: interceptor,
 	}
 
 	// Untagged operations

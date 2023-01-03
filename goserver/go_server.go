@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go/format"
 	"io/fs"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -38,6 +39,7 @@ const (
 var TemplateList = []string{
 	"api_interface.tpl",
 	"api_methods.tpl",
+	"api_spec.tpl",
 	"responses.tpl",
 	"schema.tpl",
 	"schema_top.tpl",
@@ -70,6 +72,7 @@ var TemplateFunctions = map[string]any{
 	"responseNeedsWrap":   responseNeedsWrap,
 	"responseNeedsPtr":    responseNeedsPtr,
 	"responseRefName":     responseRefName,
+	"codeForValue":        codeForValue,
 
 	// overrides of the defaults
 	"mustValidate":        mustValidate,
@@ -117,6 +120,13 @@ func (g *gen) Do(spec *openapi3spec.OpenAPI3, params map[string]string) ([]gener
 
 	files = append(files, f...)
 
+	f, err = generateAPISpec(spec, params, g.tpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate api interface: %w", err)
+	}
+
+	files = append(files, f...)
+
 	for i, f := range files {
 		formatted, err := format.Source(f.Contents)
 		if err != nil {
@@ -135,55 +145,32 @@ func generateAPIInterface(spec *openapi3spec.OpenAPI3, params map[string]string,
 	}
 
 	files := make([]generator.File, 0)
-
 	apiName := strings.Title(strings.ReplaceAll(spec.Info.Title, " ", "")) //nolint:staticcheck
 
+	fileBuf.Reset()
+	headerBuf.Reset()
 	data := templates.NewTemplateDataWithObject(spec, params, apiName, nil, false)
-
 	filename := generator.FilenameFromTitle(spec.Info.Title) + ".go"
 
-	buf := new(bytes.Buffer)
-	if err := tpl.ExecuteTemplate(buf, "api_interface", data); err != nil {
+	if err := tpl.ExecuteTemplate(fileBuf, "api_interface", data); err != nil {
 		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
 	}
 
-	fileBytes := new(bytes.Buffer)
-	pkg := params["package"]
-
-	fileBytes.WriteString(Disclaimer)
-	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
-	if imps := Imports(data.Imports); len(imps) != 0 {
-		fileBytes.WriteByte('\n')
-		fileBytes.WriteString(Imports(data.Imports))
-		fileBytes.WriteByte('\n')
-	}
-	fileBytes.WriteByte('\n')
-	fileBytes.Write(buf.Bytes())
-
-	content := make([]byte, len(fileBytes.Bytes()))
-	copy(content, fileBytes.Bytes())
+	content := appendFileHeader(data, params)
 	files = append(files, generator.File{Name: filename, Contents: content})
+
+	fileBuf.Reset()
+	headerBuf.Reset()
 
 	data = templates.NewTemplateDataWithObject(spec, params, apiName, nil, false)
 	filename = generator.FilenameFromTitle(spec.Info.Title) + "_methods.go"
 
-	buf.Reset()
-	fileBytes.Reset()
-	if err := tpl.ExecuteTemplate(buf, "api_methods", data); err != nil {
+	if err := tpl.ExecuteTemplate(fileBuf, "api_methods", data); err != nil {
 		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
 	}
 
-	fileBytes.WriteString(Disclaimer)
-	fmt.Fprintf(fileBytes, "\npackage %s\n", pkg)
-	if imps := Imports(data.Imports); len(imps) != 0 {
-		fileBytes.WriteByte('\n')
-		fileBytes.WriteString(Imports(data.Imports))
-		fileBytes.WriteByte('\n')
-	}
-	fileBytes.WriteByte('\n')
-	fileBytes.Write(buf.Bytes())
-
-	files = append(files, generator.File{Name: filename, Contents: fileBytes.Bytes()})
+	content = appendFileHeader(data, params)
+	files = append(files, generator.File{Name: filename, Contents: content})
 
 	return files, nil
 }
@@ -405,7 +392,7 @@ func recurseSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 		if len(filename) == 0 {
 			filename = "schema_" + camelSnake(name) + ".go"
 		}
-		generated, err := makePseudoFile(spec, params, tpl, filename, name, ref, required)
+		generated, err := makeSchemaPseudoFile(spec, params, tpl, filename, name, ref, required)
 		if err != nil {
 			return nil, err
 		}
@@ -415,21 +402,23 @@ func recurseSchemas(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 	return topLevelStructs, nil
 }
 
-var (
-	fileBuf   = new(bytes.Buffer)
-	headerBuf = new(bytes.Buffer)
-)
-
-func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, filename string, name string, schema *openapi3spec.SchemaRef, required bool) (generator.File, error) {
+func generateAPISpec(schema *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template) ([]generator.File, error) {
 	fileBuf.Reset()
 	headerBuf.Reset()
 
-	data := templates.NewTemplateDataWithObject(spec, params, name, schema, required)
+	data := templates.NewTemplateDataWithObject(schema, params, "spec", schema, false)
 
-	if err := tpl.ExecuteTemplate(fileBuf, "schema_top", data); err != nil {
-		return generator.File{}, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	if err := tpl.ExecuteTemplate(fileBuf, "api_spec", data); err != nil {
+		return nil, fmt.Errorf("failed rendering template %q: %w", "schema", err)
 	}
 
+	contents := appendFileHeader(data, params)
+	filename := generator.FilenameFromTitle(schema.Info.Title) + "_spec.go"
+	return []generator.File{{Name: filename, Contents: contents}}, nil
+}
+
+// appendFileHeader uses the global buffers
+func appendFileHeader(data *templates.TemplateData, params map[string]string) []byte {
 	pkg := DefaultPackage
 	if pkgParam := params["package"]; len(pkgParam) > 0 {
 		pkg = pkgParam
@@ -449,6 +438,25 @@ func makePseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *
 	copy(contents, headerBuf.Bytes())
 	copy(contents[headerLen:], fileBuf.Bytes())
 
+	return contents
+}
+
+var (
+	fileBuf   = new(bytes.Buffer)
+	headerBuf = new(bytes.Buffer)
+)
+
+func makeSchemaPseudoFile(spec *openapi3spec.OpenAPI3, params map[string]string, tpl *template.Template, filename string, name string, schema *openapi3spec.SchemaRef, required bool) (generator.File, error) {
+	fileBuf.Reset()
+	headerBuf.Reset()
+
+	data := templates.NewTemplateDataWithObject(spec, params, name, schema, required)
+
+	if err := tpl.ExecuteTemplate(fileBuf, "schema_top", data); err != nil {
+		return generator.File{}, fmt.Errorf("failed rendering template %q: %w", "schema", err)
+	}
+
+	contents := appendFileHeader(data, params)
 	return generator.File{Name: filename, Contents: contents}, nil
 }
 
@@ -1079,4 +1087,140 @@ func hasJSONResponse(op openapi3spec.Operation) bool {
 	}
 
 	return false
+}
+
+func codeForValue(val any) string {
+	return codeForValueHelper(val, 0)
+}
+
+func codeForValueHelper(val any, depth int) string {
+	if val == nil {
+		return "nil"
+	}
+
+	// Use reflection to get the type of the value
+	t := reflect.TypeOf(val)
+	v := reflect.ValueOf(val)
+	if t.Kind() == reflect.Pointer {
+		if v.IsNil() {
+			return "nil"
+		}
+
+		v = reflect.Indirect(v)
+
+		switch t.Elem().Kind() {
+		case reflect.Map, reflect.Struct, reflect.Slice:
+			return fmt.Sprintf("&%s", codeForValueHelper(v.Interface(), depth))
+		default:
+			return fmt.Sprintf("support.Ptr(%s)", codeForValueHelper(v.Interface(), depth))
+		}
+	}
+
+	buf := new(strings.Builder)
+
+	// Write the value to the buffer using the appropriate syntax
+	switch t.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if v.IsValid() {
+			fmt.Fprintf(buf, "%d", v.Int())
+		} else {
+			buf.WriteByte('0')
+		}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if v.IsValid() {
+			fmt.Fprintf(buf, "%d", v.Uint())
+		} else {
+			buf.WriteByte('0')
+		}
+	case reflect.Float32:
+		if v.IsValid() {
+			fmt.Fprintf(buf, "%f", v.Float())
+		} else {
+			buf.WriteByte('0')
+		}
+	case reflect.Float64:
+		if v.IsValid() {
+			fmt.Fprintf(buf, "%f", v.Float())
+		} else {
+			buf.WriteString("0.0")
+		}
+	case reflect.Complex64:
+		fmt.Fprintf(buf, "%f", v.Complex())
+	case reflect.Complex128:
+		fmt.Fprintf(buf, "%f", v.Complex())
+	case reflect.Bool:
+		if v.IsValid() && v.Bool() {
+			buf.WriteString("true")
+		} else {
+			buf.WriteString("false")
+		}
+	case reflect.String:
+		if v.IsValid() {
+			buf.WriteString(fmt.Sprintf("%q", v.String()))
+		} else {
+			buf.WriteString(`""`)
+		}
+	case reflect.Struct:
+		// Write the struct type and opening curly brace
+		buf.WriteString(t.String())
+		buf.WriteString("{\n")
+
+		// Iterate through the fields of the struct and write their values to the buffer
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			fieldVal := v.Field(i)
+
+			switch field.Type.Kind() {
+			case reflect.Pointer:
+				if fieldVal.IsNil() {
+					continue
+				}
+			case reflect.Map, reflect.Slice:
+				if fieldVal.IsNil() || fieldVal.IsZero() || fieldVal.Len() == 0 {
+					continue
+				}
+			default:
+				if fieldVal.IsZero() {
+					continue
+				}
+			}
+
+			// Write the field name and value
+			fmt.Fprintf(buf, "%s%s: ", strings.Repeat("\t", depth+1), field.Name)
+			buf.WriteString(codeForValueHelper(fieldVal.Interface(), depth+1))
+			buf.WriteString(",\n")
+		}
+
+		fmt.Fprintf(buf, "%s}", strings.Repeat("\t", depth))
+	case reflect.Array, reflect.Slice:
+		buf.WriteString(t.String())
+		buf.WriteString("{\n")
+
+		for i := 0; i < reflect.ValueOf(val).Len(); i++ {
+			elem := v.Index(i)
+			fmt.Fprintf(buf, "%s%s,\n", strings.Repeat("\t", depth+1), codeForValueHelper(elem.Interface(), depth+1))
+		}
+
+		fmt.Fprintf(buf, "%s}", strings.Repeat("\t", depth))
+	case reflect.Map:
+		// Write the map type and opening curly brace
+		buf.WriteString("map[")
+		buf.WriteString(t.Key().String())
+		buf.WriteString("]")
+		buf.WriteString(t.Elem().String())
+		buf.WriteString("{\n")
+
+		// Iterate through the key-value pairs of the map and write their values to the buffer
+		for _, key := range reflect.ValueOf(val).MapKeys() {
+			value := v.MapIndex(key)
+			fmt.Fprintf(buf, "%s%s:", strings.Repeat("\t", depth+1), codeForValueHelper(key.Interface(), depth+1))
+			buf.WriteString(codeForValueHelper(value.Interface(), depth+1))
+			buf.WriteString(",\n")
+		}
+
+		// Write the closing curly brace
+		fmt.Fprintf(buf, "%s}", strings.Repeat("\t", depth))
+	}
+
+	return buf.String()
 }

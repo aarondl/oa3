@@ -51,3 +51,15 @@ func TestGenerator(t *testing.T) {
 		fixtures.Bytes(t, f.Name, f.Contents)
 	}
 }
+
+func TestGoCodeGenerator(t *testing.T) {
+	t.Parallel()
+
+	oa, err := openapi3spec.LoadYAML("testdata/go_server.yaml", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	str := codeForValue(oa)
+	fixtures.String(t, t.Name(), str)
+}

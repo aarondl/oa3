@@ -156,33 +156,41 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         return o.converter(errs)
     }
 
-    ret, err := o.impl.{{title $op.OperationID}}(w, r
-        {{- if and $op.RequestBody $json -}},{{" " -}}
-            {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
-            {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
-                {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
-            {{- else -}}reqBody{{- end -}}
-        {{- end -}}
-        {{- range $i, $param := $op.Parameters -}}
-        , p{{$i}}
-        {{- end -}}
-    )
-    if err != nil {
-        if alreadyHandled, ok := err.(AlreadyHandled); ok {
-            if alreadyHandled.AlreadyHandled() {
-                return nil
-            }
+
+    next := func() (any, error) {
+        ret, err := o.impl.{{title $op.OperationID}}(w, r
+            {{- if and $op.RequestBody $json -}},{{" " -}}
+                {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
+                {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
+                    {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
+                {{- else -}}reqBody{{- end -}}
+            {{- end -}}
+            {{- range $i, $param := $op.Parameters -}}
+            , p{{$i}}
+            {{- end -}}
+        )
+
+        if err != nil {
+            return nil, err
         }
-        return err
+
+        if ret == nil {
+            return nil, nil
+        }
+
+        return ret, nil
     }
+
+    respond := func(retAny any, err error) error {
+        ret := retAny.({{responseRefName $op}})
 
         {{$multi := gt (len $op.Responses) 1 -}}
         {{- $respVar := "ret" -}}
         {{- if $multi}}
-    switch respBody := ret.(type) {
+        switch respBody := ret.(type) {
             {{$respVar = "respBody"}}
         {{- else}}
-        _ = ret
+            _ = ret
         {{- end -}}
         {{- range $code, $resp := $op.Responses}}
             {{- $rtypeName := responseTypeName $op $code false -}}
@@ -193,36 +201,36 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
             {{- end -}}
             {{- range $ptr := $ptrList -}}
                 {{- if $multi}}
-    case{{" " -}}
+        case{{" " -}}
                 {{- end -}}
                 {{if $wrapped -}}
                     {{if $multi}}{{$ptr}}{{$rtypeName}}:{{end}}
                     {{if gt (len $resp.Headers) 0 -}}
-            headers := w.Header()
+                headers := w.Header()
                         {{- range $hname, $header := $resp.Headers -}}
                             {{- $headername := $hname | replace "-" "" | title -}}
                             {{- if not $header.Required}}
-            if val, ok := {{$respVar}}.Header{{$headername}}.Get(); ok {
-                headers.Set("{{$hname}}", val)
-            }
+                if val, ok := {{$respVar}}.Header{{$headername}}.Get(); ok {
+                    headers.Set("{{$hname}}", val)
+                }
                             {{- else}}
-            headers.Set("{{$hname}}", {{$respVar}}.Header{{$headername}})
+                headers.Set("{{$hname}}", {{$respVar}}.Header{{$headername}})
                             {{- end -}}
                         {{- end -}}
                     {{- end -}}
                     {{- if ne $code "default"}}
-            w.WriteHeader({{$code}})
+                w.WriteHeader({{$code}})
                     {{- end -}}
                     {{- if $resp.Content -}}
                     {{- $.Import "github.com/aarondl/oa3/support"}}
-            if err := support.WriteJSON(w, {{$respVar}}); err != nil {
-                return err
-            }
+                if err := support.WriteJSON(w, {{$respVar}}); err != nil {
+                    return err
+                }
                     {{- end -}}
                 {{- else if not $resp.Content -}}
                     {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
                     {{if $multi}}{{$ptr}}HTTPStatus{{$statusName}}:{{end}}
-                w.WriteHeader({{$code}})
+                    w.WriteHeader({{$code}})
                 {{- else -}}
                     {{- if $multi -}}
                         {{- with $schema := index $resp.Content "application/json" -}}
@@ -236,33 +244,64 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                         {{- end -}}
                     {{- end -}}
                     {{- if ne $code "default"}}
-            w.WriteHeader({{$code}})
+                w.WriteHeader({{$code}})
                     {{end -}}
                     {{- with $schema := index $resp.Content "application/json" -}}
                         {{- $.Import "github.com/aarondl/oa3/support"}}
-            if err := support.WriteJSON(w, {{$respVar}}); err != nil {
-                return err
-            }
+                if err := support.WriteJSON(w, {{$respVar}}); err != nil {
+                    return err
+                }
                     {{- else -}}
             if {{$respVar}} != nil {
                 {{- $.Import "io"}}
-                if _, err := io.Copy(w, {{$respVar}}); err != nil {
-                    return err
+                    if _, err := io.Copy(w, {{$respVar}}); err != nil {
+                        return err
+                    }
+                    if err := {{$respVar}}.Close(); err != nil {
+                        return err
+                    }
                 }
-                if err := {{$respVar}}.Close(); err != nil {
-                    return err
-                }
-            }
                     {{- end -}}
             {{- end -}}
         {{- end -}}
     {{- end -}}
     {{- if $multi}}
-    default:
-        _ = respBody
-        panic("impossible case")
-    }
+        default:
+            _ = respBody
+            panic("impossible case")
+        }
     {{- end}}
+
+        return nil
+    }
+
+    if o.interceptor != nil {
+        err := o.interceptor(w, r, spec, spec.Paths[{{printf "%q" $url}}].Path, next, respond
+        {{- if and $op.RequestBody $json -}},{{" " -}}
+            {{- if and $json.Schema.Ref (not $json.Schema.Nullable) (not (isInlinePrimitive $json.Schema.Schema)) -}}&{{- end -}}
+            {{- if and (isInlinePrimitive $json.Schema.Schema) (not (eq $json.Schema.Schema.Type "object")) (not (eq $json.Schema.Schema.Type "array")) -}}
+                {{- $p := primitive $ $json.Schema.Schema}}{{$p}}(reqBody)
+            {{- else -}}reqBody{{- end -}}
+        {{- end -}}
+        {{- range $i, $param := $op.Parameters -}}
+        , p{{$i}}
+        {{- end -}}
+        )
+
+        if err != nil {
+            return err
+        }
+    } else {
+        err := respond(next())
+        if err != nil {
+            if alreadyHandled, ok := err.(AlreadyHandled); ok {
+                if alreadyHandled.AlreadyHandled() {
+                    return nil
+                }
+            }
+            return err
+        }
+    }
 
     return nil
 }

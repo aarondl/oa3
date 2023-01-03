@@ -50,18 +50,46 @@ func (o GoServer) authenticateOp(w http.ResponseWriter, r *http.Request) error {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.Authenticate(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.Authenticate(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/auth"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -94,18 +122,46 @@ func (o GoServer) testarrayrequestOp(w http.ResponseWriter, r *http.Request) err
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestArrayRequest(w, r, reqBody)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestArrayRequest(w, r, reqBody)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/array/request"].Path, next, respond, reqBody)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -121,21 +177,49 @@ func (o GoServer) testmapsarrayinlineOp(w http.ResponseWriter, r *http.Request) 
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestMapsArrayInline(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestMapsArrayInline(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(TestMapsArrayInline200Inline)
 
-	if err := support.WriteJSON(w, ret); err != nil {
-		return err
+		_ = ret
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, ret); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/arraymaps"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -152,21 +236,49 @@ func (o GoServer) testmapsarrayrefOp(w http.ResponseWriter, r *http.Request) err
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestMapsArrayRef(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestMapsArrayRef(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(TestMapsArrayRef200Inline)
 
-	if err := support.WriteJSON(w, ret); err != nil {
-		return err
+		_ = ret
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, ret); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/arraymaps"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -214,18 +326,46 @@ func (o GoServer) testenumqueryrequestOp(w http.ResponseWriter, r *http.Request)
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestEnumQueryRequest(w, r, reqBody, p0)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestEnumQueryRequest(w, r, reqBody, p0)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/enum/query/request"].Path, next, respond, reqBody, p0)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -258,18 +398,46 @@ func (o GoServer) testinlineprimitivebodyOp(w http.ResponseWriter, r *http.Reque
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestInlinePrimitiveBody(w, r, string(reqBody))
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestInlinePrimitiveBody(w, r, string(reqBody))
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/inline"].Path, next, respond, string(reqBody))
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -302,45 +470,73 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestInline(w, r, reqBody)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestInline(w, r, reqBody)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	switch respBody := ret.(type) {
+	respond := func(retAny any, err error) error {
+		ret := retAny.(TestInlineResponse)
 
-	case TestInline200Inline:
-		w.WriteHeader(200)
+		switch respBody := ret.(type) {
 
-		if err := support.WriteJSON(w, respBody); err != nil {
+		case TestInline200Inline:
+			w.WriteHeader(200)
+
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		case *TestInline200Inline:
+			w.WriteHeader(200)
+
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		case TestInline201Inline:
+			w.WriteHeader(201)
+
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		case *TestInline201Inline:
+			w.WriteHeader(201)
+
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		default:
+			_ = respBody
+			panic("impossible case")
+		}
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/inline"].Path, next, respond, reqBody)
+
+		if err != nil {
 			return err
 		}
-	case *TestInline200Inline:
-		w.WriteHeader(200)
-
-		if err := support.WriteJSON(w, respBody); err != nil {
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
 			return err
 		}
-	case TestInline201Inline:
-		w.WriteHeader(201)
-
-		if err := support.WriteJSON(w, respBody); err != nil {
-			return err
-		}
-	case *TestInline201Inline:
-		w.WriteHeader(201)
-
-		if err := support.WriteJSON(w, respBody); err != nil {
-			return err
-		}
-	default:
-		_ = respBody
-		panic("impossible case")
 	}
 
 	return nil
@@ -357,21 +553,49 @@ func (o GoServer) testmapsinlineOp(w http.ResponseWriter, r *http.Request) error
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestMapsInline(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestMapsInline(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(TestMapsInline200Inline)
 
-	if err := support.WriteJSON(w, ret); err != nil {
-		return err
+		_ = ret
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, ret); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/maps"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -388,21 +612,49 @@ func (o GoServer) testmapsrefOp(w http.ResponseWriter, r *http.Request) error {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestMapsRef(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestMapsRef(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(MapAny)
 
-	if err := support.WriteJSON(w, ret); err != nil {
-		return err
+		_ = ret
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, ret); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/maps"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -446,18 +698,46 @@ func (o GoServer) testqueryintarrayparamOp(w http.ResponseWriter, r *http.Reques
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestQueryIntArrayParam(w, r, p0, p1)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestQueryIntArrayParam(w, r, p0, p1)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/queryintarrayparam"].Path, next, respond, p0, p1)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -473,18 +753,46 @@ func (o GoServer) testserverpathoverriderequestOp(w http.ResponseWriter, r *http
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestServerPathOverrideRequest(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestServerPathOverrideRequest(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/servers"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -500,18 +808,46 @@ func (o GoServer) testserveropoverriderequestOp(w http.ResponseWriter, r *http.R
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestServerOpOverrideRequest(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestServerOpOverrideRequest(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/servers"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -527,18 +863,46 @@ func (o GoServer) testsingleserverpathoverriderequestOp(w http.ResponseWriter, r
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestSingleServerPathOverrideRequest(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestSingleServerPathOverrideRequest(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/single_servers"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -554,18 +918,46 @@ func (o GoServer) testsingleserveropoverriderequestOp(w http.ResponseWriter, r *
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestSingleServerOpOverrideRequest(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestSingleServerOpOverrideRequest(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/single_servers"].Path, next, respond)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -679,18 +1071,46 @@ func (o GoServer) testtypeoverridesOp(w http.ResponseWriter, r *http.Request) er
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestTypeOverrides(w, r, &reqBody, p0, p1, p2, p3, p4, p5)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestTypeOverrides(w, r, &reqBody, p0, p1, p2, p3, p4, p5)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusOk)
+
+		_ = ret
+		w.WriteHeader(200)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/type_overrides"].Path, next, respond, &reqBody, p0, p1, p2, p3, p4, p5)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -706,23 +1126,51 @@ func (o GoServer) testunknownbodytypeOp(w http.ResponseWriter, r *http.Request) 
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.TestUnknownBodyType(w, r)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.TestUnknownBodyType(w, r)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(200)
-	if ret != nil {
-		if _, err := io.Copy(w, ret); err != nil {
+	respond := func(retAny any, err error) error {
+		ret := retAny.(TestUnknownBodyType200Inline)
+
+		_ = ret
+		w.WriteHeader(200)
+		if ret != nil {
+			if _, err := io.Copy(w, ret); err != nil {
+				return err
+			}
+			if err := ret.Close(); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/test/unknown/body/type"].Path, next, respond)
+
+		if err != nil {
 			return err
 		}
-		if err := ret.Close(); err != nil {
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
 			return err
 		}
 	}
@@ -1063,18 +1511,46 @@ func (o GoServer) getuserOp(w http.ResponseWriter, r *http.Request) error {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.GetUser(w, r, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	_ = ret
-	w.WriteHeader(304)
+	respond := func(retAny any, err error) error {
+		ret := retAny.(HTTPStatusNotModified)
+
+		_ = ret
+		w.WriteHeader(304)
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/users/{id}"].Path, next, respond, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
+			return err
+		}
+	}
 
 	return nil
 }
@@ -1127,47 +1603,75 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 		return o.converter(errs)
 	}
 
-	ret, err := o.impl.SetUser(w, r, &reqBody, p0, p1)
-	if err != nil {
-		if alreadyHandled, ok := err.(AlreadyHandled); ok {
-			if alreadyHandled.AlreadyHandled() {
-				return nil
-			}
+	next := func() (any, error) {
+		ret, err := o.impl.SetUser(w, r, &reqBody, p0, p1)
+
+		if err != nil {
+			return nil, err
 		}
-		return err
+
+		if ret == nil {
+			return nil, nil
+		}
+
+		return ret, nil
 	}
 
-	switch respBody := ret.(type) {
+	respond := func(retAny any, err error) error {
+		ret := retAny.(SetUserResponse)
 
-	case SetUserWrappedResponse:
-		headers := w.Header()
-		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
-			headers.Set("X-Response-Header", val)
+		switch respBody := ret.(type) {
+
+		case SetUserWrappedResponse:
+			headers := w.Header()
+			if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
+				headers.Set("X-Response-Header", val)
+			}
+			w.WriteHeader(200)
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		case *SetUserWrappedResponse:
+			headers := w.Header()
+			if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
+				headers.Set("X-Response-Header", val)
+			}
+			w.WriteHeader(200)
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		case Primitives:
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		case *Primitives:
+			if err := support.WriteJSON(w, respBody); err != nil {
+				return err
+			}
+		default:
+			_ = respBody
+			panic("impossible case")
 		}
-		w.WriteHeader(200)
-		if err := support.WriteJSON(w, respBody); err != nil {
+
+		return nil
+	}
+
+	if o.interceptor != nil {
+		err := o.interceptor(w, r, spec, spec.Paths["/users/{id}"].Path, next, respond, &reqBody, p0, p1)
+
+		if err != nil {
 			return err
 		}
-	case *SetUserWrappedResponse:
-		headers := w.Header()
-		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
-			headers.Set("X-Response-Header", val)
-		}
-		w.WriteHeader(200)
-		if err := support.WriteJSON(w, respBody); err != nil {
+	} else {
+		err := respond(next())
+		if err != nil {
+			if alreadyHandled, ok := err.(AlreadyHandled); ok {
+				if alreadyHandled.AlreadyHandled() {
+					return nil
+				}
+			}
 			return err
 		}
-	case Primitives:
-		if err := support.WriteJSON(w, respBody); err != nil {
-			return err
-		}
-	case *Primitives:
-		if err := support.WriteJSON(w, respBody); err != nil {
-			return err
-		}
-	default:
-		_ = respBody
-		panic("impossible case")
 	}
 
 	return nil

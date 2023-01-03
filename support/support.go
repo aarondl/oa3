@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/aarondl/json"
+	"github.com/aarondl/oa3/openapi3spec"
 )
 
 var (
@@ -53,6 +54,23 @@ type (
 	// decides what middleware it belongs to. The empty string is middleware
 	// for untagged operations.
 	MW map[string][]func(http.Handler) http.Handler
+
+	// Interceptor is a more powerful version of a middleware, they receive
+	// parts of the specification to be able to do some more fancy handling.
+	//
+	// The parsedValues will include (in-order) all the parameters that were
+	// parsed out. The body, the headers, query strings, url params
+	//
+	// In the future values may be more specific to be more friendly.
+	Interceptor func(
+		w http.ResponseWriter,
+		r *http.Request,
+		schema *openapi3spec.OpenAPI3,
+		path *openapi3spec.Path,
+		next func() (any, error),
+		respond func(any, error) error,
+		values ...any,
+	) error
 )
 
 // ErrorHandler is an adapter that allows routing to special http.HandlerFuncs
@@ -63,7 +81,7 @@ type ErrorHandler interface {
 
 // AddErrs adds errors to an error map and returns the map
 //
-//    eg. {"a": ["1"]}, "a", "2" = {"a": ["1", "2"]}
+//	eg. {"a": ["1"]}, "a", "2" = {"a": ["1", "2"]}
 func AddErrs(errs Errors, key string, toAdd ...error) Errors {
 	if len(toAdd) == 0 {
 		return errs
@@ -84,7 +102,7 @@ func AddErrs(errs Errors, key string, toAdd ...error) Errors {
 
 // AddErrsFlatten flattens toAdd by adding key on to the errors inside toAdd
 //
-//     eg. {"a": ["1"]}, "key", {"b": ["2"]} = {"a": ["1"], "key.b": ["2"]}
+//	eg. {"a": ["1"]}, "key", {"b": ["2"]} = {"a": ["1"], "key.b": ["2"]}
 func AddErrsFlatten(errs Errors, key string, toAdd Errors) Errors {
 	if len(toAdd) == 0 {
 		return errs
@@ -196,4 +214,9 @@ func ReadJSONBuffer(r *http.Request, object any) (*bytes.Buffer, error) {
 // ReturnJSONBuffer is called to return a buffer to the pool.
 func ReturnJSONBuffer(b *bytes.Buffer) {
 	putBuffer(b)
+}
+
+// Ptr is useful for taking a normal value and converting to a pointer.
+func Ptr[T any](v T) *T {
+	return &v
 }

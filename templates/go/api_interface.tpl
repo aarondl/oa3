@@ -46,9 +46,10 @@ type Interface interface {
 type (
     // {{$.Name}} implements all the wrapper functionality for the API
     {{$.Name}} struct {
-        impl      Interface
-        converter support.ValidationConverter
-        router    *chi.Mux
+        impl        Interface
+        converter   support.ValidationConverter
+        router      *chi.Mux
+        interceptor support.Interceptor
     }
 )
 
@@ -58,12 +59,14 @@ func New{{$.Name}}(
     cnv support.ValidationConverter,
     eh support.ErrorHandler,
     mw support.MW,
+    interceptor support.Interceptor,
     ) http.Handler {
 
     o := {{.Name}}{
-        impl:      impl,
-        converter: cnv,
-        router:    chi.NewRouter(),
+        impl:        impl,
+        converter:   cnv,
+        router:      chi.NewRouter(),
+        interceptor: interceptor,
     }
 
     {{range $tag := taggedPaths $.Spec -}}
