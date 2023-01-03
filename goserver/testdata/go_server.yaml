@@ -378,7 +378,31 @@ paths:
       responses:
         '200': { description: OK }
 
+  /test/inlineresponsecomponent:
+    post:
+      operationId: testInlineResponseComponent
+      responses:
+        '200': { $ref: '#/components/responses/InlineResponseTest' }
+
+  /test/inlineresponsecomponentmultiple:
+    post:
+      operationId: testInlineResponseComponentMultiple
+      responses:
+        '200': { $ref: '#/components/responses/InlineResponseTest' }
+        '201': { description: "hello world" }
+
 components:
+  responses:
+    InlineResponseTest:
+      description: Test inline response generation
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id]
+            properties:
+              id: { type: string }
+
   parameters:
     Param:
       name: param_component

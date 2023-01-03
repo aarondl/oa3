@@ -229,7 +229,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                             {{- if $schema.Schema.Ref -}}
                                 {{$ptr}}{{- refName $schema.Schema.Ref -}}:
                             {{- else -}}
-                                {{$ptr}}{{title $op.OperationID}}{{title $code}}Inline:
+                                {{$ptr}}{{responseTypeName $op $code false}}:
                             {{- end -}}
                         {{- else -}}
                                 {{$ptr}}{{- refName $schema.Ref -}}:

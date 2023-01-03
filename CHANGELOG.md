@@ -12,6 +12,11 @@ Versioning](http://semver.org/spec/v2.0.0.html).
   this slightly increases the amount of generated code but reduces the friction
   in using the library.
 
+### Fixed
+
+- Go server: Fixed a case where the inline schemas for component responses
+  were not being correctly referenced by the response one-of interfaces.
+
 ## [v0.0.51] - 2022-11-27
 
 ### Fixed

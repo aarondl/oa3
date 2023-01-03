@@ -36,6 +36,10 @@ type Interface interface {
 	TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, body string) (*HTTPStatusOk, error)
 	// TestInline post /test/inline
 	TestInline(w http.ResponseWriter, r *http.Request, body TestInlineInline) (TestInlineResponse, error)
+	// TestInlineResponseComponent post /test/inlineresponsecomponent
+	TestInlineResponseComponent(w http.ResponseWriter, r *http.Request) (*InlineResponseTestInline, error)
+	// TestInlineResponseComponentMultiple post /test/inlineresponsecomponentmultiple
+	TestInlineResponseComponentMultiple(w http.ResponseWriter, r *http.Request) (TestInlineResponseComponentMultipleResponse, error)
 	// TestMapsInline get /test/maps
 	TestMapsInline(w http.ResponseWriter, r *http.Request) (*TestMapsInline200Inline, error)
 	// TestMapsRef post /test/maps
@@ -97,6 +101,8 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/enum/query/request`, eh.Wrap(o.testenumqueryrequestOp))
 		r.Method(http.MethodPost, `/test/inline`, eh.Wrap(o.testinlineOp))
 		r.Method(http.MethodGet, `/test/inline`, eh.Wrap(o.testinlineprimitivebodyOp))
+		r.Method(http.MethodPost, `/test/inlineresponsecomponent`, eh.Wrap(o.testinlineresponsecomponentOp))
+		r.Method(http.MethodPost, `/test/inlineresponsecomponentmultiple`, eh.Wrap(o.testinlineresponsecomponentmultipleOp))
 		r.Method(http.MethodGet, `/test/arraymaps`, eh.Wrap(o.testmapsarrayinlineOp))
 		r.Method(http.MethodPost, `/test/arraymaps`, eh.Wrap(o.testmapsarrayrefOp))
 		r.Method(http.MethodGet, `/test/maps`, eh.Wrap(o.testmapsinlineOp))
@@ -150,6 +156,21 @@ func (TestInline200Inline) TestInlineImpl() {}
 // TestInlineImpl implements TestInlineResponse(201) for TestInline201Inline
 func (TestInline201Inline) TestInlineImpl() {}
 
+// TestInlineResponseComponentMultipleResponse one-of enforcer
+//
+// Implementors:
+// - InlineResponseTestInline
+// - HTTPStatusCreated
+type TestInlineResponseComponentMultipleResponse interface {
+	TestInlineResponseComponentMultipleImpl()
+}
+
+// TestInlineResponseComponentMultipleImpl implements TestInlineResponseComponentMultipleResponse(200) for InlineResponseTestInline
+func (InlineResponseTestInline) TestInlineResponseComponentMultipleImpl() {}
+
+// TestInlineResponseComponentMultipleImpl implements TestInlineResponseComponentMultipleResponse(201) for HTTPStatusCreated
+func (HTTPStatusCreated) TestInlineResponseComponentMultipleImpl() {}
+
 // SetUserResponse one-of enforcer
 //
 // Implementors:
@@ -172,6 +193,9 @@ func (SetUserWrappedResponse) SetUserImpl() {}
 
 // SetUserImpl implements SetUserResponse(default) for Primitives
 func (Primitives) SetUserImpl() {}
+
+// HTTPStatusCreated is an empty response
+type HTTPStatusCreated struct{}
 
 // HTTPStatusNotModified is an empty response
 type HTTPStatusNotModified struct{}
@@ -210,6 +234,14 @@ func (a API) TestInlinePrimitiveBody(w http.ResponseWriter, r *http.Request, bod
 }
 // TestInline post /test/inline
 func (a API) TestInline(w http.ResponseWriter, r *http.Request, body oa3gen.TestInlineInline) (oa3gen.TestInlineResponse, error) {
+    panic("not implemented")
+}
+// TestInlineResponseComponent post /test/inlineresponsecomponent
+func (a API) TestInlineResponseComponent(w http.ResponseWriter, r *http.Request) (*oa3gen.InlineResponseTestInline, error) {
+    panic("not implemented")
+}
+// TestInlineResponseComponentMultiple post /test/inlineresponsecomponentmultiple
+func (a API) TestInlineResponseComponentMultiple(w http.ResponseWriter, r *http.Request) (oa3gen.TestInlineResponseComponentMultipleResponse, error) {
     panic("not implemented")
 }
 // TestMapsInline get /test/maps

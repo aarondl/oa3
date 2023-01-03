@@ -346,6 +346,84 @@ func (o GoServer) testinlineOp(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// testinlineresponsecomponent post /test/inlineresponsecomponent
+func (o GoServer) testinlineresponsecomponentOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestInlineResponseComponent(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	_ = ret
+	w.WriteHeader(200)
+
+	if err := support.WriteJSON(w, ret); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// testinlineresponsecomponentmultiple post /test/inlineresponsecomponentmultiple
+func (o GoServer) testinlineresponsecomponentmultipleOp(w http.ResponseWriter, r *http.Request) error {
+	var err error
+	var ers []error
+	var errs map[string][]string
+	_, _, _ = err, ers, errs
+
+	if errs != nil {
+		return o.converter(errs)
+	}
+
+	ret, err := o.impl.TestInlineResponseComponentMultiple(w, r)
+	if err != nil {
+		if alreadyHandled, ok := err.(AlreadyHandled); ok {
+			if alreadyHandled.AlreadyHandled() {
+				return nil
+			}
+		}
+		return err
+	}
+
+	switch respBody := ret.(type) {
+
+	case InlineResponseTestInline:
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	case *InlineResponseTestInline:
+		w.WriteHeader(200)
+
+		if err := support.WriteJSON(w, respBody); err != nil {
+			return err
+		}
+	case HTTPStatusCreated:
+		w.WriteHeader(201)
+	case *HTTPStatusCreated:
+		w.WriteHeader(201)
+	default:
+		_ = respBody
+		panic("impossible case")
+	}
+
+	return nil
+}
+
 // testmapsinline get /test/maps
 func (o GoServer) testmapsinlineOp(w http.ResponseWriter, r *http.Request) error {
 	var err error
