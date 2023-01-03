@@ -296,6 +296,86 @@ func (_c Client) TestInline(ctx context.Context, body TestInlineInline) (TestInl
 	return _resp, _httpResp, nil
 }
 
+// TestInlineResponseComponent post /test/inlineresponsecomponent
+func (_c Client) TestInlineResponseComponent(ctx context.Context) (InlineResponseTestInline, *http.Response, error) {
+	var _resp InlineResponseTestInline
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/inlineresponsecomponent`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		var _respObject InlineResponseTestInline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return _resp, _httpResp, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
+		}
+		_resp = _respObject
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
+// TestInlineResponseComponentMultiple post /test/inlineresponsecomponentmultiple
+func (_c Client) TestInlineResponseComponentMultiple(ctx context.Context) (TestInlineResponseComponentMultipleResponse, *http.Response, error) {
+	var _resp TestInlineResponseComponentMultipleResponse
+	var _httpResp *http.Response
+	var _err error
+	baseURL := _c.url
+	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/inlineresponsecomponentmultiple`
+	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+	var _query url.Values
+	if len(_query) > 0 {
+		_req.URL.RawQuery = _query.Encode()
+	}
+
+	_httpResp, _err = _c.doRequest(ctx, _req)
+	if _err != nil {
+		return _resp, _httpResp, _err
+	}
+
+	switch _httpResp.StatusCode {
+	case 200:
+		var _respObject InlineResponseTestInline
+		_b, _err := io.ReadAll(_httpResp.Body)
+		if _err != nil {
+			return _resp, _httpResp, _err
+		}
+		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+			return _resp, _httpResp, _err
+		}
+		_resp = _respObject
+	case 201:
+		_resp = HTTPStatusCreated{}
+	default:
+		return _resp, _httpResp, fmt.Errorf("unknown response code %d", _httpResp.StatusCode)
+	}
+
+	return _resp, _httpResp, nil
+}
+
 // TestMapsInline get /test/maps
 func (_c Client) TestMapsInline(ctx context.Context) (TestMapsInline200Inline, *http.Response, error) {
 	var _resp TestMapsInline200Inline

@@ -321,6 +321,21 @@ func (TestInline200Inline) TestInlineImpl() {}
 // TestInlineImpl implements TestInlineResponse(201) for TestInline201Inline
 func (TestInline201Inline) TestInlineImpl() {}
 
+// TestInlineResponseComponentMultipleResponse one-of enforcer
+//
+// Implementors:
+// - InlineResponseTestInline
+// - HTTPStatusCreated
+type TestInlineResponseComponentMultipleResponse interface {
+	TestInlineResponseComponentMultipleImpl()
+}
+
+// TestInlineResponseComponentMultipleImpl implements TestInlineResponseComponentMultipleResponse(200) for InlineResponseTestInline
+func (InlineResponseTestInline) TestInlineResponseComponentMultipleImpl() {}
+
+// TestInlineResponseComponentMultipleImpl implements TestInlineResponseComponentMultipleResponse(201) for HTTPStatusCreated
+func (HTTPStatusCreated) TestInlineResponseComponentMultipleImpl() {}
+
 // SetUserResponse one-of enforcer
 //
 // Implementors:
@@ -343,6 +358,9 @@ func (SetUserWrappedResponse) SetUserImpl() {}
 
 // SetUserImpl implements SetUserResponse(default) for Primitives
 func (Primitives) SetUserImpl() {}
+
+// HTTPStatusCreated is an empty response
+type HTTPStatusCreated struct{}
 
 // HTTPStatusNotModified is an empty response
 type HTTPStatusNotModified struct{}
