@@ -3,7 +3,7 @@
     {{- if or $.Object.Ref (isInlinePrimitive .Object.Schema) -}}
         {{- if $.Object.Enum -}}
             {{- if $.Object.Ref -}}
-                {{- refName $.Object.Ref -}}
+                {{- title (refName $.Object.Ref) -}}
             {{- else -}}
                 {{title .Name}}
             {{- end -}}
@@ -11,7 +11,7 @@
             {{- template "schema" $ -}}
         {{- end -}}
     {{- else -}}
-        {{- if $.Object.Schema.Nullable}}*{{end}}{{.Name}}
+        {{- if $.Object.Schema.Nullable}}*{{end}}{{title .Name}}
     {{- end -}}
 {{- end -}}
 
@@ -56,18 +56,19 @@
                     {{- end -}}
                 {{- end -}}
                 {{- $elementRequired := $s.IsRequired $name -}}
-                {{- $shouldWrap := or $element.Ref $element.Schema.Enum (and (ne $element.Type "array") (ne $element.Type "object"))}}
-    {{camelcase $name}} {{if and $shouldWrap ($element.Schema.Nullable) (not $elementRequired) -}}
+                {{- $shouldWrap := or $element.Ref $element.Schema.Enum (and (ne $element.Type "array") (ne $element.Type "object")) -}}
+                {{- $fieldName := title (snakeToCamel $name)}}
+    {{$fieldName}} {{if and $shouldWrap ($element.Schema.Nullable) (not $elementRequired) -}}
                     {{- $.Import "github.com/aarondl/opt/omitnull" -}}
-                    omitnull.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
+                    omitnull.Val[{{template "type_name" (recurseDataSetRequired $ $fieldName $element $elementRequired)}}]
                 {{- else if and $shouldWrap ($element.Schema.Nullable) $elementRequired -}}
                     {{- $.Import "github.com/aarondl/opt/null" -}}
-                    null.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
+                    null.Val[{{template "type_name" (recurseDataSetRequired $ $fieldName $element $elementRequired)}}]
                 {{- else if and $shouldWrap (not $element.Schema.Nullable) (not $elementRequired) -}}
                     {{- $.Import "github.com/aarondl/opt/omit" -}}
-                    omit.Val[{{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}]
+                    omit.Val[{{template "type_name" (recurseDataSetRequired $ $fieldName $element $elementRequired)}}]
                 {{- else -}}
-                    {{template "type_name" (recurseDataSetRequired $ (camelcase $name) $element $elementRequired)}}
+                    {{template "type_name" (recurseDataSetRequired $ $fieldName $element $elementRequired)}}
                 {{- end}} `json:"{{$name}}{{if not $elementRequired}},omitempty{{end}}"`
             {{- end}}
 }
@@ -81,7 +82,7 @@
 Used to output a ref name, or the type itself
 */ -}}
 {{- if .Object.Ref -}}
-    {{- refName .Object.Ref -}}
+    {{- title (refName .Object.Ref) -}}
 {{- else -}}
     {{- template "schema_noref" (recurseData $ "" .Object.Schema) -}}
 {{- end -}}

@@ -10,7 +10,7 @@ import (
 
 // Check for arrays that can call validate function
 type RefValidation struct {
-	Mustvalidateitem string `json:"mustValidateItem"`
+	MustValidateItem string `json:"mustValidateItem"`
 }
 
 // validateSchema validates the object and returns
@@ -22,7 +22,7 @@ func (o RefValidation) validateSchema() support.Errors {
 	_, _, _ = ctx, ers, errs
 
 	ers = nil
-	if err := support.ValidateMaxLength(o.Mustvalidateitem, 5); err != nil {
+	if err := support.ValidateMaxLength(o.MustValidateItem, 5); err != nil {
 		ers = append(ers, err)
 	}
 	if len(ers) != 0 {

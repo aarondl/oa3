@@ -894,7 +894,7 @@ func responseTypeName(op *openapi3spec.Operation, code string, ignoreWrap bool) 
 
 	for _, schema := range resp.Content {
 		if len(schema.Schema.Ref) != 0 {
-			return templates.RefName(schema.Schema.Ref)
+			return strings.Title(templates.RefName(schema.Schema.Ref)) //nolint:staticcheck
 		} else {
 			if len(resp.Ref) != 0 {
 				return templates.RefName(resp.Ref) + "Inline"

@@ -67,7 +67,7 @@
                     {{- $isRequired := $s.IsRequired $name -}}
                     {{- if and (omitnullIsWrapped $element.Nullable $isRequired) (ne $element.Type "array") (ne $element.Type "object")}}
 
-    if val, ok := {{$.Name}}.{{camelcase $name}}.Get(); ok {
+    if val, ok := {{$.Name}}.{{title (snakeToCamel $name)}}.Get(); ok {
         {{template "validate_field" (newDataRequired $ "val" $element.Schema $isRequired)}}
         if len(ers) != 0 {
             ctx = append(ctx, {{printf "%q" $name}})
@@ -79,9 +79,9 @@
                     {{- else}}
 
                         {{- if or (eq $element.Type "array") (eq $element.Type "object") -}}
-    {{template "validate_schema_helper" (recurseDataSetRequired $ (printf ".%s" (camelcase $name)) $element $isRequired)}}
+    {{template "validate_schema_helper" (recurseDataSetRequired $ (printf ".%s" (title (snakeToCamel $name))) $element $isRequired)}}
                         {{- else -}}
-    {{template "validate_field" (recurseDataSetRequired $ (printf ".%s" (camelcase $name)) $element.Schema $isRequired)}}
+    {{template "validate_field" (recurseDataSetRequired $ (printf ".%s" (title (snakeToCamel $name))) $element.Schema $isRequired)}}
                         {{- end}}
     if len(ers) != 0 {
         ctx = append(ctx, {{printf "%q" $name}})
@@ -98,7 +98,7 @@
                 {{- if and (or $element.Ref $element.Enum) (mustValidate $ $element.Schema) -}}
                     {{- $isRequired := $s.IsRequired $name -}}
                     {{- if omitnullIsWrapped $element.Nullable $isRequired}}
-    if val, ok := o.{{camelcase $name}}.Get(); ok {
+    if val, ok := o.{{title (snakeToCamel $name)}}.Get(); ok {
         if newErrs := Validate(val); newErrs != nil {
             ctx = append(ctx, {{printf "%q" $name}})
                     {{- $.Import "strings"}}

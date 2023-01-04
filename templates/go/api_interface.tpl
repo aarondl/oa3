@@ -11,7 +11,7 @@ type Interface interface {
     {{- $opname := title $op.OperationID -}}
     // {{$opname}} {{$method}} {{$url}}
         {{if $op.Description -}}
-    // {{wrapWith 70 "\n// " (trimSuffix "\n" $op.Description)}}
+    // {{wrapWith 70 "\n// " (trimSuffix "\n" (replace "\n" "" $op.Description))}}
         {{end -}}
     {{$opname}}(w http.ResponseWriter, r *http.Request
         {{- if $op.RequestBody -}}
@@ -20,7 +20,7 @@ type Interface interface {
             , body{{" " -}}
                 {{- if $json.Schema.Ref -}}
                     {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
-                    {{- refName $json.Schema.Ref -}}
+                    {{- title (refName $json.Schema.Ref) -}}
                 {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
                     {{- primitiveWrapped $ $json.Schema.Schema $json.Schema.Nullable $op.RequestBody.Required -}}
                 {{- else -}}

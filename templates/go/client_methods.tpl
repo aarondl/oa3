@@ -6,7 +6,7 @@
 // {{$opname}} {{$method}} {{$url}}
 {{- if $op.Description}}
 //
-// {{wrapWith 70 "\n// " (trimSuffix "\n" $op.Description)}}
+// {{wrapWith 70 "\n// " (trimSuffix "\n" (replace "\n" " " $op.Description))}}
 {{- end -}}
 {{- $.Import "context"}}
 func (_c Client) {{$opname}}(ctx context.Context
@@ -20,7 +20,7 @@ func (_c Client) {{$opname}}(ctx context.Context
                 , body{{" " -}}
                     {{- if $json.Schema.Ref -}}
                         {{- if not (isInlinePrimitive $json.Schema.Schema) -}}*{{- end -}}
-                        {{- refName $json.Schema.Ref -}}
+                        {{- title (refName $json.Schema.Ref) -}}
                     {{- else if not (or (eq $json.Schema.Schema.Type "object") (eq $json.Schema.Schema.Type "array")) -}}
                         {{- primitiveWrapped $ $json.Schema.Schema $json.Schema.Nullable $op.RequestBody.Required -}}
                     {{- else -}}

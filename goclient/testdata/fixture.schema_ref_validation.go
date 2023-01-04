@@ -4,5 +4,5 @@ package oa3gen
 
 // Check for arrays that can call validate function
 type RefValidation struct {
-	Mustvalidateitem string `json:"mustValidateItem"`
+	MustValidateItem string `json:"mustValidateItem"`
 }

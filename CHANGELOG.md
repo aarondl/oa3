@@ -11,11 +11,19 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Go server: Case for both pointers and non-pointers in responses.
   this slightly increases the amount of generated code but reduces the friction
   in using the library.
+- Go server/client: Capitalization is a bit different now, some fields may not
+  be labeled like `Mustvalidate`, but instead will retain capitalization as seen
+  in the spec yaml like `MustValidate`.
 
 ### Fixed
 
 - Go server: Fixed a case where the inline schemas for component responses
   were not being correctly referenced by the response one-of interfaces.
+- Go server/client: Fixed a myriad of title casing problems with specs
+  that use lowercased identifiers.
+- Go client: Fixed an issue where comments with newlines in them would break
+  generation. These are now replaced with ` ` so that the comment reflow can
+  do its job.
 
 ## [v0.0.51] - 2022-11-27
 
