@@ -14,6 +14,11 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 - Go server/client: Capitalization is a bit different now, some fields may not
   be labeled like `Mustvalidate`, but instead will retain capitalization as seen
   in the spec yaml like `MustValidate`.
+- Go server: The Go server can now accept many of the same response type.
+  This is achieved by wrapping, much like returning a header. In certain cases
+  this is a breaking change but APIs that had this shape were not exactly
+  behaving correctly anyway (200 + default response that had the same response
+  type).
 
 ### Fixed
 

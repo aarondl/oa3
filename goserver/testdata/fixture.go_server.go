@@ -175,7 +175,6 @@ func (HTTPStatusCreated) TestInlineResponseComponentMultipleImpl() {}
 //
 // Implementors:
 // - SetUserWrappedResponse
-// - Primitives
 type SetUserResponse interface {
 	SetUserImpl()
 }
@@ -184,15 +183,13 @@ type SetUserResponse interface {
 // struct to be able to additionally return headers or differentiate between
 // multiple response codes with the same response body.
 type SetUserWrappedResponse struct {
+	Code                  int
 	HeaderXResponseHeader omit.Val[string]
 	Body                  Primitives
 }
 
 // SetUserImpl implements SetUserResponse(200) for SetUserWrappedResponse
 func (SetUserWrappedResponse) SetUserImpl() {}
-
-// SetUserImpl implements SetUserResponse(default) for Primitives
-func (Primitives) SetUserImpl() {}
 
 // HTTPStatusCreated is an empty response
 type HTTPStatusCreated struct{}

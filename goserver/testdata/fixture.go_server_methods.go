@@ -1222,7 +1222,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
 			headers.Set("X-Response-Header", val)
 		}
-		w.WriteHeader(200)
+		w.WriteHeader(respBody.Code)
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}
@@ -1231,15 +1231,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 		if val, ok := respBody.HeaderXResponseHeader.Get(); ok {
 			headers.Set("X-Response-Header", val)
 		}
-		w.WriteHeader(200)
-		if err := support.WriteJSON(w, respBody); err != nil {
-			return err
-		}
-	case Primitives:
-		if err := support.WriteJSON(w, respBody); err != nil {
-			return err
-		}
-	case *Primitives:
+		w.WriteHeader(respBody.Code)
 		if err := support.WriteJSON(w, respBody); err != nil {
 			return err
 		}

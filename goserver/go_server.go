@@ -48,28 +48,30 @@ var TemplateList = []string{
 
 // TemplateFunctions to use for generation
 var TemplateFunctions = map[string]any{
-	"camelSnake":          camelSnake,
-	"filterNonIdentChars": filterNonIdentChars,
-	"isInlinePrimitive":   isInlinePrimitive,
-	"omitnullWrap":        omitnullWrap,
-	"omitnullUnwrap":      omitnullUnwrap,
-	"omitnullIsWrapped":   omitnullIsWrapped,
-	"paramConvertFn":      paramConvertFn,
-	"paramRequiresType":   paramRequiresType,
-	"paramSchemaName":     paramSchemaName,
-	"paramTypeName":       paramTypeName,
-	"primitive":           primitive,
-	"primitiveBits":       primitiveBits,
-	"primitiveWrapped":    primitiveWrapped,
-	"responseKind":        responseKind,
-	"snakeToCamel":        snakeToCamel,
-	"taggedPaths":         tagPaths,
-	"hasComplexServers":   hasComplexServers,
-	"hasJSONResponse":     hasJSONResponse,
-	"responseTypeName":    responseTypeName,
-	"responseNeedsWrap":   responseNeedsWrap,
-	"responseNeedsPtr":    responseNeedsPtr,
-	"responseRefName":     responseRefName,
+	"camelSnake":              camelSnake,
+	"filterNonIdentChars":     filterNonIdentChars,
+	"isInlinePrimitive":       isInlinePrimitive,
+	"omitnullWrap":            omitnullWrap,
+	"omitnullUnwrap":          omitnullUnwrap,
+	"omitnullIsWrapped":       omitnullIsWrapped,
+	"paramConvertFn":          paramConvertFn,
+	"paramRequiresType":       paramRequiresType,
+	"paramSchemaName":         paramSchemaName,
+	"paramTypeName":           paramTypeName,
+	"primitive":               primitive,
+	"primitiveBits":           primitiveBits,
+	"primitiveWrapped":        primitiveWrapped,
+	"responseKind":            responseKind,
+	"snakeToCamel":            snakeToCamel,
+	"taggedPaths":             tagPaths,
+	"hasComplexServers":       hasComplexServers,
+	"hasJSONResponse":         hasJSONResponse,
+	"responseTypeName":        responseTypeName,
+	"responseNeedsWrap":       responseNeedsWrap,
+	"responseNeedsCodeWrap":   responseNeedsCodeWrap,
+	"responseNeedsHeaderWrap": responseNeedsHeaderWrap,
+	"responseNeedsPtr":        responseNeedsPtr,
+	"responseRefName":         responseRefName,
 
 	// overrides of the defaults
 	"mustValidate":        mustValidate,
@@ -793,31 +795,40 @@ func filterNonIdentChars(in string) string {
 }
 
 func responseNeedsWrap(op *openapi3spec.Operation, code string) bool {
+	return responseNeedsHeaderWrap(op, code) || responseNeedsCodeWrap(op, code)
+}
+
+// checks to see if a response should be wrapped
+func responseNeedsCodeWrap(op *openapi3spec.Operation, code string) bool {
 	r := op.Responses[code]
-	if len(r.Headers) > 0 {
-		return true
-	}
 
-	// Look for dupe schemas
-	for k1, v1 := range r.Content {
-		for k2, v2 := range r.Content {
-			if k1 == k2 {
-				continue
-			}
+	for responseCode, otherResponse := range op.Responses {
+		if responseCode == code {
+			continue
+		}
 
-			if len(v1.Schema.Ref) != 0 && len(v2.Schema.Ref) != 0 && v1.Schema.Ref == v2.Schema.Ref {
-				// If they're both refs to the same thing
-				return true
-			} else if len(v1.Schema.Ref) == 0 && len(v2.Schema.Ref) == 0 && v1.Schema.Type == v2.Schema.Type {
-				// If they're both not refs to the same basic type
-				if isInlinePrimitive(v1.Schema.Schema) {
+		// Look for dupe schemas across all the codes
+		for _, current := range r.Content {
+			for _, other := range otherResponse.Content {
+
+				if len(current.Schema.Ref) != 0 && len(other.Schema.Ref) != 0 && current.Schema.Ref == other.Schema.Ref {
+					// If they're both refs to the same thing
 					return true
+				} else if len(current.Schema.Ref) == 0 && len(other.Schema.Ref) == 0 && current.Schema.Type == other.Schema.Type {
+					// If they're both not refs to the same basic type
+					if isInlinePrimitive(current.Schema.Schema) {
+						return true
+					}
 				}
 			}
 		}
 	}
 
 	return false
+}
+
+func responseNeedsHeaderWrap(op *openapi3spec.Operation, code string) bool {
+	return len(op.Responses[code].Headers) > 0
 }
 
 // responseKind returns the type of abstraction we need for a specific response

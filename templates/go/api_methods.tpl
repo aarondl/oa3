@@ -123,7 +123,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
     var reqBody{{" " -}}
                 {{- if $json.Schema.Ref -}}
                     {{- if $json.Schema.Nullable}}*{{end -}}
-                    {{- refName $json.Schema.Ref -}}
+                    {{- title (refName $json.Schema.Ref) -}}
                 {{- else -}}
                     {{title $op.OperationID}}Inline
                 {{- end}}
@@ -184,66 +184,69 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
         {{- else}}
         _ = ret
         {{- end -}}
+        {{- $duplicateResponseObjects := dict -}}
         {{- range $code, $resp := $op.Responses}}
             {{- $rtypeName := responseTypeName $op $code false -}}
             {{- $wrapped := responseNeedsWrap $op $code -}}
-            {{$ptrList := (list "")}}
-            {{- if $multi -}}
-                {{$ptrList = (list "" "*")}}
-            {{- end -}}
-            {{- range $ptr := $ptrList -}}
-                {{- if $multi}}
-    case{{" " -}}
+            {{- if or (not $wrapped) (not (hasKey $duplicateResponseObjects $rtypeName)) }}
+                {{- $_ := set $duplicateResponseObjects $rtypeName "" -}}
+                {{$ptrList := (list "")}}
+                {{- if $multi -}}
+                    {{$ptrList = (list "" "*")}}
                 {{- end -}}
-                {{if $wrapped -}}
-                    {{if $multi}}{{$ptr}}{{$rtypeName}}:{{end}}
-                    {{if gt (len $resp.Headers) 0 -}}
+                {{- range $ptr := $ptrList -}}
+                    {{- if $multi}}
+    case{{" " -}}
+                    {{- end -}}
+                    {{if $wrapped -}}
+                        {{if $multi}}{{$ptr}}{{$rtypeName}}:{{end}}
+                            {{if gt (len $resp.Headers) 0 -}}
             headers := w.Header()
-                        {{- range $hname, $header := $resp.Headers -}}
-                            {{- $headername := $hname | replace "-" "" | title -}}
-                            {{- if not $header.Required}}
+                                {{- range $hname, $header := $resp.Headers -}}
+                                    {{- $headername := $hname | replace "-" "" | title -}}
+                                    {{- if not $header.Required}}
             if val, ok := {{$respVar}}.Header{{$headername}}.Get(); ok {
                 headers.Set("{{$hname}}", val)
             }
-                            {{- else}}
+                                    {{- else}}
             headers.Set("{{$hname}}", {{$respVar}}.Header{{$headername}})
+                                    {{- end -}}
+                                {{- end -}}
                             {{- end -}}
-                        {{- end -}}
-                    {{- end -}}
-                    {{- if ne $code "default"}}
-            w.WriteHeader({{$code}})
-                    {{- end -}}
-                    {{- if $resp.Content -}}
-                    {{- $.Import "github.com/aarondl/oa3/support"}}
+                            {{- if ne $code "default"}}
+            w.WriteHeader({{if responseNeedsCodeWrap $op $code}}respBody.Code{{else}}{{$code}}{{end}})
+                            {{- end -}}
+                            {{- if $resp.Content -}}
+                            {{- $.Import "github.com/aarondl/oa3/support"}}
             if err := support.WriteJSON(w, {{$respVar}}); err != nil {
                 return err
             }
-                    {{- end -}}
-                {{- else if not $resp.Content -}}
-                    {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
-                    {{if $multi}}{{$ptr}}HTTPStatus{{$statusName}}:{{end}}
-                w.WriteHeader({{$code}})
-                {{- else -}}
-                    {{- if $multi -}}
-                        {{- with $schema := index $resp.Content "application/json" -}}
-                            {{- if $schema.Schema.Ref -}}
-                                {{$ptr}}{{- refName $schema.Schema.Ref -}}:
-                            {{- else -}}
-                                {{$ptr}}{{responseTypeName $op $code false}}:
                             {{- end -}}
-                        {{- else -}}
-                                {{$ptr}}{{- refName $schema.Ref -}}:
-                        {{- end -}}
-                    {{- end -}}
-                    {{- if ne $code "default"}}
-            w.WriteHeader({{$code}})
-                    {{end -}}
-                    {{- with $schema := index $resp.Content "application/json" -}}
-                        {{- $.Import "github.com/aarondl/oa3/support"}}
-            if err := support.WriteJSON(w, {{$respVar}}); err != nil {
-                return err
-            }
+                    {{- else if not $resp.Content -}}
+                            {{- $statusName := camelcase (httpStatus (atoi $code)) -}}
+                            {{if $multi}}{{$ptr}}HTTPStatus{{$statusName}}:{{end}}
+                w.WriteHeader({{if responseNeedsCodeWrap $op $code}}respBody.Code{{else}}{{$code}}{{end}})
                     {{- else -}}
+                        {{- if $multi -}}
+                            {{- with $schema := index $resp.Content "application/json" -}}
+                                {{- if $schema.Schema.Ref -}}
+                                    {{$ptr}}{{- title (refName $schema.Schema.Ref) -}}:
+                                {{- else -}}
+                                    {{$ptr}}{{responseTypeName $op $code false}}:
+                                {{- end -}}
+                            {{- else -}}
+                                    {{$ptr}}{{- title (refName $schema.Ref) -}}:
+                            {{- end -}}
+                        {{- end -}}
+                        {{- if ne $code "default"}}
+            w.WriteHeader({{$code}})
+                        {{end -}}
+                        {{- with $schema := index $resp.Content "application/json" -}}
+                            {{- $.Import "github.com/aarondl/oa3/support"}}
+            if err := support.WriteJSON(w, {{$respVar}}); err != nil {
+                return err
+            }
+                        {{- else -}}
             if {{$respVar}} != nil {
                 {{- $.Import "io"}}
                 if _, err := io.Copy(w, {{$respVar}}); err != nil {
@@ -253,16 +256,17 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                     return err
                 }
             }
+                        {{- end -}}
                     {{- end -}}
+                {{- end -}}
             {{- end -}}
         {{- end -}}
-    {{- end -}}
-    {{- if $multi}}
+        {{- if $multi}}
     default:
         _ = respBody
         panic("impossible case")
     }
-    {{- end}}
+        {{- end}}
 
     return nil
 }

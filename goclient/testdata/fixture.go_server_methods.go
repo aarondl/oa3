@@ -844,12 +844,12 @@ func (_c Client) SetUser(ctx context.Context, body *Primitives, id string, param
 		}
 		_resp = _respObject
 	default:
-		var _respObject Primitives
+		var _respObject SetUserWrappedResponse
 		_b, _err := io.ReadAll(_httpResp.Body)
 		if _err != nil {
 			return _resp, _httpResp, _err
 		}
-		if _err = json.Unmarshal(_b, &_respObject); _err != nil {
+		if _err = json.Unmarshal(_b, &_respObject.Body); _err != nil {
 			return _resp, _httpResp, _err
 		}
 		_resp = _respObject
