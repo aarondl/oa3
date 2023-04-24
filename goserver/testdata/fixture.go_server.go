@@ -91,11 +91,16 @@ func NewGoServer(
 		router:    chi.NewRouter(),
 	}
 
+	var tags []string
+	_ = tags
+
+	tags = append(tags, "")
 	// Untagged operations
 	o.router.Group(func(r chi.Router) {
 		if m, ok := mw[""]; ok {
 			r.Use(m...)
 		}
+
 		r.Method(http.MethodPost, `/auth`, eh.Wrap(o.authenticateOp))
 		r.Method(http.MethodGet, `/test/array/request`, eh.Wrap(o.testarrayrequestOp))
 		r.Method(http.MethodGet, `/test/enum/query/request`, eh.Wrap(o.testenumqueryrequestOp))
@@ -115,14 +120,38 @@ func NewGoServer(
 		r.Method(http.MethodGet, `/test/type_overrides`, eh.Wrap(o.testtypeoverridesOp))
 		r.Method(http.MethodPost, `/test/unknown/body/type`, eh.Wrap(o.testunknownbodytypeOp))
 	})
+	tags = append(tags, "users")
 	// users tagged operations
 	o.router.Group(func(r chi.Router) {
 		if m, ok := mw["users"]; ok {
-			r.Use(m...)
+			if len(m) > 0 {
+				r.Use(m...)
+			}
+		} else {
+			panic("expecting middleware declared for tag: 'users', use empty slice as mw entry if none are necessary")
 		}
+
 		r.Method(http.MethodGet, `/users/{id}`, eh.Wrap(o.getuserOp))
 		r.Method(http.MethodPost, `/users/{id}`, eh.Wrap(o.setuserOp))
 	})
+
+	for mwTag := range mw {
+		if len(mwTag) == 0 {
+			continue
+		}
+
+		found := false
+		for _, tag := range tags {
+			if tag == mwTag {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			panic("unexpected middleware tag (not defined in any endpoint): " + mwTag)
+		}
+	}
 
 	return o
 }

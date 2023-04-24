@@ -66,17 +66,49 @@ func New{{$.Name}}(
         router:    chi.NewRouter(),
     }
 
+    var tags []string
+    _ = tags
+
     {{range $tag := taggedPaths $.Spec -}}
+    tags = append(tags, "{{$tag.Tag}}")
     // {{if $tag.Tag}}{{$tag.Tag}} tagged{{else}}Untagged{{end}} operations
     o.router.Group(func(r chi.Router) {
+        {{if $tag.Tag -}}
+        if m, ok := mw["{{$tag.Tag}}"]; ok {
+            if len(m) > 0 {
+                r.Use(m...)
+            }
+        } else {
+            panic("expecting middleware declared for tag: '{{$tag.Tag}}', use empty slice as mw entry if none are necessary")
+        }
+        {{else -}}
         if m, ok := mw["{{$tag.Tag}}"]; ok {
             r.Use(m...)
         }
+        {{end}}
             {{- range $op := $tag.Ops}}
         r.Method(http.Method{{title (lower $op.Method)}}, `{{$op.Path}}`, eh.Wrap(o.{{lower (camelcase $op.Op.OperationID)}}Op))
             {{- end -}}
     })
     {{end}}
+
+    for mwTag := range mw {
+        if len(mwTag) == 0 {
+            continue
+        }
+
+        found := false
+        for _, tag := range tags {
+            if tag == mwTag {
+                found = true
+                break
+            }
+        }
+
+        if !found {
+            panic("unexpected middleware tag (not defined in any endpoint): " + mwTag)
+        }
+    }
 
     return o
 }

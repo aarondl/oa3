@@ -8,6 +8,9 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Go server: Add safety around middlewares, constructor will panic when
+  middleware does not exist for a tag defined by an endpoint. Constructor will
+  also panic when middleware is defined for a tag defined by no endpoint.
 - Go server: Case for both pointers and non-pointers in responses.
   this slightly increases the amount of generated code but reduces the friction
   in using the library.
