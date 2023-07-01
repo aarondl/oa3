@@ -786,7 +786,7 @@ func snakeToCamel(in string) string {
 func filterNonIdentChars(in string) string {
 	build := new(strings.Builder)
 	for _, c := range in {
-		if unicode.IsLetter(c) || c == '_' {
+		if unicode.IsLetter(c) || unicode.IsDigit(c) || c == '_' {
 			build.WriteRune(c)
 		}
 	}
@@ -961,6 +961,10 @@ func paramSchemaName(operationID string, methodName string, paramName string) st
 }
 
 func paramRequiresType(param openapi3spec.ParameterRef) bool {
+	if len(param.Schema.Ref) != 0 {
+		return false
+	}
+
 	return len(param.Schema.Schema.Enum) != 0 || param.Schema.Schema.Type == "object" || param.Schema.Schema.Type == "array"
 }
 

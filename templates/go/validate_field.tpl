@@ -52,7 +52,7 @@ if err := support.ValidatePattern({{$name}}, {{printf $.Object.Pattern}}); err !
 }
 {{- end -}}
 {{- if and $.Object.Format (eq (printf $.Object.Format) "uuid") }}
-if err := support.ValidateFormatUUIDv4({{$name}}); err != nil {
+if err := support.ValidateFormatUUIDv4(string({{$name}})); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}

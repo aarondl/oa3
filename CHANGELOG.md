@@ -4,6 +4,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.53] - 2023-07-01
+
+### Fixed
+
+- Go: Fixed enum names with numbers in them
+- Go server: Fixed validation of named enum types
+
 ## [v0.0.52] - 2023-04-24
 
 ### Changed
