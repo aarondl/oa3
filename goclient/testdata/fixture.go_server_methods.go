@@ -561,7 +561,7 @@ func (_c Client) TestSingleServerPathOverrideRequest(ctx context.Context) (HTTPS
 	var _resp HTTPStatusOk
 	var _httpResp *http.Response
 	var _err error
-	baseURL := Httppathdevlocal
+	baseURL := Httppathdevlocal3030
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/single_servers`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodGet, _urlStr, nil)
 	if _err != nil {
@@ -592,7 +592,7 @@ func (_c Client) TestSingleServerOpOverrideRequest(ctx context.Context) (HTTPSta
 	var _resp HTTPStatusOk
 	var _httpResp *http.Response
 	var _err error
-	baseURL := Httpopdevlocal
+	baseURL := Httpopdevlocal3030
 	_urlStr := strings.TrimSuffix(baseURL.ToURL(), "/") + `/test/single_servers`
 	_req, _err := http.NewRequestWithContext(ctx, http.MethodPost, _urlStr, nil)
 	if _err != nil {

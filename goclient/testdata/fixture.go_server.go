@@ -27,9 +27,9 @@ const (
 // defaults.
 //
 // Implementors:
-// - Httpdevlocal
-// - Httpprodlocalonetwo
-// - Httpvariableslocalvariable
+// - Httpdevlocal3030
+// - Httpprodlocal3030onetwo
+// - Httpvariableslocal3030variable
 type URLBuilder interface {
 	ToURL() string
 }
@@ -40,15 +40,15 @@ type URL string
 func (b URL) ToURL() string { return string(b) }
 
 // Local development
-var Httpdevlocal = URL(`http://dev.local:3030`)
+var Httpdevlocal3030 = URL(`http://dev.local:3030`)
 
 // Production
-type Httpprodlocalonetwo struct {
+type Httpprodlocal3030onetwo struct {
 	One string
 	Two string
 }
 
-func (s Httpprodlocalonetwo) ToURL() string {
+func (s Httpprodlocal3030onetwo) ToURL() string {
 	uri := `http://prod.local:3030/{one}/{two}`
 	if len(s.One) != 0 {
 		uri = strings.ReplaceAll(uri, `{one}`, s.One)
@@ -64,11 +64,11 @@ func (s Httpprodlocalonetwo) ToURL() string {
 }
 
 // Variable path
-type Httpvariableslocalvariable struct {
+type Httpvariableslocal3030variable struct {
 	Variable string
 }
 
-func (s Httpvariableslocalvariable) ToURL() string {
+func (s Httpvariableslocal3030variable) ToURL() string {
 	uri := `http://variables.local:3030/{variable}`
 	if len(s.Variable) != 0 {
 		switch s.Variable {
@@ -93,25 +93,25 @@ func (b URLTestservers) TestserversSatisfy() {}
 // but restricts the implementing types to a smaller subset.
 //
 // Implementors:
-// - Httppathdevlocal
-// - Httppathprodlocalonetwo
-// - Httppathvariableslocalvariable
+// - Httppathdevlocal3030
+// - Httppathprodlocal3030onetwo
+// - Httppathvariableslocal3030variable
 type URLBuilderTestservers interface {
 	URLBuilder
 	TestserversSatisfy()
 }
 
 // Local development
-var Httppathdevlocal = URLTestservers(`http://path.dev.local:3030`)
+var Httppathdevlocal3030 = URLTestservers(`http://path.dev.local:3030`)
 
 // Production
-type Httppathprodlocalonetwo struct {
+type Httppathprodlocal3030onetwo struct {
 	One string
 	Two string
 }
 
-func (Httppathprodlocalonetwo) TestserversToURL() {}
-func (s Httppathprodlocalonetwo) ToURL() string {
+func (Httppathprodlocal3030onetwo) TestserversToURL() {}
+func (s Httppathprodlocal3030onetwo) ToURL() string {
 	uri := `http://path.prod.local:3030/{one}/{two}`
 	if len(s.One) != 0 {
 		uri = strings.ReplaceAll(uri, `{one}`, s.One)
@@ -127,12 +127,12 @@ func (s Httppathprodlocalonetwo) ToURL() string {
 }
 
 // Variable path
-type Httppathvariableslocalvariable struct {
+type Httppathvariableslocal3030variable struct {
 	Variable string
 }
 
-func (Httppathvariableslocalvariable) TestserversToURL() {}
-func (s Httppathvariableslocalvariable) ToURL() string {
+func (Httppathvariableslocal3030variable) TestserversToURL() {}
+func (s Httppathvariableslocal3030variable) ToURL() string {
 	uri := `http://path.variables.local:3030/{variable}`
 	if len(s.Variable) != 0 {
 		switch s.Variable {
@@ -157,25 +157,25 @@ func (b URLTestserversPost) TestserversPostSatisfy() {}
 // but restricts the implementing types to a smaller subset.
 //
 // Implementors:
-// - Httpopdevlocal
-// - Httpopprodlocalonetwo
-// - Httpopvariableslocalvariable
+// - Httpopdevlocal3030
+// - Httpopprodlocal3030onetwo
+// - Httpopvariableslocal3030variable
 type URLBuilderTestserversPost interface {
 	URLBuilder
 	TestserversPostSatisfy()
 }
 
 // Local development
-var Httpopdevlocal = URLTestserversPost(`http://op.dev.local:3030`)
+var Httpopdevlocal3030 = URLTestserversPost(`http://op.dev.local:3030`)
 
 // Production
-type Httpopprodlocalonetwo struct {
+type Httpopprodlocal3030onetwo struct {
 	One string
 	Two string
 }
 
-func (Httpopprodlocalonetwo) TestserversPostToURL() {}
-func (s Httpopprodlocalonetwo) ToURL() string {
+func (Httpopprodlocal3030onetwo) TestserversPostToURL() {}
+func (s Httpopprodlocal3030onetwo) ToURL() string {
 	uri := `http://op.prod.local:3030/{one}/{two}`
 	if len(s.One) != 0 {
 		uri = strings.ReplaceAll(uri, `{one}`, s.One)
@@ -191,12 +191,12 @@ func (s Httpopprodlocalonetwo) ToURL() string {
 }
 
 // Variable path
-type Httpopvariableslocalvariable struct {
+type Httpopvariableslocal3030variable struct {
 	Variable string
 }
 
-func (Httpopvariableslocalvariable) TestserversPostToURL() {}
-func (s Httpopvariableslocalvariable) ToURL() string {
+func (Httpopvariableslocal3030variable) TestserversPostToURL() {}
+func (s Httpopvariableslocal3030variable) ToURL() string {
 	uri := `http://op.variables.local:3030/{variable}`
 	if len(s.Variable) != 0 {
 		switch s.Variable {
