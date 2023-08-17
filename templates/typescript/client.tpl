@@ -5,13 +5,15 @@
 {{- end}}
 export default class {{.Name}} {
     baseUrl: string;
+    jsonReplacer: (key: string, value: any) => string;
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, jsonReplacer?: (key: string, value: any) => string) {
         if (baseUrl === null) {
             this.baseUrl = '{{(index $.Spec.Servers 0).URL}}';
         } else {
             this.baseUrl = baseUrl;
         }
+        this.jsonReplacer = jsonReplacer;
     }
 {{range $url, $path := $.Spec.Paths -}}
 {{- range $method, $op := $path.Operations -}}
@@ -71,7 +73,7 @@ export default class {{.Name}} {
             method: '{{upper $method}}',
             headers: headers,
             {{- if $op.RequestBody}}
-            body: JSON.stringify(body),
+            body: JSON.stringify(body, this.jsonReplacer),
             {{- end}}
         };
 
