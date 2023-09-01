@@ -22,6 +22,17 @@ var (
 	buffers = sync.Pool{New: newBuffer}
 )
 
+var _ error = UnmarshalBodyError{}
+
+// UnmarshalBodyError is returned from a handler and expected to be handled by ErrorHandler.
+type UnmarshalBodyError struct {
+	UnmarshalError error
+}
+
+func (e UnmarshalBodyError) Error() string {
+	return fmt.Sprintf("unmarshal body error: %s", e.UnmarshalError.Error())
+}
+
 func newBuffer() any {
 	return new(bytes.Buffer)
 }
@@ -187,7 +198,7 @@ func ReadJSONBuffer(r *http.Request, object any) (*bytes.Buffer, error) {
 
 	if err := json.Unmarshal(buf.Bytes(), object); err != nil {
 		putBuffer(buf)
-		return nil, err
+		return nil, UnmarshalBodyError{UnmarshalError: err}
 	}
 
 	return buf, nil
