@@ -767,7 +767,7 @@ func snakeToCamel(in string) string {
 	build := new(strings.Builder)
 	sawUnderscore := false
 	for _, r := range in {
-		if r == '_' {
+		if r == '_' || r == '-' {
 			sawUnderscore = true
 			continue
 		}
