@@ -675,7 +675,7 @@ components:
       type: string
       enum: ['fun', 'happy']
 
-    EntityWithTag:
+    EntityWithDash:
       type: object
       properties:
         with_underscore: { type: string }

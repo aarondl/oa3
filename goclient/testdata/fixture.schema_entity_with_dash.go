@@ -3,23 +3,11 @@
 package oa3gen
 
 import (
-	"github.com/aarondl/oa3/support"
 	"github.com/aarondl/opt/omit"
 )
 
-type EntityWithTag struct {
+type EntityWithDash struct {
 	WithDash              omit.Val[string] `json:"with-dash,omitempty"`
 	WithDashAndUnderscore omit.Val[string] `json:"with-dash_and_underscore,omitempty"`
 	WithUnderscore        omit.Val[string] `json:"with_underscore,omitempty"`
-}
-
-// validateSchema validates the object and returns
-// errors that can be returned to the user.
-func (o EntityWithTag) validateSchema() support.Errors {
-	var ctx []string
-	var ers []error
-	var errs support.Errors
-	_, _, _ = ctx, ers, errs
-
-	return errs
 }
