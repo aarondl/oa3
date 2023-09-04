@@ -8,8 +8,9 @@ import (
 )
 
 type EntityWithTag struct {
-	WithDash       omit.Val[string] `json:"with-dash,omitempty"`
-	WithUnderscore omit.Val[string] `json:"with_underscore,omitempty"`
+	WithDash              omit.Val[string] `json:"with-dash,omitempty"`
+	WithDashAndUnderscore omit.Val[string] `json:"with-dash_and_underscore,omitempty"`
+	WithUnderscore        omit.Val[string] `json:"with_underscore,omitempty"`
 }
 
 // validateSchema validates the object and returns

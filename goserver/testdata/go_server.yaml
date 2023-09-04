@@ -680,3 +680,4 @@ components:
       properties:
         with_underscore: { type: string }
         with-dash: { type: string }
+        with-dash_and_underscore: { type: string }
