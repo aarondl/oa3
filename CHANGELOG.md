@@ -4,6 +4,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic
 Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v0.0.55] - 2023-09-06
+
+### Changed
+
+- Typescript: Added the ability to control JSON unmarshaling more
+
+### Fixed
+
+- Go: Fixed issues with dashes being used in names
+
 ## [v0.0.54] - 2023-09-01
 
 ### Added
