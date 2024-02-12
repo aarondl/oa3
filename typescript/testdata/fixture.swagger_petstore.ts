@@ -1,13 +1,15 @@
 // SwaggerPetstore is a client package to interact with the api.
 export default class SwaggerPetstore {
     baseUrl: string;
+    jsonReplacer: (key: string, value: any) => string;
 
-    constructor(baseUrl: string) {
+    constructor(baseUrl: string, jsonReplacer?: (key: string, value: any) => string) {
         if (baseUrl === null) {
             this.baseUrl = 'http://petstore.swagger.io/v1';
         } else {
             this.baseUrl = baseUrl;
         }
+        this.jsonReplacer = jsonReplacer;
     }
 
     // listPets get /pets
@@ -29,7 +31,7 @@ export default class SwaggerPetstore {
         const params = {
             method: 'GET',
             headers: headers,
-            body: JSON.stringify(body),
+            body: JSON.stringify(body, this.jsonReplacer),
         };
 
         return fetch(new Request(this.baseUrl + url + query, params));
