@@ -2,6 +2,7 @@
 {{- $.Import "net/http/httputil" -}}
 {{- $.Import "context" -}}
 {{- $.Import "fmt" -}}
+{{- $.Import "log" -}}
 {{- $.Import "time" -}}
 
 type ctxKey string
@@ -87,7 +88,7 @@ func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Respons
 		if err != nil {
 			return nil, fmt.Errorf("failed to emit debugging info: %w", err)
 		}
-		fmt.Printf("%s\n", reqDump)
+		log.Printf("%s\n", reqDump)
 	}
 
 	var resp *http.Response
@@ -109,7 +110,7 @@ func (c Client) doRequest(ctx context.Context, req *http.Request) (*http.Respons
 		if err != nil {
 			return nil, fmt.Errorf("failed to emit debugging info: %w", err)
 		}
-		fmt.Printf("%s\n", respDump)
+		log.Printf("%s\n", respDump)
 	}
 
 	return resp, nil
