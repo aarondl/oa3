@@ -11,24 +11,23 @@ if err := support.ValidateMinLength({{$name}}, {{$.Object.MinLength}}); err != n
     ers = append(ers, err)
 }
 {{- end -}}
-{{- if and $.Object.Maximum (eq $.Object.Type "number")}}
+{{- if and $.Object.Maximum (or (eq $.Object.Type "number") (eq $.Object.Type "integer"))}}
 if err := support.ValidateMaxNumber({{$name}}, {{$.Object.Maximum}}, {{$.Object.ExclusiveMaximum}}); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
 {{- if and $.Object.Maximum (eq $.Object.Type "string") (eq (printf $.Object.Format) "decimal")}}
-if err := support.ValidateMaxShopSpringDecimal({{$name}}, decimal.NewFromString({{$.Object.Maximum}})); err != nil {
+if err := support.ValidateMaxShopspringDecimal({{$name}}, decimal.NewFromFloat({{$.Object.Maximum}}), {{$.Object.ExclusiveMaximum}}); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
-{{- end -}}
-{{- if and $.Object.Minimum (eq $.Object.Type "number")}}
+{{- if and $.Object.Minimum (or (eq $.Object.Type "number") (eq $.Object.Type "integer"))}}
 if err := support.ValidateMinNumber({{$name}}, {{$.Object.Minimum}}, {{$.Object.ExclusiveMinimum}}); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
 {{- if and $.Object.Minimum (eq $.Object.Type "string") (eq (printf $.Object.Format) "decimal")}}
-if err := support.ValidateMinShopSpringDecimal({{$name}}, decimal.NewFromString({{$.Object.Minimum}})); err != nil {
+if err := support.ValidateMinShopspringDecimal({{$name}}, decimal.NewFromFloat({{$.Object.Minimum}}), {{$.Object.ExclusiveMinimum}}); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}

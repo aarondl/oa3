@@ -57,6 +57,37 @@ func (o Primitives) validateSchema() support.Errors {
 	_, _, _ = ctx, ers, errs
 
 	ers = nil
+	if err := support.ValidateMinShopspringDecimal(o.Decimal, decimal.NewFromFloat(5.25), false); err != nil {
+		ers = append(ers, err)
+	}
+	if err := support.ValidateFormatDecimal(o.Decimal); err != nil {
+		ers = append(ers, err)
+	}
+	if len(ers) != 0 {
+		ctx = append(ctx, "decimal")
+		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+		ctx = ctx[:len(ctx)-1]
+	}
+
+	if val, ok := o.DecimalNull.Get(); ok {
+
+		ers = nil
+		if err := support.ValidateMaxShopspringDecimal(val, decimal.NewFromFloat(10.25), false); err != nil {
+			ers = append(ers, err)
+		}
+		if err := support.ValidateMinShopspringDecimal(val, decimal.NewFromFloat(5.25), false); err != nil {
+			ers = append(ers, err)
+		}
+		if err := support.ValidateFormatDecimal(val); err != nil {
+			ers = append(ers, err)
+		}
+		if len(ers) != 0 {
+			ctx = append(ctx, "decimal_null")
+			errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
+			ctx = ctx[:len(ctx)-1]
+		}
+	}
+	ers = nil
 	if err := support.ValidateMultipleOfFloat(o.Float, 5.5); err != nil {
 		ers = append(ers, err)
 	}

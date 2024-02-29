@@ -469,8 +469,8 @@ components:
 
         uuid:          { type: string, format: uuid }
         uuid_null:     { type: string, format: uuid, nullable: true }
-        decimal:       { type: string, format: decimal }
-        decimal_null:  { type: string, format: decimal, nullable: true }
+        decimal:       { type: string, format: decimal, minimum: 5.25}
+        decimal_null:  { type: string, format: decimal, nullable: true, minimum: 5.25, maximum: 10.25}
         time_val:      { type: string, format: time }
         time_null:     { type: string, format: time, nullable: true }
         datetime_val:  { type: string, format: date-time }
