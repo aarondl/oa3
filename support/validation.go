@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"golang.org/x/exp/constraints"
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -26,7 +27,8 @@ func ValidateFormatUUIDv4(s string) error {
 }
 
 // ValidateFormatDecimal checks it look like it's in a decimal shape
-func ValidateFormatDecimal(s string) error {
+func ValidateFormatDecimal(d decimal.Decimal) error {
+	s := d.String()
 	if !rgxDecimal.MatchString(s) {
 		return errors.New("must be a valid decimal number")
 	}
@@ -57,6 +59,36 @@ func ValidateMinNumber[N constraints.Integer | constraints.Float](val, min N, ex
 		}
 	} else {
 		if val < min {
+			return fmt.Errorf("must be greater than or equal to %v", min)
+		}
+	}
+
+	return nil
+}
+
+// ValidateMaxDecimal checks that val <= max or if exclusive then val < max
+func ValidateMaxShopspringDecimal(val, max decimal.Decimal, exclusive bool) error {
+	if exclusive {
+		if val.GreaterThanOrEqual(max) {
+			return fmt.Errorf("must be less than %v", max)
+		}
+	} else {
+		if val.GreaterThan(max) {
+			return fmt.Errorf("must be less than or equal to %v", max)
+		}
+	}
+
+	return nil
+}
+
+// ValidateMinDecimal checks that val >= min or if exclusive then val > min
+func ValidateMinShopspringDecimal(val, min decimal.Decimal, exclusive bool) error {
+	if exclusive {
+		if val.LessThanOrEqual(min) {
+			return fmt.Errorf("must be greater than %v", min)
+		}
+	} else {
+		if val.LessThan(min) {
 			return fmt.Errorf("must be greater than or equal to %v", min)
 		}
 	}

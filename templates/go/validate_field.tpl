@@ -11,13 +11,24 @@ if err := support.ValidateMinLength({{$name}}, {{$.Object.MinLength}}); err != n
     ers = append(ers, err)
 }
 {{- end -}}
-{{- if $.Object.Maximum}}
+{{- if and $.Object.Maximum (eq $.Object.Type "number")}}
 if err := support.ValidateMaxNumber({{$name}}, {{$.Object.Maximum}}, {{$.Object.ExclusiveMaximum}}); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
-{{- if $.Object.Minimum}}
+{{- if and $.Object.Maximum (eq $.Object.Type "string") (eq (printf $.Object.Format) "decimal")}}
+if err := support.ValidateMaxShopSpringDecimal({{$name}}, decimal.NewFromString({{$.Object.Maximum}})); err != nil {
+    ers = append(ers, err)
+}
+{{- end -}}
+{{- end -}}
+{{- if and $.Object.Minimum (eq $.Object.Type "number")}}
 if err := support.ValidateMinNumber({{$name}}, {{$.Object.Minimum}}, {{$.Object.ExclusiveMinimum}}); err != nil {
+    ers = append(ers, err)
+}
+{{- end -}}
+{{- if and $.Object.Minimum (eq $.Object.Type "string") (eq (printf $.Object.Format) "decimal")}}
+if err := support.ValidateMinShopSpringDecimal({{$name}}, decimal.NewFromString({{$.Object.Minimum}})); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
