@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"golang.org/x/exp/constraints"
 	"github.com/shopspring/decimal"
+	"golang.org/x/exp/constraints"
 )
 
 var (
@@ -27,8 +27,7 @@ func ValidateFormatUUIDv4(s string) error {
 }
 
 // ValidateFormatDecimal checks it look like it's in a decimal shape
-func ValidateFormatDecimal(d decimal.Decimal) error {
-	s := d.String()
+func ValidateFormatDecimal(s string) error {
 	if !rgxDecimal.MatchString(s) {
 		return errors.New("must be a valid decimal number")
 	}

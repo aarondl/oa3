@@ -60,9 +60,6 @@ func (o Primitives) validateSchema() support.Errors {
 	if err := support.ValidateMinShopspringDecimal(o.Decimal, decimal.NewFromFloat(5.25), false); err != nil {
 		ers = append(ers, err)
 	}
-	if err := support.ValidateFormatDecimal(o.Decimal); err != nil {
-		ers = append(ers, err)
-	}
 	if len(ers) != 0 {
 		ctx = append(ctx, "decimal")
 		errs = support.AddErrs(errs, strings.Join(ctx, "."), ers...)
@@ -76,9 +73,6 @@ func (o Primitives) validateSchema() support.Errors {
 			ers = append(ers, err)
 		}
 		if err := support.ValidateMinShopspringDecimal(val, decimal.NewFromFloat(5.25), false); err != nil {
-			ers = append(ers, err)
-		}
-		if err := support.ValidateFormatDecimal(val); err != nil {
 			ers = append(ers, err)
 		}
 		if len(ers) != 0 {
