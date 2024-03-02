@@ -140,6 +140,10 @@ func (s *Schema) Validate() error {
 	}
 	if s.Maximum != nil {
 		switch s.Type {
+		case "string":
+			if (s.Format != nil && *s.Format != "decimal") {
+				return errors.New("maximum: cannot be used unless format is 'decimal'")
+			}
 		case "integer", "number":
 		default:
 			return errors.New("maximum: cannot be used unless type is one of: 'integer', 'number'")
@@ -147,6 +151,10 @@ func (s *Schema) Validate() error {
 	}
 	if s.Minimum != nil {
 		switch s.Type {
+		case "string":
+			if (s.Format != nil && *s.Format != "decimal") {
+				return errors.New("minimum: cannot be used unless format is 'decimal'")
+			}
 		case "integer", "number":
 		default:
 			return errors.New("minimum: cannot be used unless type is one of: 'integer', 'number'")
