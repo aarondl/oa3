@@ -98,6 +98,10 @@ func rootCmdRun(cmd *cobra.Command, args []string) error {
 		params[splits[0]] = splits[1]
 	}
 
+	if _, ok := params["decimaltype"]; !ok {
+		params["decimaltype"] = "string"
+	}
+
 	files, err := generate(args[0], args[1], params)
 	if err != nil {
 		return err
