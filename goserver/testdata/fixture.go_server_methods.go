@@ -1223,7 +1223,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 			headers.Set("X-Response-Header", val)
 		}
 		w.WriteHeader(respBody.Code)
-		if err := support.WriteJSON(w, respBody); err != nil {
+		if err := support.WriteJSON(w, respBody.Body); err != nil {
 			return err
 		}
 	case *SetUserWrappedResponse:
@@ -1232,7 +1232,7 @@ func (o GoServer) setuserOp(w http.ResponseWriter, r *http.Request) error {
 			headers.Set("X-Response-Header", val)
 		}
 		w.WriteHeader(respBody.Code)
-		if err := support.WriteJSON(w, respBody); err != nil {
+		if err := support.WriteJSON(w, respBody.Body); err != nil {
 			return err
 		}
 	default:

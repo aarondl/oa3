@@ -218,7 +218,7 @@ func (o {{$.Name}}) {{$opname}}Op(w http.ResponseWriter, r *http.Request) error 
                             {{- end -}}
                             {{- if $resp.Content -}}
                             {{- $.Import "github.com/aarondl/oa3/support"}}
-            if err := support.WriteJSON(w, {{$respVar}}); err != nil {
+            if err := support.WriteJSON(w, {{$respVar}}.Body); err != nil {
                 return err
             }
                             {{- end -}}
