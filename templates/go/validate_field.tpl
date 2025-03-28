@@ -66,7 +66,7 @@ if err := support.ValidateFormatUUIDv4(string({{$name}})); err != nil {
     ers = append(ers, err)
 }
 {{- end -}}
-{{- if and $.Object.Format (eq (printf $.Object.Format) "decimal") (eq $.Params.decimaltype "string")}}}
+{{- if and $.Object.Format (eq (printf $.Object.Format) "decimal") (eq $.Params.decimaltype "string") }}
 if err := support.ValidateFormatDecimal({{$name}}); err != nil {
     ers = append(ers, err)
 }
