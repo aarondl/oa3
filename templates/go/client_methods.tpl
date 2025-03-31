@@ -28,7 +28,7 @@ func (_c Client) {{$opname}}(ctx context.Context
                     {{- end -}}
             {{- else -}}
                 {{- $.Import "io" -}}
-                , body io.ReadCloser
+                , contentType string, body io.ReadCloser
             {{- end -}}
         {{- end -}}
 		{{- range $param := $op.Parameters -}}
@@ -71,6 +71,7 @@ func (_c Client) {{$opname}}(ctx context.Context
             _req.Body = io.NopCloser(bytes.NewReader(_bodyBytes))
         {{- else}}
             _req.Body = body
+            _req.Header.Set("Content-Type", contentType)
         {{- end -}}
     {{- end -}}
 	{{- range $param := $op.Parameters -}}
