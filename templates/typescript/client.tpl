@@ -13,7 +13,9 @@ export default class {{.Name}} {
         } else {
             this.baseUrl = baseUrl;
         }
-        this.jsonReplacer = jsonReplacer;
+        if (jsonReplacer !== undefined) {
+          this.jsonReplacer = jsonReplacer;
+        }
     }
 {{range $url, $path := $.Spec.Paths -}}
 {{- range $method, $op := $path.Operations -}}
