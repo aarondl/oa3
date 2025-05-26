@@ -5,7 +5,7 @@
 {{- end}}
 export default class {{.Name}} {
     baseUrl: string;
-    jsonReplacer: (key: string, value: any) => string;
+    jsonReplacer: ((key: string, value: any) => string) | undefined;
 
     constructor(baseUrl: string, jsonReplacer?: (key: string, value: any) => string) {
         if (baseUrl === null) {
@@ -13,9 +13,7 @@ export default class {{.Name}} {
         } else {
             this.baseUrl = baseUrl;
         }
-        if (jsonReplacer !== undefined) {
-          this.jsonReplacer = jsonReplacer;
-        }
+        this.jsonReplacer = jsonReplacer;
     }
 {{range $url, $path := $.Spec.Paths -}}
 {{- range $method, $op := $path.Operations -}}
