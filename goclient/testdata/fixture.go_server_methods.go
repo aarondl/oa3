@@ -672,7 +672,7 @@ func (_c Client) TestTypeOverrides(ctx context.Context, body *Primitives, number
 }
 
 // TestUnknownBodyType post /test/unknown/body/type
-func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (TestUnknownBodyType200Inline, *http.Response, error) {
+func (_c Client) TestUnknownBodyType(ctx context.Context, contentType string, body io.ReadCloser) (TestUnknownBodyType200Inline, *http.Response, error) {
 	var _resp TestUnknownBodyType200Inline
 	var _httpResp *http.Response
 	var _err error
@@ -683,6 +683,7 @@ func (_c Client) TestUnknownBodyType(ctx context.Context, body io.ReadCloser) (T
 		return _resp, _httpResp, _err
 	}
 	_req.Body = body
+	_req.Header.Set("Content-Type", contentType)
 	var _query url.Values
 	if len(_query) > 0 {
 		_req.URL.RawQuery = _query.Encode()
