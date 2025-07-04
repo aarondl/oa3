@@ -1,7 +1,7 @@
 // SwaggerPetstore is a client package to interact with the api.
 export default class SwaggerPetstore {
     baseUrl: string;
-    jsonReplacer: (key: string, value: any) => string;
+    jsonReplacer: ((key: string, value: any) => string) | undefined;
 
     constructor(baseUrl: string, jsonReplacer?: (key: string, value: any) => string) {
         if (baseUrl === null) {
